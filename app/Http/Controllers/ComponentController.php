@@ -6,7 +6,8 @@ use App\Models\Component;
 use App\Http\Requests\StoreComponentRequest;
 use App\Http\Requests\UpdateComponentRequest;
 use Exception;
-use GuzzleHttp\Psr7\Request;
+use Illuminate\Http\Request;
+use Illuminate\Console\Command;
 
 class ComponentController extends Controller
 {
@@ -36,8 +37,8 @@ class ComponentController extends Controller
         $new->name = $request->name;
         $new->type_id = $request->type_id;
 
-        if($new->save())
-            return response()->json($new, 201);
+        $new->save();
+        return response()->json($new, 201);
     }
 
     /**

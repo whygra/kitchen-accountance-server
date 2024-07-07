@@ -32,7 +32,7 @@ class Component extends Model
         'type_id',
     ];
 
-    public function purchaseItem(): HasOne
+    public function commponentType(): HasOne
     {
         return $this->hasOne(ComponentType::class);
     }
