@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Dish extends Model
@@ -28,15 +30,16 @@ class Dish extends Model
      */
     protected $fillable = [
         'name',
+        'image_path',
     ];
 
-    public function dishComponents(): HasMany
+    public function dishes_components(): BelongsToMany
     {
-        return $this->hasMany(DishComponent::class);
+        return $this->belongsToMany(DishComponent::class);
     }
 
-    public function menuItems(): HasMany
+    public function menu_items(): BelongsTo
     {
-        return $this->hasMany(MenuItem::class);
+        return $this->belongsTo(MenuItem::class);
     }
 }

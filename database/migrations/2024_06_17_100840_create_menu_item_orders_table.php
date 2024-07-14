@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // связь M-N между заказом и позицией меню
-        Schema::create('menu_item_orders', function (Blueprint $table) {
+        Schema::create('menu_items_orders', function (Blueprint $table) {
             $table->id();
             // заказ
             $table->foreignId('order_id');
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('menu_item_orders');
+        Schema::dropIfExists('menu_items_orders');
     }
 };

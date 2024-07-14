@@ -4,7 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
 class ComponentProduct extends Model
 {
@@ -14,7 +16,7 @@ class ComponentProduct extends Model
      * The table associated with the model.
      * @var string
      */
-    protected $table = 'component_products';
+    protected $table = 'components_products';
     /**
      * Indicates if the model should be timestamped.
      * @var bool
@@ -26,6 +28,7 @@ class ComponentProduct extends Model
      *
      * @var array<int, string>
      */
+    
     protected $fillable = [
         'component_id',
         'product_id',
@@ -33,14 +36,24 @@ class ComponentProduct extends Model
         'waste_percentage',
     ];
 
-    public function component(): HasOne
+    protected $foreignKeys = [
+        'component' => 'component_id',
+        'product' => 'product_id',
+    ];
+
+    protected $casts = [
+        'raw_content_percentage' => 'float',
+        'waste_percentage' => 'float',
+   ];
+
+    public function component(): BelongsTo
     {
-        return $this->hasOne(Component::class);
+        return $this->belongsTo(Component::class, 'component_id', 'id');
     }
 
-    public function product(): HasOne
+    public function product(): BelongsTo
     {
-        return $this->hasOne(Product::class);
+        return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 
 }

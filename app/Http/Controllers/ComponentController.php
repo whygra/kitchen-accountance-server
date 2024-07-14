@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Component;
 use App\Http\Requests\StoreComponentRequest;
 use App\Http\Requests\UpdateComponentRequest;
+use App\Models\ViewDTOs\ComponentViewDTO;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Console\Command;
@@ -16,7 +17,7 @@ class ComponentController extends Controller
      */
     public function index()
     {
-        $all = Component::all();
+        $all = Component::get();
         return response()->json($all);
     }
 

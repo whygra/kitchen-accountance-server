@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -32,13 +34,17 @@ class MenuItem extends Model
         'price',
     ];
 
-    public function dish(): HasOne 
+    protected $foreignKeys = [
+        'dish' => 'dish_id', 
+    ];
+
+    public function dish(): BelongsTo 
     {
-        return $this->hasOne(Dish::class);
+        return $this->belongsTo(Dish::class);
     }
 
-    public function menuItemOrders(): HasMany
+    public function menu_items_orders(): BelongsToMany
     {
-        return $this->hasMany(MenuItemOrder::class);
+        return $this->belongsToMany(MenuItemOrder::class);
     }
 }

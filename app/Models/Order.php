@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -31,8 +32,8 @@ class Order extends Model
         'is_paid',
     ];
 
-    public function menuItemOrders(): HasMany
+    public function menu_items_orders(): BelongsToMany
     {
-        return $this->hasMany(MenuItemOrder::class);
+        return $this->belongsToMany(MenuItemOrder::class);
     }
 }

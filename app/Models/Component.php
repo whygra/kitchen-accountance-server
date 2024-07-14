@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -32,18 +34,23 @@ class Component extends Model
         'type_id',
     ];
 
-    public function commponentType(): HasOne
+    protected $foreignKeys = [
+        'type' => 'type_id', 
+    ];
+
+    public function type(): BelongsTo
     {
-        return $this->hasOne(ComponentType::class);
+        return $this->belongsTo(ComponentType::class, 'type_id', 'id');
     }
 
-    public function dishComponents(): HasMany
+    public function dishes_components(): BelongsToMany
     {
-        return $this->hasMany(DishComponent::class);
+        return $this->belongsToMany(DishComponent::class, 'component_id', 'id');
     }
 
-    public function componentProducts(): HasMany
+    public function components_products(): HasMany
     {
-        return $this->hasMany(ComponentProduct::class);
+        return $this->hasMany(ComponentProduct::class, 'component_id', 'id');
     }
+
 }

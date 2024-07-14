@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -29,18 +31,23 @@ class Purchase extends Model
      */
     protected $fillable = [
         'date',
+        'distributor_id',
         'isDelivered',
         'isPaid',
     ];
 
-    public function purchaseItems(): HasMany
+    protected $foreignKeys = [
+        'distributor' => 'distributor_id', 
+    ];
+
+    public function purchase_items(): BelongsToMany
     {
-        return $this->hasMany(PurchaseItem::class);
+        return $this->belongsToMany(PurchaseItem::class);
     }
 
-    public function distributor(): HasOne
+    public function distributor(): BelongsTo
     {
-        return $this->hasOne(Distributor::class);
+        return $this->belongsTo(Distributor::class);
     }
 
 }

@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PurchaseItem extends Model
@@ -33,13 +34,18 @@ class PurchaseItem extends Model
         'price',
     ];
 
-    public function purchaseItem(): HasOne
+    protected $foreignKeys = [
+        'purchase_item' => 'purchase_item_id', 
+        'purchase' => 'purchase_id', 
+    ];
+
+    public function purchase_item(): BelongsTo
     {
-        return $this->hasOne(PurchaseItem::class);
+        return $this->belongsTo(PurchaseItem::class);
     }
 
-    public function purchase(): HasOne
+    public function purchase(): BelongsTo
     {
-        return $this->hasOne(Purchase::class);
+        return $this->belongsTo(Purchase::class);
     }
 }

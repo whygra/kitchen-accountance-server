@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ComponentType extends Model
@@ -30,9 +31,9 @@ class ComponentType extends Model
         'name',
     ];
 
-    public function purchaseItem(): HasMany
+    public function components(): BelongsToMany
     {
-        return $this->hasMany(Component::class);
+        return $this->belongsToMany(Component::class, 'type_id', 'id');
     }
 
 }

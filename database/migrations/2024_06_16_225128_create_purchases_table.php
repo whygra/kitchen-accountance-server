@@ -17,9 +17,9 @@ return new class extends Migration
             // дата
             $table->date('date');
             // признак - выполнена
-            $table->boolean('isDelivered');
+            $table->boolean('is_delivered');
             // признак - оплачена
-            $table->boolean('isPaid');
+            $table->boolean('is_paid');
             // поставщик
             $table->foreignId('distributor_id');
             $table->foreign('distributor_id')->references('id')->on('distributors')->onDelete('cascade');

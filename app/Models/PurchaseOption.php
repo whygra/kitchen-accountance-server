@@ -4,6 +4,8 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -28,6 +30,7 @@ class PurchaseOption extends Model
      * @var array<int, string>
      */
     protected $fillable = [
+        'distributor_id',
         'product_id',
         'unit_id',
         'name',
@@ -35,23 +38,29 @@ class PurchaseOption extends Model
         'declared_price',
     ];
 
-    public function purchaseItems(): HasMany
+    protected $foreignKeys = [
+        'product' => 'product_id', 
+        'unit' => 'unit_id', 
+        'distributor' => 'distributor_id', 
+    ];
+
+    public function purchase_items(): BelongsToMany
     {
-        return $this->hasMany(PurchaseOption::class);
+        return $this->belongsToMany(PurchaseOption::class);
     }
 
-    public function product(): HasOne
+    public function product(): BelongsTo
     {
-        return $this->hasOne(Product::class);
+        return $this->belongsTo(Product::class);
     }
 
-    public function unit(): HasOne
+    public function unit(): BelongsTo
     {
-        return $this->hasOne(Unit::class);
+        return $this->belongsTo(Unit::class);
     }
 
-    public function distributor(): HasOne
+    public function distributor(): BelongsTo
     {
-        return $this->hasOne(Distributor::class);
+        return $this->belongsTo(Distributor::class);
     }
 }

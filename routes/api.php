@@ -23,12 +23,14 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/components', [ComponentController::class, 'index']);
+Route::get('/components/all', [ComponentController::class, 'index']);
 Route::get('/components/{id}', [ComponentController::class, 'show']);
 Route::put('/components/update/{id}', [ComponentController::class, 'update']);
 Route::post('/components/create', [ComponentController::class, 'store']);
 Route::delete('/components/delete/{id}', [ComponentController::class, 'destroy']);
 
+Route::get('/components-with-products/all', [ComponentWithProductsController::class, 'index']);
+Route::get('/components-with-products/{id}', [ComponentWithProductsController::class, 'show']);
 Route::put('/components-with-products/update/{id}', [ComponentWithProductsController::class, 'update']);
 Route::post('/components-with-products/create', [ComponentWithProductsController::class, 'store']);
 

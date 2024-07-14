@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Product extends Model
@@ -30,12 +31,12 @@ class Product extends Model
         'name',
     ];
 
-    public function purchaseOptions(): HasMany
+    public function purchase_options(): BelongsToMany
     {
-        return $this->hasMany(PurchaseOption::class);
+        return $this->belongsToMany(PurchaseOption::class);
     }
 
-    public function componentProducts(): HasMany
+    public function components_products(): HasMany
     {
         return $this->hasMany(ComponentProduct::class);
     }

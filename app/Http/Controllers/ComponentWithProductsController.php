@@ -11,58 +11,15 @@ use Illuminate\Http\Request;
 
 class ComponentWithProductsController extends Controller
 {
-    public function store(StoreComponentWithProductsRequest $request)
+    public function index()
     {
-        
-        $item = new Component;
-        
-        // обновление данных компонента
-        $item->name = $request->name;
-        $item->type_id = $request->type_id;
-        $item->save();
-        
-        
-        // обновление продуктов
-        foreach ($request->products_to_update as $productData){
-            $product = Component::find($productData->id);
-            $product->name = $productData->name;
-            $product->save();
-        }
-        
-        // для каждой связи компонент-продукт
-        foreach ($request->component_products as $componentProductData){
-            // id продукта текущей связи
-            $product_id = $componentProductData["id"];
-
-            // если id продукта == 0, нужно создать продукт
-            if($product_id == 0) {
-                // создание продукта
-                $product = new Product;
-                $product->name = $componentProductData["product_name"] ?? "";
-                $product->save();
-                // записываем в переменную id созданного продукта
-                $product_id = $componentProductData["product_id"] = $product->id;
-            }
-
-            // создание связи
-            $componentProduct = new ComponentProduct;
-            // здесь присваиваем связи id продукта
-            $componentProduct->product_id = $componentProductData["product_id"] = $product_id;
-            $componentProduct->component_id = $item->id;
-            $componentProduct->raw_content_percentage = $componentProductData["raw_content_percentage"];
-            $componentProduct->waste_percentage = $componentProductData["waste_percentage"];
-            $componentProduct->save();
-        }
-
-        return response()->json($item, 201);
+        $all = Component::with('components_products.product', 'type')->get();
+        return response()->json($all);
     }
 
-    /**
-     * Display the specified resource.
-     */
     public function show($id)
     {
-        $item = Component::find($id);
+        $item = Component::with('components_products.product', 'type')->find($id);
         if (empty($item))
             return response()->json([
                 'message' => "404"
@@ -71,12 +28,51 @@ class ComponentWithProductsController extends Controller
         return response()->json($item);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Component $component)
+    public function store(StoreComponentWithProductsRequest $request)
     {
-        //
+        
+        $item = new Component;
+        
+        // для каждой связи компонент-продукт
+        foreach ($request->components_products as $componentProductData){
+
+            $product_id = $componentProductData['product_id'];
+
+            // создание, обновление продукта
+            switch($componentProductData['product_data_action']){
+                case 'create':
+                    // создание продукта
+                    $product = new Product;
+                    $product->name = $componentProductData['product_name'] ?? '';
+                    $product->save();
+                    break;
+                case 'update':
+                    // обновление продукта
+                    $product = Product::find($product_id);
+                    $product->name = $componentProductData['product_name'] ?? '';
+                    $product->save();
+                    break;
+                case 'none':
+                    // получение продукта
+                    $product = Product::find($product_id);
+                    break;
+                default:
+                    continue 2;
+            }
+
+            // создание связи
+            $componentProduct = new ComponentProduct;
+            $componentProduct->raw_content_percentage = $componentProductData['raw_content_percentage'];
+            $componentProduct->waste_percentage = $componentProductData['waste_percentage'];
+            $item->components_products()->save($componentProduct->product()->associate($product));
+                    
+        }
+        // обновление данных компонента
+        $item->name = $request->name;
+        $item->type_id = $request->type_id;
+        $item->save();
+        
+        return response()->json($item, 201);
     }
 
     /**
@@ -87,69 +83,69 @@ class ComponentWithProductsController extends Controller
         $item = Component::find($id);
         if (empty($item))
             return response()->json([
-                'message' => "404"
+                'message' => "Компонент с id=$id не найден"
             ], 404);
-            
+
+        // для каждой связи компонент-продукт
+        foreach ($request->components_products as $componentProductData){
+
+            $product_id = $componentProductData['product_id'];
+            $component_product_id = $componentProductData['id'];            
+
+            // создание, обновление связи
+            switch($componentProductData['data_action']){
+                case 'create':
+                    // создание связи
+                    $componentProduct = new ComponentProduct;
+                    $componentProduct->waste_percentage = $componentProductData['waste_percentage'];
+                    $componentProduct->raw_content_percentage = $componentProductData['raw_content_percentage'];
+                    break;
+                case 'update':
+                    // обновление связи
+                    $componentProduct = ComponentProduct::find($component_product_id);
+                    $componentProduct->waste_percentage = $componentProductData['waste_percentage'];
+                    $componentProduct->raw_content_percentage = $componentProductData['raw_content_percentage'];
+                    break;
+                case 'none':
+                    // получение связи
+                    $componentProduct = ComponentProduct::find($component_product_id);
+                    break;
+                case 'delete':
+                    // удаление связи
+                    $componentProduct = ComponentProduct::find($component_product_id);
+                    $componentProduct->delete();
+                default:
+                    continue 2;
+            }
+
+            // создание, обновление продукта
+            switch($componentProductData['product_data_action']){
+                case 'create':
+                    // создание продукта
+                    $product = new Product;
+                    $product->name = $componentProductData['product_name'] ?? '';
+                    $product->save();
+                    break;
+                case 'update':
+                    // обновление продукта
+                    $product = Product::find($product_id);
+                    $product->name = $componentProductData['product_name'] ?? '';
+                    $product->save();
+                    break;
+                case 'none':
+                    // получение продукта
+                    $product = Product::find($product_id);
+                    break;
+                default:
+                    continue 2;
+            } 
+
+            $item->components_products()->save($componentProduct->product()->associate($product));
+        }
         // обновление данных компонента
         $item->name = $request->name;
         $item->type_id = $request->type_id;
         $item->save();
-
-        // обновление продуктов
-        foreach ($request->products_to_update as $productData){
-            $product = Component::find($productData->id);
-            $product->name = $productData->name;
-            $product->save();
-        }
-
-        // для каждой связи компонент-продукт
-        foreach ($request->component_products_to_cu as $componentProductData){
-            // id продукта текущей связи 
-            $product_id = $componentProductData["id"];
-
-            // если id продукта == 0, нужно создать продукт
-            if($product_id == 0) {
-                // создание продукта
-                $product = new Product;
-                $product->name = $componentProductData["product_name"];
-                $product->save();
-                // записываем в переменную id созданного продукта
-                $product_id = $componentProductData["product_id"] = $product->id;
-            }
-
-            // создание и обновление связей
-            // (по соглашению массив component_products_to_cu содержит данные только о связях требующих создания или обновления)
-
-            // если id связи == 0, нужно создать связь
-            if($componentProductData["id"] == 0) {
-                // создание связи
-                $componentProduct = new ComponentProduct;
-                // здесь присваиваем связи id продукта
-                $componentProduct->product_id = $componentProductData["product_id"] = $product_id;
-                $componentProduct->component_id = $item->id;
-                $componentProduct->raw_content_percentage = $componentProductData["raw_content_percentage"];
-                $componentProduct->waste_percentage = $componentProductData["waste_percentage"];
-                $componentProduct->save();
-            }
-            // иначе - обновить связь
-            else{
-                // обновление связи
-                $componentProduct = ComponentProduct::find($componentProductData["id"]);
-                $componentProduct->product_id = $componentProductData["product_id"] = $product_id;
-                $componentProduct->component_id = $item->id;
-                $componentProduct->raw_content_percentage = $componentProductData["raw_content_percentage"];
-                $componentProduct->waste_percentage = $componentProductData["waste_percentage"];
-                $componentProduct->save();
-            }
-        }
-         
-        // удаление связей
-        foreach ($request->component_products_to_delete as $componentProductData){
-            $componentProduct = ComponentProduct::find($componentProductData["id"]);
-            if (empty($componentProduct))
-                continue;
-            $componentProduct->delete();
-        }
 
         return response()->json($item, 200);
     }

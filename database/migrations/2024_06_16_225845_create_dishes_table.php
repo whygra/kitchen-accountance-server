@@ -16,6 +16,8 @@ return new class extends Migration
             $table->id();
             // название
             $table->text('name');
+            // путь к файлу изображения
+            $table->text('image_path');
             $table->timestamps();
         });
     }
