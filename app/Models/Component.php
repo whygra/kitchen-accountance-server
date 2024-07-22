@@ -43,9 +43,9 @@ class Component extends Model
         return $this->belongsTo(ComponentType::class, 'type_id', 'id');
     }
 
-    public function dishes_components(): BelongsToMany
+    public function dishes_components(): HasMany
     {
-        return $this->belongsToMany(DishComponent::class, 'component_id', 'id');
+        return $this->hasMany(DishComponent::class, 'component_id', 'id');
     }
 
     public function components_products(): HasMany

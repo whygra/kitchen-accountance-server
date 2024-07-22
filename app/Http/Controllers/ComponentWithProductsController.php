@@ -33,6 +33,11 @@ class ComponentWithProductsController extends Controller
         
         $item = new Component;
         
+        // обновление данных компонента
+        $item->name = $request->name;
+        $item->type_id = $request->type_id;
+        $item->save();
+        
         // для каждой связи компонент-продукт
         foreach ($request->components_products as $componentProductData){
 
@@ -65,14 +70,11 @@ class ComponentWithProductsController extends Controller
             $componentProduct->raw_content_percentage = $componentProductData['raw_content_percentage'];
             $componentProduct->waste_percentage = $componentProductData['waste_percentage'];
             $item->components_products()->save($componentProduct->product()->associate($product));
-                    
         }
-        // обновление данных компонента
-        $item->name = $request->name;
-        $item->type_id = $request->type_id;
+
         $item->save();
-        
-        return response()->json($item, 201);
+
+        return response()->json($item->with('components_products.product', 'type'), 201);
     }
 
     /**
@@ -147,6 +149,6 @@ class ComponentWithProductsController extends Controller
         $item->type_id = $request->type_id;
         $item->save();
 
-        return response()->json($item, 200);
+        return response()->json($item->with('components_products.product', 'type'), 200);
     }
 }

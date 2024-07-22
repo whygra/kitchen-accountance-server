@@ -36,15 +36,21 @@ class DishComponent extends Model
 
     protected $foreignKeys = [
         'dish' => 'dish_id', 
+        'component' => 'component_id', 
     ];
+
+    protected $casts = [
+        'component_raw_weight' => 'float',
+        'waste_percentage' => 'float',
+   ];
 
     public function dish(): BelongsTo
     {
-        return $this->belongsTo(Dish::class);
+        return $this->belongsTo(Dish::class, 'dish_id', 'id');
     }
 
-    public function components(): BelongsTo
+    public function component(): BelongsTo
     {
-        return $this->belongsTo(Component::class);
+        return $this->belongsTo(Component::class, 'component_id', 'id');
     }
 }

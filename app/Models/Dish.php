@@ -33,13 +33,13 @@ class Dish extends Model
         'image_path',
     ];
 
-    public function dishes_components(): BelongsToMany
+    public function dishes_components(): HasMany
     {
-        return $this->belongsToMany(DishComponent::class);
+        return $this->hasMany(DishComponent::class, 'dish_id', 'id');
     }
 
-    public function menu_items(): BelongsTo
+    public function menu_items(): HasMany
     {
-        return $this->belongsTo(MenuItem::class);
+        return $this->hasMany(MenuItem::class, 'dish_id', 'id');
     }
 }

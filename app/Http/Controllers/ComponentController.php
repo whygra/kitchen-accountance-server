@@ -13,7 +13,7 @@ use Illuminate\Console\Command;
 class ComponentController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource. 
      */
     public function index()
     {
@@ -28,7 +28,7 @@ class ComponentController extends Controller
     {
         //
     }
-
+ 
     /**
      * Store a newly created resource in storage.
      */

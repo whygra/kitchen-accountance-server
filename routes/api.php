@@ -9,6 +9,7 @@ use App\Http\Controllers\ComponentTypeController;
 use App\Http\Controllers\ComponentWithProductsController;
 use App\Http\Controllers\DishComponentController;
 use App\Http\Controllers\DishController;
+use App\Http\Controllers\DishWithComponentsController;
 use App\Http\Controllers\DistributorController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\MenuItemOrderController;
@@ -33,6 +34,11 @@ Route::get('/components-with-products/all', [ComponentWithProductsController::cl
 Route::get('/components-with-products/{id}', [ComponentWithProductsController::class, 'show']);
 Route::put('/components-with-products/update/{id}', [ComponentWithProductsController::class, 'update']);
 Route::post('/components-with-products/create', [ComponentWithProductsController::class, 'store']);
+
+Route::get('/dishes-with-components/all', [DishWithComponentsController::class, 'index']);
+Route::get('/dishes-with-components/{id}', [DishWithComponentsController::class, 'show']);
+Route::put('/dishes-with-components/update/{id}', [DishWithComponentsController::class, 'update']);
+Route::post('/dishes-with-components/create', [DishWithComponentsController::class, 'store']);
 
 Route::get('/component-products/all', [ComponentProductController::class, 'index']);
 Route::get('/component-products/{id}', [ComponentProductController::class, 'show']);
