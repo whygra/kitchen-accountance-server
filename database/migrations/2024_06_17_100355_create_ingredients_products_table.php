@@ -11,11 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {   // связь M-N продукта с компонентом
-        Schema::create('components_products', function (Blueprint $table) {
+        Schema::create('ingredients_products', function (Blueprint $table) {
             $table->id();
             // компонент
-            $table->foreignId('component_id');
-            $table->foreign('component_id')->references('id')->on('components')->onDelete('cascade');
+            $table->foreignId('ingredient_id');
+            $table->foreign('ingredient_id')->references('id')->on('ingredients')->onDelete('cascade');
             // продукт
             $table->foreignId('product_id');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
@@ -32,6 +32,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('components_products');
+        Schema::dropIfExists('ingredients_products');
     }
 };

@@ -12,13 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         // компонент
-        Schema::create('components', function (Blueprint $table) {
+        Schema::create('ingredients', function (Blueprint $table) {
             $table->id();
             // название
             $table->text('name');
             // тип компонента
             $table->foreignId('type_id');
-            $table->foreign('type_id')->references('id')->on('component_types')->onDelete('cascade');
+            $table->foreign('type_id')->references('id')->on('ingredient_types')->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -28,6 +28,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('components');
+        Schema::dropIfExists('ingredients');
     }
 };

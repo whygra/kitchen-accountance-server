@@ -3,10 +3,10 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\ComponentController;
-use App\Http\Controllers\ComponentProductController;
-use App\Http\Controllers\ComponentTypeController;
-use App\Http\Controllers\DishComponentController;
+use App\Http\Controllers\IngredientController;
+use App\Http\Controllers\IngredientProductController;
+use App\Http\Controllers\IngredientTypeController;
+use App\Http\Controllers\DishIngredientController;
 use App\Http\Controllers\DishController;
 use App\Http\Controllers\DistributorController;
 use App\Http\Controllers\MenuItemController;
@@ -22,29 +22,29 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/components', [ComponentController::class, 'index']);
-Route::get('/components/{id}', [ComponentController::class, 'show']);
-Route::put('/components/update/{id}', [ComponentController::class, 'show']);
-Route::post('/components/create', [ComponentController::class, 'store']);
-Route::delete('/components/delete/{id}', [ComponentController::class, 'destroy']);
+Route::get('/ingredients', [IngredientController::class, 'index']);
+Route::get('/ingredients/{id}', [IngredientController::class, 'show']);
+Route::put('/ingredients/update/{id}', [IngredientController::class, 'show']);
+Route::post('/ingredients/create', [IngredientController::class, 'store']);
+Route::delete('/ingredients/delete/{id}', [IngredientController::class, 'destroy']);
 
-Route::get('/component-products/all', [ComponentProductController::class, 'index']);
-Route::get('/component-products/{id}', [ComponentProductController::class, 'show']);
-Route::put('/component-products/update/{id}', [ComponentProductController::class, 'show']);
-Route::post('/component-products/create', [ComponentProductController::class, 'store']);
-Route::delete('/component-products/delete/{id}', [ComponentProductController::class, 'destroy']);
+Route::get('/ingredient-products/all', [IngredientProductController::class, 'index']);
+Route::get('/ingredient-products/{id}', [IngredientProductController::class, 'show']);
+Route::put('/ingredient-products/update/{id}', [IngredientProductController::class, 'show']);
+Route::post('/ingredient-products/create', [IngredientProductController::class, 'store']);
+Route::delete('/ingredient-products/delete/{id}', [IngredientProductController::class, 'destroy']);
 
-Route::get('/component-types/all', [ComponentTypeController::class, 'index']);
-Route::get('/component-types/{id}', [ComponentTypeController::class, 'show']);
-Route::put('/component-types/update/{id}', [ComponentTypeController::class, 'show']);
-Route::post('/component-types/create', [ComponentTypeController::class, 'store']);
-Route::delete('/component-types/delete/{id}', [ComponentTypeController::class, 'destroy']);
+Route::get('/ingredient-types/all', [IngredientTypeController::class, 'index']);
+Route::get('/ingredient-types/{id}', [IngredientTypeController::class, 'show']);
+Route::put('/ingredient-types/update/{id}', [IngredientTypeController::class, 'show']);
+Route::post('/ingredient-types/create', [IngredientTypeController::class, 'store']);
+Route::delete('/ingredient-types/delete/{id}', [IngredientTypeController::class, 'destroy']);
 
-Route::get('/dish-components/all', [DishComponentController::class, 'index']);
-Route::get('/dish-components/{id}', [DishComponentController::class, 'show']);
-Route::put('/dish-components/update/{id}', [DishComponentController::class, 'show']);
-Route::post('/dish-components/create', [DishComponentController::class, 'store']);
-Route::delete('/dish-components/delete/{id}', [DishComponentController::class, 'destroy']);
+Route::get('/dish-ingredients/all', [DishIngredientController::class, 'index']);
+Route::get('/dish-ingredients/{id}', [DishIngredientController::class, 'show']);
+Route::put('/dish-ingredients/update/{id}', [DishIngredientController::class, 'show']);
+Route::post('/dish-ingredients/create', [DishIngredientController::class, 'store']);
+Route::delete('/dish-ingredients/delete/{id}', [DishIngredientController::class, 'destroy']);
 
 Route::get('/dishes/all', [DishController::class, 'index']);
 Route::get('/dishes/{id}', [DishController::class, 'show']);

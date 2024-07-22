@@ -36,9 +36,9 @@ class Product extends Model
         return $this->belongsToMany(PurchaseOption::class);
     }
 
-    public function components_products(): HasMany
+    public function ingredients_products(): HasMany
     {
-        return $this->hasMany(ComponentProduct::class);
+        return $this->hasMany(IngredientProduct::class);
     }
 
 }

@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class DishComponentSeeder extends Seeder
+class DishIngredientSeeder extends Seeder
 {
     /**
      * Run the database seeds.

@@ -2,20 +2,19 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ComponentProduct;
-use App\Http\Requests\StoreComponentProductRequest;
-use App\Http\Requests\UpdateComponentProductRequest;
+use App\Models\DishIngredient;
+use App\Http\Requests\StoreDishIngredientRequest;
+use App\Http\Requests\UpdateDishIngredientRequest;
 use Exception;
 
-
-class ComponentProductController extends Controller
+class DishIngredientController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        $all = ComponentProduct::all();
+        $all = DishIngredient::all();
         return response()->json($all);
     }
 
@@ -30,13 +29,13 @@ class ComponentProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreComponentProductRequest $request)
+    public function store(StoreDishIngredientRequest $request)
     {
-        $new = new ComponentProduct;
-        $new->component_id = $request->component_id;
-        $new->product_id = $request->product_id;
+        $new = new DishIngredient;
+        $new->dish_id = $request->dish_id;
+        $new->ingredient_id = $request->ingredient_id;
+        $new->ingredient_weight = $request->ingredient_weight;
         $new->waste_percentage = $request->waste_percentage;
-        $new->raw_content_percentage = $request->raw_content_percentage;
         $new->save();
         return response()->json($new, 201);
     }
@@ -46,7 +45,7 @@ class ComponentProductController extends Controller
      */
     public function show($id)
     {
-        $item = ComponentProduct::find($id);
+        $item = DishIngredient::find($id);
         if (empty($item))
             return response()->json([
                 'message' => "404"
@@ -57,7 +56,7 @@ class ComponentProductController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(ComponentProduct $componentProduct)
+    public function edit(DishIngredient $dishIngredient)
     {
         //
     }
@@ -65,21 +64,20 @@ class ComponentProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateComponentProductRequest $request, $id)
+    public function update(UpdateDishIngredientRequest $request, $id)
     {
-        $item = ComponentProduct::find($id);
+        $item = DishIngredient::find($id);
         if (empty($item))
             return response()->json([
-                'message' => '404'
+                'message' => "404"
             ], 404);
-
-        $item->component_id = $request->component_id;
-        $item->product_id = $request->product_id;
-        $item->waste_percentage = $request->waste_percentage;
-        $item->raw_content_percentage = $request->raw_content_percentage;
-        $item->save();
         
-        return response()->json($item, 200);
+        $item->dish_id = $request->dish_id;
+        $item->ingredient_id = $request->ingredient_id;
+        $item->ingredient_weight = $request->ingredient_weight;
+        $item->waste_percentage = $request->waste_percentage;
+        $item->save();
+        return response()->json($item, 204);
     }
 
     /**
@@ -87,12 +85,13 @@ class ComponentProductController extends Controller
      */
     public function destroy($id)
     {
-        $item = ComponentProduct::find($id);
+        $item = DishIngredient::find($id);
         if (empty($item))
             return response()->json([
-                'message' => '404'
+                'message' => "404"
             ], 404);
+        
         $item->delete();
-        return response()->json($item, 202);
+        return response()->json($item, 204);    
     }
 }

@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // тип компонента 
-        Schema::create('component_types', function (Blueprint $table) {
+        Schema::create('ingredient_types', function (Blueprint $table) {
             $table->id();
             // тип
             $table->text('name');
@@ -25,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('component_types');
+        Schema::dropIfExists('ingredient_types');
     }
 };

@@ -2,22 +2,22 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Component;
-use App\Http\Requests\StoreComponentRequest;
-use App\Http\Requests\UpdateComponentRequest;
-use App\Models\ViewDTOs\ComponentViewDTO;
+use App\Models\Ingredient;
+use App\Http\Requests\StoreIngredientRequest;
+use App\Http\Requests\UpdateIngredientRequest;
+use App\Models\ViewDTOs\IngredientViewDTO;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Console\Command;
 
-class ComponentController extends Controller
+class IngredientController extends Controller
 {
     /**
      * Display a listing of the resource. 
      */
     public function index()
     {
-        $all = Component::get();
+        $all = Ingredient::get();
         return response()->json($all);
     }
 
@@ -32,9 +32,9 @@ class ComponentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreComponentRequest $request)
+    public function store(StoreIngredientRequest $request)
     {
-        $new = new Component;
+        $new = new Ingredient;
         $new->name = $request->name;
         $new->type_id = $request->type_id;
 
@@ -47,7 +47,7 @@ class ComponentController extends Controller
      */
     public function show($id)
     {
-        $item = Component::find($id);
+        $item = Ingredient::find($id);
         if (empty($item))
             return response()->json([
                 'message' => "404"
@@ -59,7 +59,7 @@ class ComponentController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Component $component)
+    public function edit(Ingredient $ingredient)
     {
         //
     }
@@ -67,9 +67,9 @@ class ComponentController extends Controller
     /**
      * Update the specified resource in storage.
      */ 
-    public function update(UpdateComponentRequest $request, $id)
+    public function update(UpdateIngredientRequest $request, $id)
     {
-        $item = Component::find($id);
+        $item = Ingredient::find($id);
         if (empty($item))
             return response()->json([
                 'message' => "404"
@@ -87,7 +87,7 @@ class ComponentController extends Controller
      */
     public function destroy($id)
     {        
-        $item = Component::find($id);
+        $item = Ingredient::find($id);
         if (empty($item))
             return response()->json([
                 'message' => "404"

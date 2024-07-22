@@ -12,16 +12,16 @@ return new class extends Migration
     public function up(): void
     {
         // связь M-N между компонентом и блюдом
-        Schema::create('dishes_components', function (Blueprint $table) {
+        Schema::create('dishes_ingredients', function (Blueprint $table) {
             $table->id();
             // блюдо
             $table->foreignId('dish_id');
             $table->foreign('dish_id')->references('id')->on('dishes')->onDelete('cascade');
             // компонент
-            $table->foreignId('component_id');
-            $table->foreign('component_id')->references('id')->on('components')->onDelete('cascade');
+            $table->foreignId('ingredient_id');
+            $table->foreign('ingredient_id')->references('id')->on('ingredients')->onDelete('cascade');
             // вес компонента до обработки
-            $table->decimal('component_raw_weight');
+            $table->decimal('ingredient_raw_weight');
             // процент отхода - потери компонента в весе при обработке
             $table->decimal('waste_percentage');
             $table->timestamps();
@@ -33,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dishes_components');
+        Schema::dropIfExists('dishes_ingredients');
     }
 };

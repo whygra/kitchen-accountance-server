@@ -3,13 +3,13 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\ComponentController;
-use App\Http\Controllers\ComponentProductController;
-use App\Http\Controllers\ComponentTypeController;
-use App\Http\Controllers\ComponentWithProductsController;
-use App\Http\Controllers\DishComponentController;
+use App\Http\Controllers\IngredientController;
+use App\Http\Controllers\IngredientProductController;
+use App\Http\Controllers\IngredientTypeController;
+use App\Http\Controllers\IngredientWithProductsController;
+use App\Http\Controllers\DishIngredientController;
 use App\Http\Controllers\DishController;
-use App\Http\Controllers\DishWithComponentsController;
+use App\Http\Controllers\DishWithIngredientsController;
 use App\Http\Controllers\DistributorController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\MenuItemOrderController;
@@ -24,39 +24,39 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/components/all', [ComponentController::class, 'index']);
-Route::get('/components/{id}', [ComponentController::class, 'show']);
-Route::put('/components/update/{id}', [ComponentController::class, 'update']);
-Route::post('/components/create', [ComponentController::class, 'store']);
-Route::delete('/components/delete/{id}', [ComponentController::class, 'destroy']);
+Route::get('/ingredients/all', [IngredientController::class, 'index']);
+Route::get('/ingredients/{id}', [IngredientController::class, 'show']);
+Route::put('/ingredients/update/{id}', [IngredientController::class, 'update']);
+Route::post('/ingredients/create', [IngredientController::class, 'store']);
+Route::delete('/ingredients/delete/{id}', [IngredientController::class, 'destroy']);
 
-Route::get('/components-with-products/all', [ComponentWithProductsController::class, 'index']);
-Route::get('/components-with-products/{id}', [ComponentWithProductsController::class, 'show']);
-Route::put('/components-with-products/update/{id}', [ComponentWithProductsController::class, 'update']);
-Route::post('/components-with-products/create', [ComponentWithProductsController::class, 'store']);
+Route::get('/ingredients-with-products/all', [IngredientWithProductsController::class, 'index']);
+Route::get('/ingredients-with-products/{id}', [IngredientWithProductsController::class, 'show']);
+Route::put('/ingredients-with-products/update/{id}', [IngredientWithProductsController::class, 'update']);
+Route::post('/ingredients-with-products/create', [IngredientWithProductsController::class, 'store']);
 
-Route::get('/dishes-with-components/all', [DishWithComponentsController::class, 'index']);
-Route::get('/dishes-with-components/{id}', [DishWithComponentsController::class, 'show']);
-Route::put('/dishes-with-components/update/{id}', [DishWithComponentsController::class, 'update']);
-Route::post('/dishes-with-components/create', [DishWithComponentsController::class, 'store']);
+Route::get('/dishes-with-ingredients/all', [DishWithIngredientsController::class, 'index']);
+Route::get('/dishes-with-ingredients/{id}', [DishWithIngredientsController::class, 'show']);
+Route::put('/dishes-with-ingredients/update/{id}', [DishWithIngredientsController::class, 'update']);
+Route::post('/dishes-with-ingredients/create', [DishWithIngredientsController::class, 'store']);
 
-Route::get('/component-products/all', [ComponentProductController::class, 'index']);
-Route::get('/component-products/{id}', [ComponentProductController::class, 'show']);
-Route::put('/component-products/update/{id}', [ComponentProductController::class, 'update']);
-Route::post('/component-products/create', [ComponentProductController::class, 'store']);
-Route::delete('/component-products/delete/{id}', [ComponentProductController::class, 'destroy']);
+Route::get('/ingredient-products/all', [IngredientProductController::class, 'index']);
+Route::get('/ingredient-products/{id}', [IngredientProductController::class, 'show']);
+Route::put('/ingredient-products/update/{id}', [IngredientProductController::class, 'update']);
+Route::post('/ingredient-products/create', [IngredientProductController::class, 'store']);
+Route::delete('/ingredient-products/delete/{id}', [IngredientProductController::class, 'destroy']);
 
-Route::get('/component-types/all', [ComponentTypeController::class, 'index']);
-Route::get('/component-types/{id}', [ComponentTypeController::class, 'show']);
-Route::put('/component-types/update/{id}', [ComponentTypeController::class, 'update']);
-Route::post('/component-types/create', [ComponentTypeController::class, 'store']);
-Route::delete('/component-types/delete/{id}', [ComponentTypeController::class, 'destroy']);
+Route::get('/ingredient-types/all', [IngredientTypeController::class, 'index']);
+Route::get('/ingredient-types/{id}', [IngredientTypeController::class, 'show']);
+Route::put('/ingredient-types/update/{id}', [IngredientTypeController::class, 'update']);
+Route::post('/ingredient-types/create', [IngredientTypeController::class, 'store']);
+Route::delete('/ingredient-types/delete/{id}', [IngredientTypeController::class, 'destroy']);
 
-Route::get('/dish-components/all', [DishComponentController::class, 'index']);
-Route::get('/dish-components/{id}', [DishComponentController::class, 'show']);
-Route::put('/dish-components/update/{id}', [DishComponentController::class, 'update']);
-Route::post('/dish-components/create', [DishComponentController::class, 'store']);
-Route::delete('/dish-components/delete/{id}', [DishComponentController::class, 'destroy']);
+Route::get('/dish-ingredients/all', [DishIngredientController::class, 'index']);
+Route::get('/dish-ingredients/{id}', [DishIngredientController::class, 'show']);
+Route::put('/dish-ingredients/update/{id}', [DishIngredientController::class, 'update']);
+Route::post('/dish-ingredients/create', [DishIngredientController::class, 'store']);
+Route::delete('/dish-ingredients/delete/{id}', [DishIngredientController::class, 'destroy']);
 
 Route::get('/dishes/all', [DishController::class, 'index']);
 Route::get('/dishes/{id}', [DishController::class, 'show']);

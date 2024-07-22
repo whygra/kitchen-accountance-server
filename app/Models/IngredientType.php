@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class ComponentType extends Model
+class IngredientType extends Model
 {
     use HasFactory;
     
@@ -15,7 +15,7 @@ class ComponentType extends Model
      * The table associated with the model.
      * @var string
      */
-    protected $table = 'component_types';
+    protected $table = 'ingredient_types';
     /**
      * Indicates if the model should be timestamped.
      * @var bool
@@ -31,9 +31,9 @@ class ComponentType extends Model
         'name',
     ];
 
-    public function components(): BelongsToMany
+    public function ingredients(): BelongsToMany
     {
-        return $this->belongsToMany(Component::class, 'type_id', 'id');
+        return $this->belongsToMany(Ingredient::class, 'type_id', 'id');
     }
 
 }

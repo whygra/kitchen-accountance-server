@@ -5,11 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Component extends Model
+class DishIngredient extends Model
 {
     use HasFactory;
     
@@ -17,7 +15,7 @@ class Component extends Model
      * The table associated with the model.
      * @var string
      */
-    protected $table = 'components';
+    protected $table = 'dishes_ingredients';
     /**
      * Indicates if the model should be timestamped.
      * @var bool
@@ -30,27 +28,29 @@ class Component extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'type_id',
+        'dish_id',
+        'ingredient_id',
+        'waste_percentage',
+        'ingredient_raw_weight',
     ];
 
     protected $foreignKeys = [
-        'type' => 'type_id', 
+        'dish' => 'dish_id', 
+        'ingredient' => 'ingredient_id', 
     ];
 
-    public function type(): BelongsTo
+    protected $casts = [
+        'ingredient_raw_weight' => 'float',
+        'waste_percentage' => 'float',
+   ];
+
+    public function dish(): BelongsTo
     {
-        return $this->belongsTo(ComponentType::class, 'type_id', 'id');
+        return $this->belongsTo(Dish::class, 'dish_id', 'id');
     }
 
-    public function dishes_components(): HasMany
+    public function ingredient(): BelongsTo
     {
-        return $this->hasMany(DishComponent::class, 'component_id', 'id');
+        return $this->belongsTo(Ingredient::class, 'ingredient_id', 'id');
     }
-
-    public function components_products(): HasMany
-    {
-        return $this->hasMany(ComponentProduct::class, 'component_id', 'id');
-    }
-
 }

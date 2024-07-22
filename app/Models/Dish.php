@@ -33,9 +33,9 @@ class Dish extends Model
         'image_path',
     ];
 
-    public function dishes_components(): HasMany
+    public function dishes_ingredients(): HasMany
     {
-        return $this->hasMany(DishComponent::class, 'dish_id', 'id');
+        return $this->hasMany(DishIngredient::class, 'dish_id', 'id');
     }
 
     public function menu_items(): HasMany

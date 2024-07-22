@@ -2,24 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\StoreComponentWithProductsRequest;
-use App\Http\Requests\UpdateComponentWithProductsRequest;
-use App\Models\Component;
-use App\Models\ComponentProduct;
+use App\Http\Requests\StoreIngredientWithProductsRequest;
+use App\Http\Requests\UpdateIngredientWithProductsRequest;
+use App\Models\Ingredient;
+use App\Models\IngredientProduct;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
-class ComponentWithProductsController extends Controller
+class IngredientWithProductsController extends Controller
 {
     public function index()
     {
-        $all = Component::with('components_products.product', 'type')->get();
+        $all = Ingredient::with('ingredients_products.product', 'type')->get();
         return response()->json($all);
     }
 
     public function show($id)
     {
-        $item = Component::with('components_products.product', 'type')->find($id);
+        $item = Ingredient::with('ingredients_products.product', 'type')->find($id);
         if (empty($item))
             return response()->json([
                 'message' => "404"
@@ -28,10 +28,10 @@ class ComponentWithProductsController extends Controller
         return response()->json($item);
     }
 
-    public function store(StoreComponentWithProductsRequest $request)
+    public function store(StoreIngredientWithProductsRequest $request)
     {
         
-        $item = new Component;
+        $item = new Ingredient;
         
         // обновление данных компонента
         $item->name = $request->name;
@@ -39,22 +39,22 @@ class ComponentWithProductsController extends Controller
         $item->save();
         
         // для каждой связи компонент-продукт
-        foreach ($request->components_products as $componentProductData){
+        foreach ($request->ingredients_products as $ingredientProductData){
 
-            $product_id = $componentProductData['product_id'];
+            $product_id = $ingredientProductData['product_id'];
 
             // создание, обновление продукта
-            switch($componentProductData['product_data_action']){
+            switch($ingredientProductData['product_data_action']){
                 case 'create':
                     // создание продукта
                     $product = new Product;
-                    $product->name = $componentProductData['product_name'] ?? '';
+                    $product->name = $ingredientProductData['product_name'] ?? '';
                     $product->save();
                     break;
                 case 'update':
                     // обновление продукта
                     $product = Product::find($product_id);
-                    $product->name = $componentProductData['product_name'] ?? '';
+                    $product->name = $ingredientProductData['product_name'] ?? '';
                     $product->save();
                     break;
                 case 'none':
@@ -66,72 +66,72 @@ class ComponentWithProductsController extends Controller
             }
 
             // создание связи
-            $componentProduct = new ComponentProduct;
-            $componentProduct->raw_content_percentage = $componentProductData['raw_content_percentage'];
-            $componentProduct->waste_percentage = $componentProductData['waste_percentage'];
-            $item->components_products()->save($componentProduct->product()->associate($product));
+            $ingredientProduct = new IngredientProduct;
+            $ingredientProduct->raw_content_percentage = $ingredientProductData['raw_content_percentage'];
+            $ingredientProduct->waste_percentage = $ingredientProductData['waste_percentage'];
+            $item->ingredients_products()->save($ingredientProduct->product()->associate($product));
         }
 
         $item->save();
 
-        return response()->json($item->with('components_products.product', 'type'), 201);
+        return response()->json($item->with('ingredients_products.product', 'type'), 201);
     }
 
     /**
      * Update the specified resource in storage.
      */ 
-    public function update(UpdateComponentWithProductsRequest $request, $id)
+    public function update(UpdateIngredientWithProductsRequest $request, $id)
     {
-        $item = Component::find($id);
+        $item = Ingredient::find($id);
         if (empty($item))
             return response()->json([
                 'message' => "Компонент с id=$id не найден"
             ], 404);
 
         // для каждой связи компонент-продукт
-        foreach ($request->components_products as $componentProductData){
+        foreach ($request->ingredients_products as $ingredientProductData){
 
-            $product_id = $componentProductData['product_id'];
-            $component_product_id = $componentProductData['id'];            
+            $product_id = $ingredientProductData['product_id'];
+            $ingredient_product_id = $ingredientProductData['id'];            
 
             // создание, обновление связи
-            switch($componentProductData['data_action']){
+            switch($ingredientProductData['data_action']){
                 case 'create':
                     // создание связи
-                    $componentProduct = new ComponentProduct;
-                    $componentProduct->waste_percentage = $componentProductData['waste_percentage'];
-                    $componentProduct->raw_content_percentage = $componentProductData['raw_content_percentage'];
+                    $ingredientProduct = new IngredientProduct;
+                    $ingredientProduct->waste_percentage = $ingredientProductData['waste_percentage'];
+                    $ingredientProduct->raw_content_percentage = $ingredientProductData['raw_content_percentage'];
                     break;
                 case 'update':
                     // обновление связи
-                    $componentProduct = ComponentProduct::find($component_product_id);
-                    $componentProduct->waste_percentage = $componentProductData['waste_percentage'];
-                    $componentProduct->raw_content_percentage = $componentProductData['raw_content_percentage'];
+                    $ingredientProduct = IngredientProduct::find($ingredient_product_id);
+                    $ingredientProduct->waste_percentage = $ingredientProductData['waste_percentage'];
+                    $ingredientProduct->raw_content_percentage = $ingredientProductData['raw_content_percentage'];
                     break;
                 case 'none':
                     // получение связи
-                    $componentProduct = ComponentProduct::find($component_product_id);
+                    $ingredientProduct = IngredientProduct::find($ingredient_product_id);
                     break;
                 case 'delete':
                     // удаление связи
-                    $componentProduct = ComponentProduct::find($component_product_id);
-                    $componentProduct->delete();
+                    $ingredientProduct = IngredientProduct::find($ingredient_product_id);
+                    $ingredientProduct->delete();
                 default:
                     continue 2;
             }
 
             // создание, обновление продукта
-            switch($componentProductData['product_data_action']){
+            switch($ingredientProductData['product_data_action']){
                 case 'create':
                     // создание продукта
                     $product = new Product;
-                    $product->name = $componentProductData['product_name'] ?? '';
+                    $product->name = $ingredientProductData['product_name'] ?? '';
                     $product->save();
                     break;
                 case 'update':
                     // обновление продукта
                     $product = Product::find($product_id);
-                    $product->name = $componentProductData['product_name'] ?? '';
+                    $product->name = $ingredientProductData['product_name'] ?? '';
                     $product->save();
                     break;
                 case 'none':
@@ -142,13 +142,13 @@ class ComponentWithProductsController extends Controller
                     continue 2;
             } 
 
-            $item->components_products()->save($componentProduct->product()->associate($product));
+            $item->ingredients_products()->save($ingredientProduct->product()->associate($product));
         }
         // обновление данных компонента
         $item->name = $request->name;
         $item->type_id = $request->type_id;
         $item->save();
 
-        return response()->json($item->with('components_products.product', 'type'), 200);
+        return response()->json($item->with('ingredients_products.product', 'type'), 200);
     }
 }
