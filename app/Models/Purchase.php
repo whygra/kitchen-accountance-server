@@ -5,7 +5,6 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -40,9 +39,9 @@ class Purchase extends Model
         'distributor' => 'distributor_id', 
     ];
 
-    public function purchase_items(): BelongsToMany
+    public function purchase_items(): HasMany
     {
-        return $this->belongsToMany(PurchaseItem::class);
+        return $this->hasMany(PurchaseItem::class);
     }
 
     public function distributor(): BelongsTo

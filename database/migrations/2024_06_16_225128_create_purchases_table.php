@@ -22,7 +22,7 @@ return new class extends Migration
             $table->boolean('is_paid');
             // поставщик
             $table->foreignId('distributor_id');
-            $table->foreign('distributor_id')->references('id')->on('distributors')->onDelete('cascade');
+            $table->foreign('distributor_id')->references('id')->on('distributors');
             $table->timestamps();
         });
     }

@@ -2,14 +2,14 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class Ingredient extends Model
+class Ingredient extends DeletionAllowableModel
 {
     use HasFactory;
     
@@ -37,6 +37,27 @@ class Ingredient extends Model
     protected $foreignKeys = [
         'type' => 'type_id', 
     ];
+
+    public function deletionAllowed() :bool {
+        // удаление разрешено, если нет неудаляемых связанных блюд
+        return empty(
+            array_filter(
+                $this->dishes_ingredients()->get()->all(), 
+                fn($item)=>!($item->dish()->get()->first()->deletionAllowed())
+            )
+        );
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Ingredient $ingredient) {
+            if (!$this->deletionAllowed())
+                return false;
+            // удаление связанных записей
+            $ingredient->ingredients_products()->delete();
+            $ingredient->dishes_ingredients()->delete();
+        });
+    }
 
     public function type(): BelongsTo
     {

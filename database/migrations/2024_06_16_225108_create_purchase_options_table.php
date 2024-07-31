@@ -16,19 +16,19 @@ return new class extends Migration
             $table->id();
             // продукт
             $table->foreignId('product_id');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->foreign('product_id')->references('id')->on('products');
             // единиуа измерения
             $table->foreignId('unit_id');
-            $table->foreign('unit_id')->references('id')->on('units')->onDelete('cascade');
+            $table->foreign('unit_id')->references('id')->on('units');
             // наименование
             $table->text('name');
             // масса нетто
             $table->integer('net_weight');
-            // задекларированная цена
-            $table->decimal('declared_price');
+            // цена
+            $table->decimal('price');
             // поставщик
             $table->foreignId('distributor_id');
-            $table->foreign('distributor_id')->references('id')->on('distributors')->onDelete('cascade');
+            $table->foreign('distributor_id')->references('id')->on('distributors');
             $table->timestamps();
         });
     }

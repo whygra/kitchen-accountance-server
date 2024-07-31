@@ -165,5 +165,16 @@ class DishWithIngredientsController extends Controller
     }
 
     // удаление блюда и связей блюдо-компонент
-
+    public function destroy($id) 
+    {
+        $item = Dish::find($id);
+        if (empty($item))
+            return response()->json([
+                'message' => "Не удалось найти Блюдо с id=$id"
+            ], 404);
+            
+            
+        $item->delete();
+        return response()->json($item, 204);
+    }
 }

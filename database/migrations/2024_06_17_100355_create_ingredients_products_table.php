@@ -15,10 +15,10 @@ return new class extends Migration
             $table->id();
             // компонент
             $table->foreignId('ingredient_id');
-            $table->foreign('ingredient_id')->references('id')->on('ingredients')->onDelete('cascade');
+            $table->foreign('ingredient_id')->references('id')->on('ingredients');
             // продукт
             $table->foreignId('product_id');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->foreign('product_id')->references('id')->on('products');
             // доля продукта в общем весе необработанных продуктов компонента
             $table->decimal('raw_content_percentage');
             // процент отхода - потери продукта в весе при обработке

@@ -28,18 +28,32 @@ class PurchaseItem extends Model
      * @var array<int, string>
      */
     protected $fillable = [
-        'purchase_item_id',
+        'purchase_option_id',
         'purchase_id',
         'amount',
-        'price',
+        'discount',
     ];
 
     protected $foreignKeys = [
-        'purchase_item' => 'purchase_item_id', 
+        'purchase_option' => 'purchase_option_id', 
         'purchase' => 'purchase_id', 
     ];
 
-    public function purchase_item(): BelongsTo
+    protected $casts = [
+        'discount' => 'float',
+    ];
+
+    protected static function booted(): void
+    {
+        static::creating(function (User $user) {
+            // защита от конфликтующих связей
+            // не создавать, если id поставщика закупки и позиции закупки не совпадают
+            if($user->purchase_option()->get()->distributor_id != $user->purshase()->get()->distributor_id)
+                return false;
+        });
+    }
+
+    public function purchase_option(): BelongsTo
     {
         return $this->belongsTo(PurchaseItem::class);
     }

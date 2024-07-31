@@ -2,6 +2,7 @@
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -14,18 +15,19 @@ return new class extends Migration
         // пункт закупки
         Schema::create('purchase_items', function (Blueprint $table) {
             $table->id();
+            // скидка
+            $table->decimal('discount');
             // позиция закупки
-            $table->foreignId('purchase_item_id');
-            $table->foreign('purchase_item_id')->references('id')->on('purchase_items')->onDelete('cascade');
+            $table->foreignId('purchase_option_id');
+            $table->foreign('purchase_option_id')->references('id')->on('purchase_options');
             // закупка
             $table->foreignId('purchase_id');
-            $table->foreign('purchase_id')->references('id')->on('purchases')->onDelete('cascade');
+            $table->foreign('purchase_id')->references('id')->on('purchases');
             // количество единиц
             $table->integer('amount');
-            // цена
-            $table->decimal('price');
             $table->timestamps();
         });
+
     }
 
     /**

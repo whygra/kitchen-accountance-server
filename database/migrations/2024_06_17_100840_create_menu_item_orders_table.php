@@ -16,10 +16,10 @@ return new class extends Migration
             $table->id();
             // заказ
             $table->foreignId('order_id');
-            $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
+            $table->foreign('order_id')->references('id')->on('orders');
             // позиция меню
             $table->foreignId('menu_item_id');
-            $table->foreign('menu_item_id')->references('id')->on('menu_items')->onDelete('cascade');
+            $table->foreign('menu_item_id')->references('id')->on('menu_items');
             // количество заказанных единиц данной позиции меню
             $table->integer('amount');
             $table->timestamps();

@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\Ingredient;
 use App\Http\Requests\StoreIngredientRequest;
 use App\Http\Requests\UpdateIngredientRequest;
-use App\Models\ViewDTOs\IngredientViewDTO;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Console\Command;

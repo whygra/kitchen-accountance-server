@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class IngredientType extends Model
@@ -31,9 +30,9 @@ class IngredientType extends Model
         'name',
     ];
 
-    public function ingredients(): BelongsToMany
+    public function ingredients(): HasMany
     {
-        return $this->belongsToMany(Ingredient::class, 'type_id', 'id');
+        return $this->hasMany(Ingredient::class, 'type_id', 'id');
     }
 
 }

@@ -34,11 +34,13 @@ Route::get('/ingredients-with-products/all', [IngredientWithProductsController::
 Route::get('/ingredients-with-products/{id}', [IngredientWithProductsController::class, 'show']);
 Route::put('/ingredients-with-products/update/{id}', [IngredientWithProductsController::class, 'update']);
 Route::post('/ingredients-with-products/create', [IngredientWithProductsController::class, 'store']);
+Route::delete('/ingredients-with-products/delete/{id}', [IngredientWithProductsController::class, 'destroy']);
 
 Route::get('/dishes-with-ingredients/all', [DishWithIngredientsController::class, 'index']);
 Route::get('/dishes-with-ingredients/{id}', [DishWithIngredientsController::class, 'show']);
 Route::put('/dishes-with-ingredients/update/{id}', [DishWithIngredientsController::class, 'update']);
 Route::post('/dishes-with-ingredients/create', [DishWithIngredientsController::class, 'store']);
+Route::delete('/dishes-with-ingredients/delete/{id}', [DishWithIngredientsController::class, 'destroy']);
 
 Route::get('/ingredient-products/all', [IngredientProductController::class, 'index']);
 Route::get('/ingredient-products/{id}', [IngredientProductController::class, 'show']);

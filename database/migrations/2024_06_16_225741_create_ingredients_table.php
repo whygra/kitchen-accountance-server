@@ -18,7 +18,7 @@ return new class extends Migration
             $table->text('name');
             // тип компонента
             $table->foreignId('type_id');
-            $table->foreign('type_id')->references('id')->on('ingredient_types')->onDelete('cascade');
+            $table->foreign('type_id')->references('id')->on('ingredient_types');
             $table->timestamps();
         });
     }

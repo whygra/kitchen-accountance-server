@@ -4,10 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Product extends Model
+class Product extends DeletionAllowableModel
 {
     use HasFactory;
     
@@ -31,9 +30,36 @@ class Product extends Model
         'name',
     ];
 
-    public function purchase_options(): BelongsToMany
+    public function deletionAllowed() :bool {
+        // удаление разрешено, если нет неудаляемых связанных ингредиентов или позиций закупки
+        return 
+            empty(
+                array_filter(
+                    $this->purchase_options()->get()->all(), 
+                    fn($item)=>!($item->deletionAllowed())
+                ))
+            &&
+            empty(
+                array_filter(
+                    $this->ingredients_products()->get()->all(), 
+                    fn(IngredientProduct $item)=>!($item->ingredient()->get()->first()->deletionAllowed())
+            ));
+    }
+
+    protected static function booted(): void
     {
-        return $this->belongsToMany(PurchaseOption::class);
+        static::deleting(function (Product $product) {
+            if (!$this->deletionAllowed())
+                return false;
+            // удаление связанных записей
+            $product->ingredients_products()->delete();
+            $product->purchase_options()->delete();
+        });
+    }
+
+    public function purchase_options(): HasMany
+    {
+        return $this->hasMany(PurchaseOption::class);
     }
 
     public function ingredients_products(): HasMany

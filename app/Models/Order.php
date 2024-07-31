@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
@@ -32,8 +31,15 @@ class Order extends Model
         'is_paid',
     ];
 
-    public function menu_items_orders(): BelongsToMany
+    protected static function booted(): void
     {
-        return $this->belongsToMany(MenuItemOrder::class);
+        static::deleting(function (Ingredient $ingredient) {
+            $ingredient->menu_items_orders()->delete();
+        });
+    }
+
+    public function menu_items_orders(): HasMany
+    {
+        return $this->hasMany(MenuItemOrder::class);
     }
 }

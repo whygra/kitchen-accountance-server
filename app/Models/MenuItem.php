@@ -5,11 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class MenuItem extends Model
+class MenuItem extends DeletionAllowableModel
 {
     use HasFactory;
     
@@ -38,13 +37,20 @@ class MenuItem extends Model
         'dish' => 'dish_id', 
     ];
 
+    public function deletionAllowed() :bool {
+        // удаление разрешено, если нет связей с заказами
+        return empty(
+            $this->menu_items_orders()->get()->all()
+        );
+    }
+
     public function dish(): BelongsTo 
     {
         return $this->belongsTo(Dish::class);
     }
 
-    public function menu_items_orders(): BelongsToMany
+    public function menu_items_orders(): HasMany
     {
-        return $this->belongsToMany(MenuItemOrder::class);
+        return $this->hasMany(MenuItemOrder::class);
     }
 }

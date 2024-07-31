@@ -5,10 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Dish extends Model
+class Dish extends DeletionAllowableModel
 {
     use HasFactory;
     
@@ -33,11 +32,34 @@ class Dish extends Model
         'image_path',
     ];
 
+    public function deletionAllowed() : bool {
+        // удаление разрешено, если нет связанных позиций меню, которые нельзя удалить
+        return empty(
+            array_filter(
+                $this->menu_items()->get()->all(), 
+                fn($item)=>!($item->deletionAllowed())
+            )
+        );
+    }
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Dish $dish) {
+            if (!$this->deletionAllowed())
+                return false;
+            // удаление связанных записей
+            $dish->dishes_ingredients()->delete();
+            $dish->menu_items()->delete();
+        });
+    }
+
+    // связи M-N с ингредиентами
     public function dishes_ingredients(): HasMany
     {
         return $this->hasMany(DishIngredient::class, 'dish_id', 'id');
     }
 
+    // позиции меню
     public function menu_items(): HasMany
     {
         return $this->hasMany(MenuItem::class, 'dish_id', 'id');

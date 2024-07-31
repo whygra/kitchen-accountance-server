@@ -5,10 +5,9 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Distributor extends Model
+class Distributor extends DeletionAllowableModel
 {
     use HasFactory;
     
@@ -32,12 +31,29 @@ class Distributor extends Model
         'name',
     ];
 
-    public function purchase_options(): BelongsToMany
-    {
-        return $this->belongsToMany(PurchaseOption::class);
+    public function deletionAllowed() : bool {
+        // удаление разрешено, если нет связанных закупок
+        return empty(
+            $this->purchases()->all()
+        );
     }
-    public function purchases(): BelongsToMany
+
+    protected static function booted(): void
     {
-        return $this->belongsToMany(Purchase::class);
+        static::deleting(function (Distributor $distributor) {
+            if (!$this->deletionAllowed())
+                return false;
+            // удаление связанных записей
+            $distributor->purchase_options()->delete();
+        });
+    }
+
+    public function purchase_options(): HasMany
+    {
+        return $this->hasMany(PurchaseOption::class);
+    }
+    public function purchases(): HasMany
+    {
+        return $this->hasMany(Purchase::class);
     }
 }

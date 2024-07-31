@@ -151,4 +151,21 @@ class IngredientWithProductsController extends Controller
 
         return response()->json($item->with('ingredients_products.product', 'type'), 200);
     }
+
+    
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy($id)
+    {        
+        $item = Ingredient::find($id);
+        if (empty($item))
+            return response()->json([
+                'message' => "Не удалось найти Ингредиент с id=$id"
+            ], 404);
+            
+        $item->delete();
+        return response()->json($item, 200);
+    }
 }

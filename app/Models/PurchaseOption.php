@@ -5,11 +5,10 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class PurchaseOption extends Model
+class PurchaseOption extends DeletionAllowableModel
 {
     use HasFactory;
     
@@ -35,7 +34,7 @@ class PurchaseOption extends Model
         'unit_id',
         'name',
         'net_weight',
-        'declared_price',
+        'price',
     ];
 
     protected $foreignKeys = [
@@ -44,9 +43,26 @@ class PurchaseOption extends Model
         'distributor' => 'distributor_id', 
     ];
 
-    public function purchase_items(): BelongsToMany
+    public function deletionAllowed() :bool {
+        // удаление разрешено, если нет связанных заявок
+        return empty(
+            $this->purchase_items()->all()
+        );
+    }
+
+    protected static function booted(): void
     {
-        return $this->belongsToMany(PurchaseOption::class);
+        static::deleting(function (PurchaseOption $purchaseOption) {
+            if (!$this->deletionAllowed())
+                return false;
+            // удаление связанных записей
+            $purchaseOption->purchase_items()->delete();
+        });
+    }
+
+    public function purchase_items(): HasMany
+    {
+        return $this->hasMany(PurchaseOption::class);
     }
 
     public function product(): BelongsTo
