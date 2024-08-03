@@ -89,4 +89,20 @@ class ProductController extends Controller
         $item->delete();
         return response()->json($item, 204);
     }
+
+    
+
+    /**
+     * Display the specified resource.
+     */
+    public function show_with_purchase_options($id)
+    {
+        $item = Product::with('purchase_options')->find($id);
+        if (empty($item))
+            return response()->json([
+                'message' => '404'
+            ], 404);
+
+        return response()->json($item);
+    }
 }

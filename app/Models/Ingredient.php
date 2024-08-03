@@ -51,7 +51,7 @@ class Ingredient extends DeletionAllowableModel
     protected static function booted(): void
     {
         static::deleting(function (Ingredient $ingredient) {
-            if (!$this->deletionAllowed())
+            if (!$ingredient->deletionAllowed())
                 return false;
             // удаление связанных записей
             $ingredient->ingredients_products()->delete();

@@ -43,17 +43,21 @@ class PurchaseOption extends DeletionAllowableModel
         'distributor' => 'distributor_id', 
     ];
 
+    protected $casts = [
+        'price' => 'float'
+    ];
+
     public function deletionAllowed() :bool {
         // удаление разрешено, если нет связанных заявок
         return empty(
-            $this->purchase_items()->all()
+            $this->purchase_items()->get()->all()
         );
     }
 
     protected static function booted(): void
     {
         static::deleting(function (PurchaseOption $purchaseOption) {
-            if (!$this->deletionAllowed())
+            if (!$purchaseOption->deletionAllowed())
                 return false;
             // удаление связанных записей
             $purchaseOption->purchase_items()->delete();
@@ -62,21 +66,21 @@ class PurchaseOption extends DeletionAllowableModel
 
     public function purchase_items(): HasMany
     {
-        return $this->hasMany(PurchaseOption::class);
+        return $this->hasMany(PurchaseItem::class, 'purchase_option_id', 'id');
     }
 
     public function product(): BelongsTo
     {
-        return $this->belongsTo(Product::class);
+        return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 
     public function unit(): BelongsTo
     {
-        return $this->belongsTo(Unit::class);
+        return $this->belongsTo(Unit::class, 'unit_id', 'id');
     }
 
     public function distributor(): BelongsTo
     {
-        return $this->belongsTo(Distributor::class);
+        return $this->belongsTo(Distributor::class, 'distributor_id', 'id');
     }
 }

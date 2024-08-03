@@ -34,14 +34,14 @@ class Distributor extends DeletionAllowableModel
     public function deletionAllowed() : bool {
         // удаление разрешено, если нет связанных закупок
         return empty(
-            $this->purchases()->all()
+            $this->purchases()->get()->all()
         );
     }
 
     protected static function booted(): void
     {
         static::deleting(function (Distributor $distributor) {
-            if (!$this->deletionAllowed())
+            if (!$distributor->deletionAllowed())
                 return false;
             // удаление связанных записей
             $distributor->purchase_options()->delete();

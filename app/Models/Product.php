@@ -49,7 +49,7 @@ class Product extends DeletionAllowableModel
     protected static function booted(): void
     {
         static::deleting(function (Product $product) {
-            if (!$this->deletionAllowed())
+            if (!$product->deletionAllowed())
                 return false;
             // удаление связанных записей
             $product->ingredients_products()->delete();

@@ -25,6 +25,7 @@ return new class extends Migration
             // масса нетто
             $table->integer('net_weight');
             // цена
+            
             $table->decimal('price');
             // поставщик
             $table->foreignId('distributor_id');

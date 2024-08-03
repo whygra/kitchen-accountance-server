@@ -3,10 +3,9 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\IngredientProductController;
 use App\Http\Controllers\IngredientTypeController;
-use App\Http\Controllers\IngredientWithProductsController;
+use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\DishIngredientController;
 use App\Http\Controllers\DishController;
 use App\Http\Controllers\DishWithIngredientsController;
@@ -30,17 +29,22 @@ Route::put('/ingredients/update/{id}', [IngredientController::class, 'update']);
 Route::post('/ingredients/create', [IngredientController::class, 'store']);
 Route::delete('/ingredients/delete/{id}', [IngredientController::class, 'destroy']);
 
-Route::get('/ingredients-with-products/all', [IngredientWithProductsController::class, 'index']);
-Route::get('/ingredients-with-products/{id}', [IngredientWithProductsController::class, 'show']);
-Route::put('/ingredients-with-products/update/{id}', [IngredientWithProductsController::class, 'update']);
-Route::post('/ingredients-with-products/create', [IngredientWithProductsController::class, 'store']);
-Route::delete('/ingredients-with-products/delete/{id}', [IngredientWithProductsController::class, 'destroy']);
+Route::get('/ingredients/with-products/all', [IngredientController::class, 'index_loaded']);
+Route::get('/ingredients/with-products/{id}', [IngredientController::class, 'show_loaded']);
+Route::put('/ingredients/with-products/update/{id}', [IngredientController::class, 'update_loaded']);
+Route::post('/ingredients/with-products/create', [IngredientController::class, 'store_loaded']);
 
-Route::get('/dishes-with-ingredients/all', [DishWithIngredientsController::class, 'index']);
-Route::get('/dishes-with-ingredients/{id}', [DishWithIngredientsController::class, 'show']);
-Route::put('/dishes-with-ingredients/update/{id}', [DishWithIngredientsController::class, 'update']);
-Route::post('/dishes-with-ingredients/create', [DishWithIngredientsController::class, 'store']);
-Route::delete('/dishes-with-ingredients/delete/{id}', [DishWithIngredientsController::class, 'destroy']);
+Route::get('/dishes/all', [DishController::class, 'index']);
+Route::get('/dishes/{id}', [DishController::class, 'show']);
+Route::put('/dishes/update/{id}', [DishController::class, 'update']);
+Route::post('/dishes/create', [DishController::class, 'store']);
+Route::delete('/dishes/delete/{id}', [DishController::class, 'destroy']);
+
+Route::get('/dishes/with-ingredients/all', [DishController::class, 'index_loaded']);
+Route::get('/dishes/with-ingredients/{id}', [DishController::class, 'show_loaded']);
+Route::put('/dishes/with-ingredients/update/{id}', [DishController::class, 'update_loaded']);
+Route::post('/dishes/with-ingredients/create', [DishController::class, 'store_loaded']);
+Route::get('/dishes/with-purchase-options/{id}', [DishController::class, 'show_with_purchase_options']);
 
 Route::get('/ingredient-products/all', [IngredientProductController::class, 'index']);
 Route::get('/ingredient-products/{id}', [IngredientProductController::class, 'show']);
@@ -60,17 +64,17 @@ Route::put('/dish-ingredients/update/{id}', [DishIngredientController::class, 'u
 Route::post('/dish-ingredients/create', [DishIngredientController::class, 'store']);
 Route::delete('/dish-ingredients/delete/{id}', [DishIngredientController::class, 'destroy']);
 
-Route::get('/dishes/all', [DishController::class, 'index']);
-Route::get('/dishes/{id}', [DishController::class, 'show']);
-Route::put('/dishes/update/{id}', [DishController::class, 'update']);
-Route::post('/dishes/create', [DishController::class, 'store']);
-Route::delete('/dishes/delete/{id}', [DishController::class, 'destroy']);
 
 Route::get('/distributors/all', [DistributorController::class, 'index']);
 Route::get('/distributors/{id}', [DistributorController::class, 'show']);
 Route::put('/distributors/update/{id}', [DistributorController::class, 'update']);
 Route::post('/distributors/create', [DistributorController::class, 'store']);
+
 Route::delete('/distributors/delete/{id}', [DistributorController::class, 'destroy']);
+Route::get('/distributors/with-purchase-options/all', [DistributorController::class, 'index_loaded']);
+Route::get('/distributors/with-purchase-options/{id}', [DistributorController::class, 'show_loaded']);
+Route::put('/distributors/with-purchase-options/update/{id}', [DistributorController::class, 'update_loaded']);
+Route::post('/distributors/with-purchase-options/create', [DistributorController::class, 'store_loaded']);
 
 Route::get('/menu-items/all', [MenuItemController::class, 'index']);
 Route::get('/menu-items/{id}', [MenuItemController::class, 'show']);
@@ -95,6 +99,7 @@ Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::put('/products/update/{id}', [ProductController::class, 'update']);
 Route::post('/products/create', [ProductController::class, 'store']);
 Route::delete('/products/delete/{id}', [ProductController::class, 'destroy']);
+Route::get('/products/with-purchase-options/{id}', [ProductController::class, 'show_with_purchase_options']);
 
 Route::get('/purchases/all', [PurchaseController::class, 'index']);
 Route::get('/purchases/{id}', [PurchaseController::class, 'show']);

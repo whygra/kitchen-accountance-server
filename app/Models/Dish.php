@@ -45,7 +45,7 @@ class Dish extends DeletionAllowableModel
     protected static function booted(): void
     {
         static::deleting(function (Dish $dish) {
-            if (!$this->deletionAllowed())
+            if (!$dish->deletionAllowed())
                 return false;
             // удаление связанных записей
             $dish->dishes_ingredients()->delete();
