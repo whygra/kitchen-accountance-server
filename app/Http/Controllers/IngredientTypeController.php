@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\IngredientType;
-use App\Http\Requests\StoreIngredientTypeRequest;
-use App\Http\Requests\UpdateIngredientTypeRequest;
+use App\Models\Ingredient\IngredientType;
+use App\Http\Requests\IngredientType\StoreIngredientTypeRequest;
+use App\Http\Requests\IngredientType\UpdateIngredientTypeRequest;
 use Exception;
 
 class IngredientTypeController extends Controller

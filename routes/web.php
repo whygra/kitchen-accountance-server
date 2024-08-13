@@ -6,7 +6,6 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\IngredientController;
 use App\Http\Controllers\IngredientProductController;
 use App\Http\Controllers\IngredientTypeController;
-use App\Http\Controllers\DishIngredientController;
 use App\Http\Controllers\DishController;
 use App\Http\Controllers\DistributorController;
 use App\Http\Controllers\MenuItemController;
@@ -39,12 +38,6 @@ Route::get('/ingredient-types/{id}', [IngredientTypeController::class, 'show']);
 Route::put('/ingredient-types/update/{id}', [IngredientTypeController::class, 'show']);
 Route::post('/ingredient-types/create', [IngredientTypeController::class, 'store']);
 Route::delete('/ingredient-types/delete/{id}', [IngredientTypeController::class, 'destroy']);
-
-Route::get('/dish-ingredients/all', [DishIngredientController::class, 'index']);
-Route::get('/dish-ingredients/{id}', [DishIngredientController::class, 'show']);
-Route::put('/dish-ingredients/update/{id}', [DishIngredientController::class, 'show']);
-Route::post('/dish-ingredients/create', [DishIngredientController::class, 'store']);
-Route::delete('/dish-ingredients/delete/{id}', [DishIngredientController::class, 'destroy']);
 
 Route::get('/dishes/all', [DishController::class, 'index']);
 Route::get('/dishes/{id}', [DishController::class, 'show']);

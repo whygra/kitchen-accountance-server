@@ -19,6 +19,9 @@ return new class extends Migration
             // тип компонента
             $table->foreignId('type_id');
             $table->foreign('type_id')->references('id')->on('ingredient_types');
+            // категория
+            $table->foreignId('category_id')->default('1');
+            $table->foreign('category_id')->references('id')->on('ingredient_categories')->onDelete('set default');
             $table->timestamps();
         });
     }

@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Unit;
-use App\Http\Requests\StoreUnitRequest;
-use App\Http\Requests\UpdateUnitRequest;
+use App\Models\Distributor\Unit;
+use App\Http\Requests\Unit\StoreUnitRequest;
+use App\Http\Requests\Unit\UpdateUnitRequest;
 use Exception;
 
 class UnitController extends Controller

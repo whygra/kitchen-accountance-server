@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Product;
-use App\Http\Requests\StoreProductRequest;
-use App\Http\Requests\UpdateProductRequest;
+use App\Models\Product\Product;
+use App\Http\Requests\Product\StoreProductRequest;
+use App\Http\Requests\Product\UpdateProductRequest;
 use Exception;
 
 class ProductController extends Controller
@@ -15,6 +15,11 @@ class ProductController extends Controller
     public function index()
     {
         $all = Product::all();
+        return response()->json($all);
+    }
+    public function index_with_purchase_options()
+    {
+        $all = Product::with('products_purchase_options.purchase_option')->all();
         return response()->json($all);
     }
 
@@ -33,6 +38,7 @@ class ProductController extends Controller
     {
         $new = new Product;
         $new->name = $request->name;
+        $new->category_id = $request->category_id;
         $new->save();
         return response()->json($new, 201);
     }
@@ -43,6 +49,16 @@ class ProductController extends Controller
     public function show($id)
     {
         $item = Product::find($id);
+        if (empty($item))
+            return response()->json([
+                'message' => '404'
+            ], 404);
+
+        return response()->json($item);
+    }
+    public function show_with_purchase_options($id)
+    {
+        $item = Product::with('products_purchase_options.purchase_option')->find($id);
         if (empty($item))
             return response()->json([
                 'message' => '404'
@@ -71,6 +87,7 @@ class ProductController extends Controller
             ], 404);
 
         $item->name = $request->name;
+        $item->category_id = $request->category_id;
         $item->save();
         return response()->json($item, 200);
     }
@@ -88,21 +105,5 @@ class ProductController extends Controller
 
         $item->delete();
         return response()->json($item, 204);
-    }
-
-    
-
-    /**
-     * Display the specified resource.
-     */
-    public function show_with_purchase_options($id)
-    {
-        $item = Product::with('purchase_options')->find($id);
-        if (empty($item))
-            return response()->json([
-                'message' => '404'
-            ], 404);
-
-        return response()->json($item);
     }
 }

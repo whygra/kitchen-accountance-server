@@ -14,22 +14,18 @@ return new class extends Migration
         // позиция закупки
         Schema::create('purchase_options', function (Blueprint $table) {
             $table->id();
-            // продукт
-            $table->foreignId('product_id');
-            $table->foreign('product_id')->references('id')->on('products');
-            // единиуа измерения
-            $table->foreignId('unit_id');
-            $table->foreign('unit_id')->references('id')->on('units');
+            // единица измерения
+            $table->foreignId('unit_id')->default(1);
+            $table->foreign('unit_id')->references('id')->on('units')->onDelete('set default');
             // наименование
             $table->text('name');
             // масса нетто
             $table->integer('net_weight');
             // цена
-            
             $table->decimal('price');
             // поставщик
             $table->foreignId('distributor_id');
-            $table->foreign('distributor_id')->references('id')->on('distributors');
+            $table->foreign('distributor_id')->references('id')->on('distributors')->onDelete('cascade');
             $table->timestamps();
         });
     }

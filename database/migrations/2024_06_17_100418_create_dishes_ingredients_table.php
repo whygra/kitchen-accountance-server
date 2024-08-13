@@ -16,10 +16,10 @@ return new class extends Migration
             $table->id();
             // блюдо
             $table->foreignId('dish_id');
-            $table->foreign('dish_id')->references('id')->on('dishes');
+            $table->foreign('dish_id')->references('id')->on('dishes')->onDelete('cascade');
             // компонент
             $table->foreignId('ingredient_id');
-            $table->foreign('ingredient_id')->references('id')->on('ingredients');
+            $table->foreign('ingredient_id')->references('id')->on('ingredients')->onDelete('cascade');
             // вес компонента до обработки
             $table->decimal('ingredient_raw_weight');
             // процент отхода - потери компонента в весе при обработке

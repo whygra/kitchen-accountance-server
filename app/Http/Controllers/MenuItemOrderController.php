@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MenuItemOrder;
-use App\Http\Requests\StoreMenuItemOrderRequest;
-use App\Http\Requests\UpdateMenuItemOrderRequest;
-use App\Models\MenuItem;
+use App\Models\MenuItem\MenuItemOrder;
+use App\Http\Requests\MenuItemOrder\StoreMenuItemOrderRequest;
+use App\Http\Requests\MenuItemOrder\UpdateMenuItemOrderRequest;
+use App\Models\MenuItem\MenuItem;
 use Exception;
 
 class MenuItemOrderController extends Controller

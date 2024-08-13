@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Purchase;
-use App\Http\Requests\StorePurchaseRequest;
-use App\Http\Requests\UpdatePurchaseRequest;
+use App\Models\Distributor\Purchase;
+use App\Http\Requests\Purchase\StorePurchaseRequest;
+use App\Http\Requests\Purchase\UpdatePurchaseRequest;
 use Exception;
 
 class PurchaseController extends Controller

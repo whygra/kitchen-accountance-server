@@ -18,6 +18,9 @@ return new class extends Migration
             $table->text('name');
             // путь к файлу изображения
             $table->text('image_path');
+            // категория
+            $table->foreignId('category_id')->default('1');
+            $table->foreign('category_id')->references('id')->on('dish_categories')->onDelete('set default');
             $table->timestamps();
         });
     }

@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreign('purchase_option_id')->references('id')->on('purchase_options');
             // закупка
             $table->foreignId('purchase_id');
-            $table->foreign('purchase_id')->references('id')->on('purchases');
+            $table->foreign('purchase_id')->references('id')->on('purchases')->onDelete('cascade');
             // количество единиц
             $table->integer('amount');
             $table->timestamps();

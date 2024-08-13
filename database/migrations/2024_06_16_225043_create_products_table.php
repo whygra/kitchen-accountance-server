@@ -16,6 +16,9 @@ return new class extends Migration
             $table->id();
             // наименование
             $table->text('name');
+            // категория
+            $table->foreignId('category_id')->default('1');
+            $table->foreign('category_id')->references('id')->on('product_categories')->onDelete('set default');
             $table->timestamps();
         });
     }

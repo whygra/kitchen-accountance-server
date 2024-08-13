@@ -2,9 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\MenuItem;
-use App\Http\Requests\StoreMenuItemRequest;
-use App\Http\Requests\UpdateMenuItemRequest;
+use App\Models\MenuItem\MenuItem;
+use App\Http\Requests\MenuItem\StoreMenuItemRequest;
+use App\Http\Requests\MenuItem\UpdateMenuItemRequest;
 use Exception;
 
 class MenuItemController extends Controller

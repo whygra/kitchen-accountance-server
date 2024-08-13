@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             // блюдо
             $table->foreignId('dish_id');
-            $table->foreign('dish_id')->references('id')->on('dishes');
+            $table->foreign('dish_id')->references('id')->on('dishes')->onDelete('cascade');
             // цена
             $table->integer('price');
             $table->timestamps();

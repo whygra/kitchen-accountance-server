@@ -16,7 +16,7 @@ return new class extends Migration
             $table->id();
             // заказ
             $table->foreignId('order_id');
-            $table->foreign('order_id')->references('id')->on('orders');
+            $table->foreign('order_id')->references('id')->on('orders')->onDelete('cascade');
             // позиция меню
             $table->foreignId('menu_item_id');
             $table->foreign('menu_item_id')->references('id')->on('menu_items');
