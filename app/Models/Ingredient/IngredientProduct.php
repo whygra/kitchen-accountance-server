@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class IngredientProduct extends Model
+class IngredientProduct extends Pivot
 {
     use HasFactory;
     

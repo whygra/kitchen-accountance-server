@@ -2,7 +2,6 @@
 
 namespace App\Models\Distributor;
 
-use App\Models\DeletionAllowableModel;
 use App\Models\Product\Product;
 use App\Models\Product\ProductPurchaseOption;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -12,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class PurchaseOption extends DeletionAllowableModel
+class PurchaseOption extends Model
 {
     use HasFactory;
     
@@ -49,24 +48,6 @@ class PurchaseOption extends DeletionAllowableModel
         'price' => 'float'
     ];
 
-    public function deletionAllowed() :bool {
-        // удаление разрешено, если нет связанных заявок
-        return empty(
-            $this->purchase_items()->get()->all()
-        );
-    }
-
-    protected static function booted(): void
-    {
-        static::deleting(function (PurchaseOption $purchaseOption) {
-            if (!$purchaseOption->deletionAllowed())
-                return false;
-            // удаление связанных записей
-            $purchaseOption->products()->detach();
-            $purchaseOption->purchase_items()->delete();
-        });
-    }
-
     public function purchase_items(): HasMany
     {
         return $this->hasMany(PurchaseItem::class, 'purchase_option_id', 'id');
@@ -75,13 +56,11 @@ class PurchaseOption extends DeletionAllowableModel
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'products_purchase_options', 'purchase_option_id', 'product_id')
-            ->withPivot('product_share');
+            ->withPivot('product_share')
+            ->using(ProductPurchaseOption::class);
     }
 
-    
-
-
-    public function unit(): BelongsTo
+        public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class, 'unit_id', 'id');
     }

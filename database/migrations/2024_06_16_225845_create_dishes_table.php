@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('dishes', function (Blueprint $table) {
             $table->id();
             // название
-            $table->text('name');
+            $table->text('name')->unique();
             // путь к файлу изображения
             $table->text('image_path');
             // категория

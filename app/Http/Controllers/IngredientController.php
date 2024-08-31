@@ -2,10 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Ingredient\DeleteIngredientRequest;
+use App\Http\Requests\Ingredient\GetIngredientRequest;
+use App\Http\Requests\Ingredient\GetIngredientWithProductsRequest;
 use App\Http\Requests\Ingredient\StoreIngredientRequest;
 use App\Http\Requests\Ingredient\StoreIngredientWithProductsRequest;
 use App\Http\Requests\Ingredient\UpdateIngredientRequest;
 use App\Http\Requests\Ingredient\UpdateIngredientWithProductsRequest;
+use App\Http\Resources\Ingredient\IngredientResource;
 use App\Models\Ingredient\AbstractIngredient;
 use App\Models\Ingredient\Ingredient;
 use App\Models\Ingredient\IngredientCategory;
@@ -22,18 +26,10 @@ class IngredientController extends Controller
     /**
      * Display a listing of the resource. 
      */
-    public function index()
+    public function index(GetIngredientRequest $request)
     {
         $all = Ingredient::get();
         return response()->json($all);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create(Request $request)
-    {
-        //
     }
  
     /**
@@ -52,7 +48,7 @@ class IngredientController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(GetIngredientRequest $request, $id)
     {
         $item = Ingredient::find($id);
         if (empty($item))
@@ -61,14 +57,6 @@ class IngredientController extends Controller
             ], 404);
             
         return response()->json($item);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Ingredient $ingredient)
-    {
-        //
     }
 
     /**
@@ -88,41 +76,41 @@ class IngredientController extends Controller
         return response()->json($item, 200);
     }
 
-    public function index_loaded()
+    public function index_loaded(GetIngredientWithProductsRequest $request)
     {
         $all = Ingredient::with(
-                'ingredients_products.product', 'type', 'category'
-            )->append('level')->get()->toArray();
-        return response()->json($all);
+            'products', 'type', 'category',
+        )->get();
+        return response()->json(IngredientResource::collection($all));
     }
 
-    public function show_loaded($id)
+    public function show_loaded(GetIngredientRequest $request, $id)
     {
-        $item = Ingredient::with('ingredients_products.product', 'type', 'category')->append('level')->find($id);
+        $item = Ingredient::with('products', 'type', 'category')->find($id);
         if (empty($item))
             return response()->json([
                 'message' => "404"
             ], 404);
             
-        return response()->json($item);
+        return response()->json(new IngredientResource($item));
     }
 
     // создание
     public function store_loaded(StoreIngredientWithProductsRequest $request)
     {
         $item = new Ingredient;
-        
         // сначала создаем ингредиент - потом связи
-        $item->name = $request->name;
-        $item->type_id = $request->type_id;
+        $item->name = $request['name'];
+        $item->item_weight = $request['item_weight'];
+        $item->type_id = $request['type']['id'];
 
-        if($request->category_data_action == 'create'){
-            $category = new IngredientCategory();
+        $category = IngredientCategory::findOrNew($request['category']['id']);
+        if(empty($category->id)){
             $category->name = $request['category']['name'];
-        } else {
-            $category = IngredientCategory::find($request['category']['id']);
+            $category->save();
         }
-        $item->category()->associate($category);
+
+        $item->category()->associate($category->id);
 
         $item->save();
 
@@ -147,14 +135,15 @@ class IngredientController extends Controller
 
         // обновление данных компонента
         $item->name = $request->name;
-        $item->type_id = $request->type_id;
+        $item->item_weight = $request['item_weight'];
+        $item->type_id = $request['type']['id'];
 
-        if($request->category_data_action == 'create'){
-            $category = new IngredientCategory();
+        $category = IngredientCategory::findOrNew($request['category']['id']);
+        if(empty($category->id)){
             $category->name = $request['category']['name'];
-        } else {
-            $category = IngredientCategory::find($request['category']['id']);
+            $category->save();
         }
+
         $item->category()->associate($category);
 
         $item->save();
@@ -163,64 +152,30 @@ class IngredientController extends Controller
     }
     
     private function process_products(Ingredient $item, FormRequest $request) {
-        // для каждой связи компонент-продукт
-        foreach ($request->ingredients_products as $ingredientProductData){
 
-            $productData = $ingredientProductData['product'];
-            $ingredientProductId = $ingredientProductData['id'];            
+        $products = [];
+        foreach($request->products as $p){
+            $product = Product::findOrNew($p['id']);
 
-            // создание, обновление связи
-            switch($ingredientProductData['data_action']){
-                case 'create':
-                    // создание связи
-                    $ingredientProduct = new IngredientProduct;
-                    $ingredientProduct->waste_percentage = $ingredientProductData['waste_percentage'];
-                    $ingredientProduct->raw_content_percentage = $ingredientProductData['raw_content_percentage'];
-                    break;
-                case 'update':
-                    // обновление связи
-                    $ingredientProduct = $item->ingredients_products()->find($ingredientProductId);
-                    $ingredientProduct->waste_percentage = $ingredientProductData['waste_percentage'];
-                    $ingredientProduct->raw_content_percentage = $ingredientProductData['raw_content_percentage'];
-                    break;
-                case 'none':
-                    // получение связи
-                    $ingredientProduct = $item->ingredients_products()->find($ingredientProductId);
-                    break;
-                case 'delete':
-                    // удаление связи
-                    $ingredientProduct = $item->ingredients_products()->find($ingredientProductId);
-                    $ingredientProduct->delete();
-                    default:
-                        continue 2;
+            if(empty($product->id)){
+                $product->name = $p['name'];
+                $product->save();
             }
 
-            // создание, обновление продукта
-            switch($ingredientProductData['product_data_action']){
-                case 'create':
-                    // создание продукта
-                    $product = new Product;
-                    $product->name = $productData['name'] ?? '';
-                    $product->save();
-                    break;
-                case 'none':
-                    // получение продукта
-                    $product = Product::find($productData['id']);
-                    break;
-                default:
-                    continue 2;
-            }
-
-            $item->ingredients_products()->save(
-                $ingredientProduct->product()->associate($product)->ingredient()->associate($item)
-            );
+            $products[$product->id] = [
+                'waste_percentage'=>$p['waste_percentage'],
+                'raw_content_percentage'=>$p['raw_content_percentage']
+            ];
         }
+    
+        $item->products()->sync($products);
+
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(DeleteIngredientRequest $request, $id)
     {        
         $item = Ingredient::find($id);
         if (empty($item))

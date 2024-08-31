@@ -2,15 +2,15 @@
 
 namespace App\Models\MenuItem;
 
-use App\Models\DeletionAllowableModel;
 use App\Models\Dish\Dish;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
-class MenuItem extends DeletionAllowableModel
+class MenuItem extends Model
 {
     use HasFactory;
     
@@ -51,8 +51,10 @@ class MenuItem extends DeletionAllowableModel
         return $this->belongsTo(Dish::class);
     }
 
-    public function menu_items_orders(): HasMany
+    public function orders(): BelongsToMany
     {
-        return $this->hasMany(MenuItemOrder::class);
+        return $this->belongsToMany(Order::class, 'menu_items_orders')
+            ->withPivot(['amount', 'discount'])
+            ->using(MenuItemOrder::class);
     }
 }

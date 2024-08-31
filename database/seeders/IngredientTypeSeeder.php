@@ -13,6 +13,7 @@ class IngredientTypeSeeder extends Seeder
      */
     public static function run(): void
     {
+        DB::table(IngredientTypeSeeder::$tableName)->select()->delete();
         DB::table(IngredientTypeSeeder::$tableName)->insert([
             'name' => 'ПФ',
         ]);

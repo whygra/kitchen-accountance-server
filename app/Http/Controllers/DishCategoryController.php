@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\DishCategory\StoreDishCategoryRequest;
-use App\Http\Requests\DishCategory\UpdateDishCategoryRequest;
+use App\Http\Requests\DishCategory\DeleteDishCategoryRequest;
+use App\Http\Requests\DishCategory\GetDishCategoryRequest;
+use App\Http\Requests\DishCategory\StoreDishCategoryWithDishesRequest;
+use App\Http\Requests\DishCategory\UpdateDishCategoryWithDishesRequest;
 use App\Models\Dish\DishCategory;
 use App\Models\Dish\DishIngredient;
 
@@ -12,24 +14,16 @@ class DishCategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(GetDishCategoryRequest $request)
     {
         $all = DishCategory::all();
         return response()->json($all);
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreDishCategoryRequest $request)
+    public function store(StoreDishCategoryWithDishesRequest $request)
     {
         $new = new DishCategory;
         $new->name = $request->name;
@@ -40,7 +34,7 @@ class DishCategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(GetDishCategoryRequest $request, $id)
     {
         $item = DishCategory::find($id);
         if(empty($item))
@@ -53,7 +47,7 @@ class DishCategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateDishCategoryRequest $request, $id)
+    public function update(UpdateDishCategoryWithDishesRequest $request, $id)
     {
         $item = DishCategory::find($id);
         $item->name = $request->name;
@@ -71,14 +65,14 @@ class DishCategoryController extends Controller
      * Display the specified resource.
      */
 
-     public function index_loaded()
+     public function index_loaded(GetDishCategoryRequest $request)
      {
          $all = DishCategory::with('dishes')->all();
          return response()->json($all);
      }
 
 
-    public function show_loaded($id)
+    public function show_loaded(GetDishCategoryRequest $request, $id)
     {
         $item = DishCategory::with('dishes')->find($id);
         if(empty($item))
@@ -89,7 +83,7 @@ class DishCategoryController extends Controller
     }
 
     // удаление
-    public function destroy($id) 
+    public function destroy(DeleteDishCategoryRequest $request, $id) 
     {
         $item = DishCategory::find($id);
         if (empty($item))

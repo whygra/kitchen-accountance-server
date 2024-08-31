@@ -22,6 +22,8 @@ return new class extends Migration
             $table->foreign('menu_item_id')->references('id')->on('menu_items');
             // количество заказанных единиц данной позиции меню
             $table->integer('amount');
+            // скидка
+            $table->decimal('discount');
             $table->timestamps();
         });
     }

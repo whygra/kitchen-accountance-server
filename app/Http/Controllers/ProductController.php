@@ -2,9 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Product\DeleteProductRequest;
+use App\Http\Requests\Product\GetProductWithPurchaseOptionsRequest;
 use App\Models\Product\Product;
-use App\Http\Requests\Product\StoreProductRequest;
-use App\Http\Requests\Product\UpdateProductRequest;
+use App\Http\Requests\Product\StoreProductWithPurchaseOptionsRequest;
+use App\Http\Requests\Product\UpdateProductWithPurchaseOptionsRequest;
 use Exception;
 
 class ProductController extends Controller
@@ -12,29 +14,21 @@ class ProductController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(GetProductWithPurchaseOptionsRequest $request)
     {
         $all = Product::all();
         return response()->json($all);
     }
-    public function index_with_purchase_options()
+    public function index_with_purchase_options(GetProductWithPurchaseOptionsRequest $request)
     {
         $all = Product::with('products_purchase_options.purchase_option')->all();
         return response()->json($all);
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreProductRequest $request)
+    public function store(StoreProductWithPurchaseOptionsRequest $request)
     {
         $new = new Product;
         $new->name = $request->name;
@@ -46,7 +40,7 @@ class ProductController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(GetProductWithPurchaseOptionsRequest $request, $id)
     {
         $item = Product::find($id);
         if (empty($item))
@@ -56,7 +50,7 @@ class ProductController extends Controller
 
         return response()->json($item);
     }
-    public function show_with_purchase_options($id)
+    public function show_with_purchase_options(GetProductWithPurchaseOptionsRequest $request, $id)
     {
         $item = Product::with('products_purchase_options.purchase_option')->find($id);
         if (empty($item))
@@ -68,17 +62,9 @@ class ProductController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Product $product)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductRequest $request, $id)
+    public function update(UpdateProductWithPurchaseOptionsRequest $request, $id)
     {
         $item = Product::find($id);
         if (empty($item))
@@ -95,7 +81,7 @@ class ProductController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(DeleteProductRequest $request, $id)
     {
         $item = Product::find($id);
         if (empty($item))

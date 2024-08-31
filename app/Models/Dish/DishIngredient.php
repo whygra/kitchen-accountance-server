@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class DishIngredient extends Model
+class DishIngredient extends Pivot
 {
     use HasFactory;
     
@@ -32,7 +33,7 @@ class DishIngredient extends Model
         'dish_id',
         'ingredient_id',
         'waste_percentage',
-        'ingredient_raw_weight',
+        'ingredient_amount',
     ];
 
     protected $foreignKeys = [
@@ -41,7 +42,7 @@ class DishIngredient extends Model
     ];
 
     protected $casts = [
-        'ingredient_raw_weight' => 'float',
+        'ingredient_amount' => 'float',
         'waste_percentage' => 'float',
    ];
 

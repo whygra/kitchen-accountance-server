@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Distributor\DeleteDistributorRequest;
+use App\Http\Requests\Distributor\GetDistributorWithPurchaseOptionsRequest;
 use App\Models\Distributor\Distributor;
 use App\Http\Requests\Distributor\StoreDistributorRequest;
 use App\Http\Requests\Distributor\StoreDistributorWithPurchaseOptionsRequest;
 use App\Http\Requests\Distributor\UpdateDistributorRequest;
 use App\Http\Requests\Distributor\UpdateDistributorWithPurchaseOptionsRequest;
+use App\Http\Resources\Distributor\DistributorResource;
 use App\Models\Product\Product;
 use App\Models\Distributor\PurchaseOption;
 use App\Models\Distributor\Unit;
@@ -19,18 +22,10 @@ class DistributorController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(GetDistributorWithPurchaseOptionsRequest $request)
     {
         $all = Distributor::all();
         return response()->json($all);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -47,18 +42,10 @@ class DistributorController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(GetDistributorWithPurchaseOptionsRequest $request, $id)
     {
         $item = Distributor::find($id);
         return response()->json($item);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Distributor $distributor)
-    {
-        //
     }
 
     /**
@@ -77,13 +64,13 @@ class DistributorController extends Controller
     }
 
 
-    public function index_loaded()
+    public function index_loaded(GetDistributorWithPurchaseOptionsRequest $request)
     {
         $all = Distributor::with('purchase_options.products', 'purchase_options.unit')->get();
-        return response()->json($all);
+        return response()->json(DistributorResource::collection($all));
     }
 
-    public function show_loaded($id)
+    public function show_loaded(GetDistributorWithPurchaseOptionsRequest $request, $id)
     {
         $item = Distributor::with('purchase_options.products', 'purchase_options.unit')->find($id);
         if (empty($item))
@@ -91,7 +78,7 @@ class DistributorController extends Controller
                 'message' => "404"
             ], 404);
             
-        return response()->json($item);
+        return response()->json(new DistributorResource($item));
     }
 
     public function store_loaded(StoreDistributorWithPurchaseOptionsRequest $request)
@@ -103,7 +90,7 @@ class DistributorController extends Controller
         $item->name = $request->name;
         
         $item->save();
-        $this->process_purchase_options($item, $request);
+        $this->process_purchase_options($request, $item);
 
         return response()->json($item);
     }
@@ -123,26 +110,25 @@ class DistributorController extends Controller
         $item->name = $request->name;
         $item->save();
         
-        $this->process_purchase_options($item, $request);
+        $this->process_purchase_options($request, $item);
 
         return response()->json($item);
     }
  
-    private function process_purchase_options(Distributor $item, FormRequest $request) {
+    private function process_purchase_options(FormRequest $request, Distributor $item) {
         $item->purchase_options()->delete();
         foreach($request->purchase_options as $o){
 
             $option = PurchaseOption::findOrNew($o['id']);
-            $option->name = $o['name'];
+            $option->name = $o['name'] ?? "";
             $option->price = $o['price'];
             $option->net_weight = $o['net_weight'];
             
-            $unit = Unit::find($o['unit']['id']);
+            $unit = Unit::findOrNew($o['unit']['id']);
             // присвоить значения полей новой записи
-            if(empty($unit)){
-                $unit = new Unit();
-                $unit->long = $o['unit']['long'];
-                $unit->short = $o['unit']['short'];
+            if(empty($unit->id)){
+                $unit->long = $o['unit']['long'] ?? "";
+                $unit->short = $o['unit']['short'] ?? "";
                 $unit->save();
             }
             
@@ -152,15 +138,16 @@ class DistributorController extends Controller
             // создаем/изменяем продукт только если количество продуктов данной позиции не больше 1
             // с коллекцией продуктов работает контроллер позиций закупки
             if($option->products()->count() <= 1){
-                $product = Product::find($o['product']['id']);
+                $productData = reset($o['products']);
+                $product = Product::findOrNew($productData['id']);
 
                 // присвоить значение новой записи
-                if(empty($product)){
-                    $product = new Product();
-                    $product->name = $o['product']['name'];
+                if(empty($product->id)){
+                    $product->name = $productData['name'];
                     // id категории - по умолчанию
                     $product->save();
                 }
+                
                 $option->products()->sync([$product->id => ['product_share'=>100]]);
             }
         }
@@ -170,7 +157,7 @@ class DistributorController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(DeleteDistributorRequest $request, $id)
     {
         $item = Distributor::find($id);
         if(empty($item))

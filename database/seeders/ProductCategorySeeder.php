@@ -14,6 +14,7 @@ class ProductCategorySeeder extends Seeder
      */
     public function run(): void
     {
+        DB::table(ProductCategorySeeder::$tableName)->select()->delete();
         DB::table(ProductCategorySeeder::$tableName)->insert([
             'name' => 'без категории',
         ]);

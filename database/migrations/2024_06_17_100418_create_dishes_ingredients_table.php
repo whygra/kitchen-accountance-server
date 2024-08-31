@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignId('ingredient_id');
             $table->foreign('ingredient_id')->references('id')->on('ingredients')->onDelete('cascade');
             // вес компонента до обработки
-            $table->decimal('ingredient_raw_weight');
+            $table->decimal('ingredient_amount');
             // процент отхода - потери компонента в весе при обработке
             $table->decimal('waste_percentage');
             $table->timestamps();

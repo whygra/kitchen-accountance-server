@@ -6,8 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class MenuItemOrder extends Model
+class MenuItemOrder extends Pivot
 {
     use HasFactory;
     
@@ -31,11 +32,16 @@ class MenuItemOrder extends Model
         'order_id',
         'menu_item_id',
         'amount',
+        'discount',
     ];
 
     protected $foreignKeys = [
         'dish' => 'dish_id', 
         'menu_item' => 'menu_item_id', 
+    ];
+
+    protected $casts = [
+        'discount' => 'float',
     ];
 
     public function dish(): BelongsTo 

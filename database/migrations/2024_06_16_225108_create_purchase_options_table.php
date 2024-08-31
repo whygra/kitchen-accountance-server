@@ -18,7 +18,7 @@ return new class extends Migration
             $table->foreignId('unit_id')->default(1);
             $table->foreign('unit_id')->references('id')->on('units')->onDelete('set default');
             // наименование
-            $table->text('name');
+            $table->text('name')->unique();
             // масса нетто
             $table->integer('net_weight');
             // цена

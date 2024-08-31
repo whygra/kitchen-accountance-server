@@ -14,6 +14,7 @@ class DishCategorySeeder extends Seeder
      */
     public function run(): void
     {
+        DB::table(DishCategorySeeder::$tableName)->select()->delete();
         DB::table(DishCategorySeeder::$tableName)->insert([
             'name' => 'без категории',
         ]);

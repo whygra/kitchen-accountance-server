@@ -2,7 +2,12 @@
 
 namespace App\Http\Requests\Unit;
 
+use App\Models\User\Permissions;
+use App\Models\User\User;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Auth;
 
 class StoreUnitRequest extends FormRequest
 {
@@ -11,7 +16,16 @@ class StoreUnitRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;
+        $user = User::find(Auth::user()->id);
+        return empty($user) ? false : $user->hasAnyPermission(Permissions::CRUD_DISTRIBUTORS->value);
+    }
+
+    public function failedAuthorization()
+    {
+        throw new HttpResponseException(response()->json([
+            'success'   => false,
+            'message'   => 'Нет прав доступа: '.$this::class,
+        ], 401));
     }
 
     /**
@@ -22,7 +36,16 @@ class StoreUnitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'name'=>'required|string',
         ];
+    }
+    
+    public function failedValidation(Validator $validator)
+    {
+        throw new HttpResponseException(response()->json([
+            'success'   => false,
+            'message'   => 'Ошибки валидации',
+            'errors'      => $validator->errors()
+        ], 400));
     }
 }

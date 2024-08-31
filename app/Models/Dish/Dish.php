@@ -2,15 +2,15 @@
 
 namespace App\Models\Dish;
 
-use App\Models\DeletionAllowableModel;
 use App\Models\Ingredient\Ingredient;
 use App\Models\MenuItem\MenuItem;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Dish extends DeletionAllowableModel
+class Dish extends Model
 {
     use HasFactory;
     
@@ -40,32 +40,13 @@ class Dish extends DeletionAllowableModel
         'category' => 'category_id',
     ];
 
-    public function deletionAllowed() : bool {
-        // удаление разрешено, если нет связанных позиций меню, которые нельзя удалить
-        return empty(
-            array_filter(
-                $this->menu_items()->get()->all(), 
-                fn($item)=>!($item->deletionAllowed())
-            )
-        );
-    }
-
-    protected static function booted(): void
-    {
-        static::deleting(function (Dish $dish) {
-            if (!$dish->deletionAllowed())
-                return false;
-            // удаление связанных записей
-            $dish->dishes_ingredients()->delete();
-            $dish->menu_items()->delete();
-        });
-    }
-
-
+    
     // связи M-N с ингредиентами
-    public function dishes_ingredients(): HasMany
+    public function ingredients(): BelongsToMany
     {
-        return $this->hasMany(DishIngredient::class, 'dish_id', 'id');
+        return $this->belongsToMany(Ingredient::class, 'dishes_ingredients')
+            ->withPivot('waste_percentage', 'ingredient_amount')
+            ->using(DishIngredient::class);
     }
 
     // позиции меню

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\ProductCategory\StoreProductCategoryRequest;
-use App\Http\Requests\ProductCategory\UpdateProductCategoryRequest;
+use App\Http\Requests\ProductCategory\DeleteProductCategoryRequest;
+use App\Http\Requests\ProductCategory\GetProductCategoryRequest;
+use App\Http\Requests\ProductCategory\StoreProductCategoryWithProductsRequest;
+use App\Http\Requests\ProductCategory\UpdateProductCategoryWithProductsRequest;
 use App\Models\Product\ProductCategory;
 use App\Models\Product\ProductProduct;
 
@@ -12,24 +14,16 @@ class ProductCategoryController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(GetProductCategoryRequest $request)
     {
         $all = ProductCategory::all();
         return response()->json($all);
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreProductCategoryRequest $request)
+    public function store(StoreProductCategoryWithProductsRequest $request)
     {
         $new = new ProductCategory;
         $new->name = $request->name;
@@ -40,7 +34,7 @@ class ProductCategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(GetProductCategoryRequest $request, $id)
     {
         $item = ProductCategory::find($id);
         if(empty($item))
@@ -53,7 +47,7 @@ class ProductCategoryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateProductCategoryRequest $request, $id)
+    public function update(UpdateProductCategoryWithProductsRequest $request, $id)
     {
         $item = ProductCategory::find($id);
         $item->name = $request->name;
@@ -70,14 +64,14 @@ class ProductCategoryController extends Controller
      * Display the specified resource.
      */
 
-     public function index_loaded()
-     {
-         $all = ProductCategory::with('products')->all();
-         return response()->json($all);
-     }
-     
+    public function index_loaded(GetProductCategoryRequest $request)
+    {
+        $all = ProductCategory::with('products')->all();
+        return response()->json($all);
+    }
+    
 
-    public function show_loaded($id)
+    public function show_loaded(GetProductCategoryRequest $request, $id)
     {
         $item = ProductCategory::with('products')->find($id);
         if(empty($item))
@@ -88,7 +82,7 @@ class ProductCategoryController extends Controller
     }
     
     // удаление
-    public function destroy($id) 
+    public function destroy(DeleteProductCategoryRequest $request, $id) 
     {
         $item = ProductCategory::find($id);
         if (empty($item))

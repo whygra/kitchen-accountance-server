@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\PurchaseOption\DeletePurchaseOptionRequest;
+use App\Http\Requests\PurchaseOption\GetPurchaseOptionWithProductsRequest;
 use App\Models\Distributor\PurchaseOption;
-use App\Http\Requests\PurchaseOption\StorePurchaseOptionRequest;
-use App\Http\Requests\PurchaseOption\UpdatePurchaseOptionRequest;
+use App\Http\Requests\PurchaseOption\StorePurchaseOptionWithProductsRequest;
+use App\Http\Requests\PurchaseOption\UpdatePurchaseOptionWithProductsRequest;
+use App\Http\Resources\PurchaseOption\PurchaseOptionResource;
 use App\Models\Product\Product;
 use App\Models\Product\ProductPurchaseOption;
 use Exception;
@@ -15,42 +18,43 @@ class PurchaseOptionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(GetPurchaseOptionWithProductsRequest $request)
     {
         $all = PurchaseOption::all();
         return response()->json($all);
     }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
+    public function index_loaded(GetPurchaseOptionWithProductsRequest $request)
     {
-        //
+        $all = PurchaseOption::with('unit', 'distributor', 'products')->get();
+        return response()->json(PurchaseOptionResource::collection($all));
     }
 
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(GetPurchaseOptionWithProductsRequest $request, $id)
     {
         $item = PurchaseOption::find($id);
         return response()->json($item);
+    }
+    public function show_loaded(GetPurchaseOptionWithProductsRequest $request, $id)
+    {
+        $item = PurchaseOption::with('unit', 'distributor', 'products')->find($id);
+        return response()->json(new PurchaseOptionResource($item));
     }
 
 
     /**
      * Store a newly created resource in storage.
      */ 
-    public function store(StorePurchaseOptionRequest $request)
+    public function store(StorePurchaseOptionWithProductsRequest $request)
     {
         $new = new PurchaseOption;
-        $new->product_id = $request->product_id;
         $new->unit_id = $request->unit_id;
         $new->name = $request->name;
         $new->net_weight = $request->net_weight;
         $new->distributor_id = $request->distributor_id;
-        $new->declared_price = $request->declared_price;
+        $new->price = $request->price;
         $new->save();
         return response()->json([
             'message' => "201"
@@ -60,7 +64,7 @@ class PurchaseOptionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePurchaseOptionRequest $request, $id)
+    public function update(UpdatePurchaseOptionWithProductsRequest $request, $id)
     {
         $item = PurchaseOption::find($id);
         if(empty($item))
@@ -68,11 +72,10 @@ class PurchaseOptionController extends Controller
                 'message' => ''
             ], 404);
 
-        $item->product_id = $request->product_id;
         $item->unit_id = $request->unit_id;
         $item->name = $request->name;
         $item->net_weight = $request->net_weight;
-        $item->declared_price = $request->declared_price;
+        $item->price = $request->price;
 
         $item->save();
 
@@ -86,15 +89,14 @@ class PurchaseOptionController extends Controller
     /**
      * Store a newly created resource in storage.
      */ 
-    public function store_loaded(StorePurchaseOptionRequest $request)
+    public function store_loaded(StorePurchaseOptionWithProductsRequest $request)
     {
         $new = new PurchaseOption;
-        $new->product_id = $request->product_id;
         $new->unit_id = $request->unit_id;
         $new->name = $request->name;
         $new->net_weight = $request->net_weight;
         $new->distributor_id = $request->distributor_id;
-        $new->declared_price = $request->declared_price;
+        $new->price = $request->price;
         $this->process_products($new, $request);
         $new->save();
         return response()->json([
@@ -105,7 +107,7 @@ class PurchaseOptionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update_loaded(UpdatePurchaseOptionRequest $request, $id)
+    public function update_loaded(UpdatePurchaseOptionWithProductsRequest $request, $id)
     {
         $item = PurchaseOption::find($id);
         if(empty($item))
@@ -113,12 +115,11 @@ class PurchaseOptionController extends Controller
                 'message' => ''
             ], 404);
 
-        $item->product_id = $request->product_id;
         $item->unit_id = $request->unit_id;
         $item->name = $request->name;
         $item->net_weight = $request->net_weight;
         $item->distributor_id = $request->distributor_id;
-        $item->declared_price = $request->declared_price;
+        $item->price = $request->price;
 
         $this->process_products($item, $request);
 
@@ -133,40 +134,20 @@ class PurchaseOptionController extends Controller
         $products = [];
         foreach($request->products as $p){
             $product = Product::findOrNew($p['id']);
-            $product->name = $p['name'];
-            $product->save();
+            if(empty($product->id))
+            {
+                $product->name = $p['name'];
+                $product->save();
+            }
             $products[$product->id] = ['product_share'=>$p['product_share']];
         }
     
         $item->products()->sync($products);
     }
-
-
-    /**
-     * Display the specified resource.
-     */
-
-     public function index_loaded()
-     {
-         $all = PurchaseOption::with('purchase_options_products')->all();
-         return response()->json($all);
-     }
-     
-
-    public function show_loaded($id)
-    {
-        $item = PurchaseOption::with('purchase_options_products')->find($id);
-        if(empty($item))
-            return response()->json([
-                'message' => '404'
-            ], 404);
-        return response()->json($item);
-    }
-
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(DeletePurchaseOptionRequest $request, $id)
     {
         $item = PurchaseOption::find($id);
         if(empty($item))

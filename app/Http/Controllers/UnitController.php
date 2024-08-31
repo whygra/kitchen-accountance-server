@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Unit\DeleteUnitRequest;
+use App\Http\Requests\Unit\GetUnitRequest;
 use App\Models\Distributor\Unit;
 use App\Http\Requests\Unit\StoreUnitRequest;
 use App\Http\Requests\Unit\UpdateUnitRequest;
@@ -12,18 +14,10 @@ class UnitController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(GetUnitRequest $request)
     {
         $all = Unit::all();
         return response()->json($all);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
     }
 
     /**
@@ -41,18 +35,10 @@ class UnitController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(GetUnitRequest $request, $id)
     {
         $item = Unit::find($id);
         return response()->json($item);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Unit $unit)
-    {
-        //
     }
 
     /**
@@ -75,7 +61,7 @@ class UnitController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy(DeleteUnitRequest $request, $id)
     {
         $item = Unit::find($id);
         if(empty($item))

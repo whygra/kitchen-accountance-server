@@ -14,6 +14,7 @@ class IngredientCategorySeeder extends Seeder
      */
     public function run(): void
     {
+        DB::table(IngredientCategorySeeder::$tableName)->select()->delete();
         DB::table(IngredientCategorySeeder::$tableName)->insert([
             'name' => 'без категории',
         ]);

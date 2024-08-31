@@ -2,13 +2,12 @@
 
 namespace App\Models\Distributor;
 
-use App\Models\DeletionAllowableModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Distributor extends DeletionAllowableModel
+class Distributor extends Model
 {
     use HasFactory;
     
@@ -31,23 +30,6 @@ class Distributor extends DeletionAllowableModel
     protected $fillable = [
         'name',
     ];
-
-    public function deletionAllowed() : bool {
-        // удаление разрешено, если нет связанных закупок
-        return empty(
-            $this->purchases()->get()->all()
-        );
-    }
-
-    protected static function booted(): void
-    {
-        static::deleting(function (Distributor $distributor) {
-            if (!$distributor->deletionAllowed())
-                return false;
-            // удаление связанных записей
-            $distributor->purchase_options()->delete();
-        });
-    }
 
     public function purchase_options(): HasMany
     {

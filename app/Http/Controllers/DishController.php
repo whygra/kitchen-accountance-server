@@ -2,12 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Dish\DeleteDishRequest;
+use App\Http\Requests\Dish\GetDishRequest;
 use App\Http\Requests\Dish\StoreDishRequest;
 use App\Http\Requests\Dish\StoreDishWithIngredientsRequest;
 use App\Http\Requests\Dish\StoreDishWithProductsRequest;
 use App\Http\Requests\Dish\UpdateDishRequest;
 use App\Http\Requests\Dish\UpdateDishWithIngredientsRequest;
 use App\Http\Requests\Dish\UpdateDishWithProductsRequest;
+use App\Http\Resources\Dish\DishResource;
+use App\Http\Resources\Dish\DishWithPurchaseOptionsResource;
 use App\Models\Ingredient\Ingredient;
 use App\Models\Dish\Dish;
 use App\Models\Dish\DishCategory;
@@ -29,14 +33,6 @@ class DishController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(StoreDishRequest $request)
@@ -50,7 +46,7 @@ class DishController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show($id)
+    public function show(GetDishRequest $request, $id)
     {
         $item = Dish::find($id);
         if(empty($item))
@@ -58,14 +54,6 @@ class DishController extends Controller
                 'message' => '404'
             ], 404);
         return response()->json($item);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Dish $dish)
-    {
-        //
     }
 
     /**
@@ -84,21 +72,21 @@ class DishController extends Controller
             return response()->json($item, 200);
     }
     
-    public function index_loaded()
+    public function index_loaded(GetDishRequest $request)
     {
         $all = Dish::with(
-            'dishes_primary_ingredients.ingredient.type', 
-            'dishes_secondary_ingredients.ingredient.type', 
+            'ingredients.type',
+            'ingredients.category',
             'category'
         )->get();
-        return response()->json($all);
+        return response()->json(DishResource::collection($all));
     }
 
-    public function show_loaded($id)
+    public function show_loaded(GetDishRequest $request, $id)
     {
         $item = Dish::with(
-            'dishes_primary_ingredients.ingredient.type', 
-            'dishes_secondary_ingredients.ingredient.type', 
+            'ingredients.type', 
+            'ingredients.category',
             'category'
         )->find($id);
 
@@ -107,7 +95,7 @@ class DishController extends Controller
                 'message' => "404"
             ], 404);
             
-        return response()->json($item);
+        return response()->json(new DishResource($item));
     }
 
     public function store_loaded(StoreDishWithIngredientsRequest $request)
@@ -116,11 +104,10 @@ class DishController extends Controller
         $item = new Dish;
 
         // обновление данных блюда
-        if($request->category_data_action == 'create'){
-            $category = new DishCategory();
+        $category = DishCategory::findOrNew($request['category']['id']);
+        if(empty($category->id)){
             $category->name = $request['category']['name'];
-        } else {
-            $category = DishCategory::find($request['category']['id']);
+            $category->save();
         }
         $item->category()->associate($category);
         $item->name = $request->name;
@@ -144,98 +131,61 @@ class DishController extends Controller
                 'message' => "Компонент с id=$id не найден"
             ], 404);
 
-        $this->process_ingredients($item, $request);
-
-        // обновление данных компонента
-        $item->name = $request->name;
-        $item->type_id = $request->type_id;
-
-        if($request->category_data_action == 'create'){
-            $category = new DishCategory();
+        // обновление данных блюда
+        $category = DishCategory::findOrNew($request['category']['id']);
+        if(empty($category->id)){
             $category->name = $request['category']['name'];
-        } else {
-            $category = DishCategory::find($request['category']['id']);
+            $category->save();
         }
-
         $item->category()->associate($category);
-        $item->image_path = $request->image_path;
+        $item->name = $request->name;
+        $item->image_path = $request->image_path ?? "";
+
         $item->save();
+        
+        $this->process_ingredients($item, $request);
 
         return response()->json($item, 200);
     }
 
+
     private function process_ingredients(Dish $item, FormRequest $request) {
-        // для каждой связи блюдо-компонент
-        foreach ($request->dishes_ingredients as $dishIngredientData){
+        $ingredients = [];
+        foreach($request->ingredients as $i){
+            $ingredient = Ingredient::findOrNew($i['id']);
 
-            $ingredientData = $dishIngredientData['ingredient'];
-            $dishIngredientId = $dishIngredientData['id'];            
-
-            // создание, обновление связи
-            switch($dishIngredientData['data_action']){
-                case 'create':
-                    // создание связи
-                    $dishIngredient = new DishIngredient;
-                    $dishIngredient->waste_percentage = $dishIngredientData['waste_percentage'];
-                    $dishIngredient->weight = $dishIngredientData['weight'];
-                    break;
-                case 'update':
-                    // обновление связи
-                    $dishIngredient = $item->dishes_ingredients()->find($dishIngredientId);
-                    $dishIngredient->waste_percentage = $dishIngredientData['waste_percentage'];
-                    $dishIngredient->ingredient_raw_weight = $dishIngredientData['ingredient_raw_weight'];
-                    break;
-                case 'none':
-                    // получение связи
-                    $dishIngredient = $item->dishes_ingredients()->find($dishIngredientId);
-                    break;
-                case 'delete':
-                    // удаление связи
-                    $dishIngredient = $item->dishes_ingredients()->find($dishIngredientId);
-                    $dishIngredient->delete();
-                default:
-                    continue 2;
+            if(empty($ingredient->id)){
+                $ingredient->type_id = $i['type']['id'];
+                $ingredient->name = $i['name'];
+                $ingredient->item_weight = $i['item_weight'];
+                $ingredient->save();
             }
 
-            // создание, обновление ингредиента
-            switch($dishIngredientData['ingredient_data_action']){
-                case 'create':
-                    // создание ингредиента
-                    $ingredient = new Ingredient;
-                    $ingredient->name = $ingredientData['name'] ?? '';
-                    $ingredient->type_id = $ingredientData['type_id'];
-                    $ingredient->save();
-                    break;
-                case 'none':
-                    // получение ингредиента
-                    $ingredient = Ingredient::find($ingredientData['id']);
-                    break;
-                default:
-                    continue 2;
-            }
-
-            $item->dishes_ingredients()->save(
-                $dishIngredient->ingredient()->associate($ingredient)->dish()->associate($item)
-            );
+            $ingredients[$ingredient->id] = [
+                'waste_percentage'=>$i['waste_percentage'],
+                'ingredient_amount'=>$i['ingredient_amount']
+            ];
         }
+    
+        $item->ingredients()->sync($ingredients);
     }
 
     // блюдо с позициями закупки
-    public function show_with_purchase_options($id)
+    public function show_with_purchase_options(GetDishRequest $request, $id)
     {
         $item = Dish::with(
-            'dishes_ingredients.ingredient.ingredients_products.product.purchase_options.distributor',
+            'ingredients.products.purchase_options.distributor',
             )->find($id);
         if (empty($item))
             return response()->json([
                 'message' => "404"
             ], 404);
             
-        return response()->json($item);
+        return response()->json(new DishWithPurchaseOptionsResource($item));
     }
 
     // удаление блюда и связей блюдо-компонент
-    public function destroy($id)
+    public function destroy(DeleteDishRequest $request, $id)
     {
         $item = Dish::find($id);
         if (empty($item))

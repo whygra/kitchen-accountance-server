@@ -2,7 +2,6 @@
 
 namespace App\Models\Ingredient;
 
-use App\Models\DeletionAllowableModel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -10,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\Pivot;
 
-class IngredientCategory extends DeletionAllowableModel
+class IngredientCategory extends Model
 {
     use HasFactory;
     
@@ -34,16 +33,6 @@ class IngredientCategory extends DeletionAllowableModel
     protected $fillable = [
         'name',
     ];
-
-    public function deletionAllowed() :bool {
-        // удаление разрешено, если нет неудаляемых связанных продуктов
-        return 
-            empty(
-                array_filter(
-                    $this->ingredients()->get()->all(), 
-                    fn($item)=>!($item->deletionAllowed())
-                ));
-    }
 
     public function ingredients(): HasMany
     {
