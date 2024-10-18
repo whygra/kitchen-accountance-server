@@ -57,6 +57,6 @@ class Dish extends Model
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(Ingredient::class, 'category_id', 'id');
+        return $this->belongsTo(DishCategory::class, 'category_id', 'id');
     }
 }

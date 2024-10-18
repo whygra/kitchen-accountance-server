@@ -17,15 +17,21 @@ return new class extends Migration
             // единица измерения
             $table->foreignId('unit_id')->default(1);
             $table->foreign('unit_id')->references('id')->on('units')->onDelete('set default');
+            // код
+            $table->integer('code')->nullable();
             // наименование
-            $table->text('name')->unique();
+            $table->string('name');
             // масса нетто
-            $table->integer('net_weight');
+            $table->integer('net_weight')->default(1000);
             // цена
             $table->decimal('price');
             // поставщик
             $table->foreignId('distributor_id');
             $table->foreign('distributor_id')->references('id')->on('distributors')->onDelete('cascade');
+
+            $table->unique(['name','distributor_id']);
+            $table->unique(['code','distributor_id']);
+            
             $table->timestamps();
         });
     }

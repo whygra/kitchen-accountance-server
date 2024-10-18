@@ -15,15 +15,15 @@ return new class extends Migration
         Schema::create('ingredients', function (Blueprint $table) {
             $table->id();
             // название
-            $table->text('name')->unique();
+            $table->string('name');
             // тип компонента
             $table->foreignId('type_id');
             $table->foreign('type_id')->references('id')->on('ingredient_types');
             // вес 1 шт в граммах
             $table->decimal('item_weight')->default(1);
             // категория
-            $table->foreignId('category_id')->default('1');
-            $table->foreign('category_id')->references('id')->on('ingredient_categories')->onDelete('set default');
+            $table->foreignId('category_id')->nullable();
+            $table->foreign('category_id')->references('id')->on('ingredient_categories')->onDelete('set null');
             $table->timestamps();
         });
     }

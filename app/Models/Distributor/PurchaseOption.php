@@ -34,6 +34,7 @@ class PurchaseOption extends Model
     protected $fillable = [
         'distributor_id',
         'unit_id',
+        'code',
         'name',
         'net_weight',
         'price',

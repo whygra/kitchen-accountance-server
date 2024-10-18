@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Resources\Ingredient;
 
+use App\Http\Resources\Product\PurchaseOptionResource;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -19,6 +20,7 @@ class IngredientProductResource extends JsonResource
             'category' => $this->category,
             'raw_content_percentage' => $this->pivot->raw_content_percentage,
             'waste_percentage' => $this->pivot->waste_percentage,
+            'purchase_options' => PurchaseOptionResource::collection($this->purchase_options)
         ];
     }
 }

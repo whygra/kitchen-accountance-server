@@ -25,7 +25,7 @@ class UpdateUnitRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
     /**
@@ -37,7 +37,7 @@ class UpdateUnitRequest extends FormRequest
     {
         return [
             'id'=>'required|exists:units,id',
-            'name'=>'required|string',
+            'name'=>'required|string|max:60|unique:units,name,'.$this['id'],
         ];
     }
     

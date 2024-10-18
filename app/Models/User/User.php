@@ -5,6 +5,7 @@ namespace App\Models\User;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -48,6 +49,18 @@ class User extends Authenticatable //implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+     // признак - суперпользователь
+    protected $appends = [
+        'is_superuser'
+    ];
+
+    protected function isSuperuser(): Attribute
+    {
+        return new Attribute(
+            get: fn () => $this->name == env('SUPERUSER_NAME'),
+        );
     }
 
 }

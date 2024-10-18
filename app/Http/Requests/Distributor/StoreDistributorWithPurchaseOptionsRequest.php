@@ -8,6 +8,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class StoreDistributorWithPurchaseOptionsRequest extends FormRequest
 {
@@ -28,7 +29,7 @@ class StoreDistributorWithPurchaseOptionsRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
     /**
@@ -40,13 +41,42 @@ class StoreDistributorWithPurchaseOptionsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'=>'required|string',
-            'purchase_options'=>'array',
-            'purchase_options.*.id'=>'required|exists:purchase_options,id',
-            'purchase_options.*.product_share'=>'required|numeric|min:1|max:100',
-            'purchase_options.*.products'=>'array',
-            'purchase_options.*.products.*.id'=>'required',
-            'purchase_options.*.products.*.name'=>'required|string',
+            'name'=>'required|string|max:60|unique:distributors,name',
+
+            'purchase_options'=>'nullable|array',
+            // при добавлении данных поставщика позиции закупки только создаются
+            'purchase_options.*.name'=>[
+                'required',
+                'string',
+                'max:60',
+                'unique:purchase_options,name',
+                'distinct:ignore_case'
+            ],
+            'purchase_options.*.unit.id'=>'required',
+            'purchase_options.*.unit.long'=>[
+                'exclude_unless:purchase_options.unit.id,0',
+                'string',
+                'max:120',
+                'unique:units,long',
+                'distinct:ignore_case'
+            ],
+            'purchase_options.*.unit.short'=>[
+                'exclude_unless:purchase_options.unit.id,0',
+                'string',
+                'max:6',
+                'unique:units,short',
+                'distinct:ignore_case'
+            ],
+
+            'purchase_options.*.products'=>'required|array',
+            'purchase_options.*.products.*.id'=>'required|distinct',
+            'purchase_options.*.products.*.name'=>[
+                'exclude_unless:purchase_options.*.products.*.id,0',
+                'string',
+                'max:60',
+                'unique:products,name',
+                'distinct:ignore_case',
+            ]
         ];
     }
     

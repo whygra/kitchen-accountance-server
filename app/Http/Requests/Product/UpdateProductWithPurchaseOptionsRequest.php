@@ -27,7 +27,7 @@ class UpdateProductWithPurchaseOptionsRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
     /**
@@ -40,8 +40,10 @@ class UpdateProductWithPurchaseOptionsRequest extends FormRequest
     {
         return [
             'id'=>'required|exists:products,id',
-            'name'=>'required|string',
-            'purchase_options.*.id'=>'required|exists:purchase_options,id',
+            'name'=>'required|string|max:60|unique:products,name,'.$this['id'],
+
+            'purchase_options'=>'nullable|array',
+            'purchase_options.*.id'=>'required|exists:purchase_options,id|distinct',
             'purchase_options.*.product_share'=>'required|numeric|min:1|max:100',
         ];
     }
@@ -50,7 +52,7 @@ class UpdateProductWithPurchaseOptionsRequest extends FormRequest
     {
         throw new HttpResponseException(response()->json([
             'success'   => false,
-            'message'   => 'Ошибки валидации',
+            'message'   => 'Ошибки валидации: '.$validator->errors()->first(),
             'errors'      => $validator->errors()
         ], 400));
     }

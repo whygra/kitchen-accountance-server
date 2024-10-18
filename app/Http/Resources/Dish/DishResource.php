@@ -3,6 +3,8 @@ namespace App\Http\Resources\Dish;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\URL;
 
 class DishResource extends JsonResource
 {
@@ -18,6 +20,10 @@ class DishResource extends JsonResource
             'name' => $this->name,
             'category' => $this->category,
             'ingredients' => DishIngredientResource::collection($this->ingredients),
+            'image' => [
+                'url'=>$this->image_path == '' ? '' : url()->to('/').Storage::url('images/dishes/'.$this->image_path),
+                'name'=>$this->image_path,
+            ]
         ];
     }
 }

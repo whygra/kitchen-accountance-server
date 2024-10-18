@@ -15,10 +15,10 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             // наименование
-            $table->text('name');
+            $table->string('name')->unique();
             // категория
-            $table->foreignId('category_id')->default('1');
-            $table->foreign('category_id')->references('id')->on('product_categories')->onDelete('set default');
+            $table->foreignId('category_id')->nullable();
+            $table->foreign('category_id')->references('id')->on('product_categories')->onDelete('set null');
             $table->timestamps();
         });
     }

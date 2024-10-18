@@ -26,7 +26,7 @@ class UpdateProductCategoryWithProductsRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
     /**
@@ -38,11 +38,18 @@ class UpdateProductCategoryWithProductsRequest extends FormRequest
     {
         return [
             'id'=>'required|exists:products,id',
-            'name'=>'required|string',
+            'name'=>'required|string|max:60|unique:product_categories:name',
+
             'products'=>'array|nullable',
             'products.*.id'=>'required',
-            'products.*.name'=>'required|string',
-            'products.*.category_id'=>'required|exists:product_categories,id',
+            'products.*.name'=>[
+                'exclude_unless:products.*.id,0',
+                'string',
+                'max:60',
+                'unique:products,name',
+                'distinct:ignore_case',
+            ],
+            'products.*.category.id'=>'required|exists:product_categories,id',
         ];
     }
     

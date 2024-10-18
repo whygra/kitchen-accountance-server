@@ -27,7 +27,7 @@ class StoreDishCategoryWithDishesRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
     /**
@@ -35,15 +35,20 @@ class StoreDishCategoryWithDishesRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-
     public function rules(): array
     {
         return [
-            'name'=>'required|string',
-            'dishes'=>'array|nullable',
+            'name'=>'required|string|max:60|unique:dish_categories,name',
+
+            'dishes'=>'nullable|array',
             'dishes.*.id'=>'required',
-            'dishes.*.name'=>'required|string',
-            'dishes.*.category_id'=>'required|exists:dish_categories,id',
+            'dishes.*.name'=>[
+                'exclude_unless:dishes.*.id,0',
+                'string',
+                'max:60',
+                'unique:dishes,name',
+                'distinct:ignore_case',
+            ],
         ];
     }
     

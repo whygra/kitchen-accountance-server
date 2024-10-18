@@ -25,7 +25,7 @@ class StoreUnitRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
     /**
@@ -36,7 +36,7 @@ class StoreUnitRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'=>'required|string',
+            'name'=>'required|string|max:60|unique:units,name',
         ];
     }
     

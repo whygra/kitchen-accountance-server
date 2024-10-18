@@ -27,7 +27,7 @@ class AssignUserRolesRequest extends FormRequest
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
 
-        ], 401));
+        ], 403));
     }
 
     /**
@@ -40,8 +40,8 @@ class AssignUserRolesRequest extends FormRequest
     {
         return [
             'id'=>'required|exists:users,id',
-            'roles'=>'required|array',
-            'roles.*.name'=>'required|string',
+            'roles'=>'nullable|array',
+            'roles.*.name'=>'required|string|exists:roles,name',
         ];
     }
     
@@ -49,8 +49,8 @@ class AssignUserRolesRequest extends FormRequest
     {
         throw new HttpResponseException(response()->json([
             'success'   => false,
-            'message'   => 'Ошибки валидации',
-            'errors'      => $validator->errors()
+            'message'   => 'Ошибки валидации: '.$validator->errors()->first(),
+            'errors'    => $validator->errors()
         ], 400));
     }
 }

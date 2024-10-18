@@ -14,9 +14,9 @@ class UserSeeder extends Seeder
     {
         User::select()->delete();
         User::create([
-            'name' => 'superadmin',
-            'email' => 'why.grabovsky@gmail.com',
-            'password' => Hash::make(env('DB_PASSWORD')),
+            'name' => env('SUPERUSER_NAME'),
+            'email' => env('SUPERUSER_EMAIL'),
+            'password' => Hash::make(env('SUPERUSER_PASSWORD')),
         ])->assignRole(Roles::ADMIN->value);
     }
 }

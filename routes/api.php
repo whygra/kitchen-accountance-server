@@ -33,8 +33,10 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::post('users/logout', [UserController::class, 'logout']);
     Route::get('users/current', [UserController::class, 'current']);
     Route::put('users/assign-roles/{id}', [UserController::class, 'assign_roles']);
+    Route::put('users/update-password', [UserController::class, 'update_password']);
     Route::get('users/roles/all', [UserController::class, 'get_roles']);
     Route::get('users/all', [UserController::class, 'index']);
+
     Route::get('/ingredients/all', [IngredientController::class, 'index']);
     Route::get('/ingredients/{id}', [IngredientController::class, 'show']);
     Route::put('/ingredients/update/{id}', [IngredientController::class, 'update']);
@@ -45,6 +47,13 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::get('/ingredients/with-products/{id}', [IngredientController::class, 'show_loaded']);
     Route::put('/ingredients/with-products/update/{id}', [IngredientController::class, 'update_loaded']);
     Route::post('/ingredients/with-products/create', [IngredientController::class, 'store_loaded']);
+
+    Route::get('/ingredients/with-purchase-options/{id}', [IngredientController::class, 'show_with_purchase_options']);
+    
+    Route::get('/ingredient-categories/all', [IngredientCategoryController::class, 'index']);
+    Route::get('/ingredient-categories/{id}', [IngredientCategoryController::class, 'show']);
+    Route::put('/ingredient-categories/update/{id}', [IngredientCategoryController::class, 'update']);
+    Route::post('/ingredient-categories/create', [IngredientCategoryController::class, 'store']);
     
     Route::get('/dishes/all', [DishController::class, 'index']);
     Route::get('/dishes/{id}', [DishController::class, 'show']);
@@ -55,8 +64,11 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::get('/dishes/with-ingredients/{id}', [DishController::class, 'show_loaded']);
     Route::put('/dishes/with-ingredients/update/{id}', [DishController::class, 'update_loaded']);
     Route::post('/dishes/with-ingredients/create', [DishController::class, 'store_loaded']);
+    Route::get('/dishes/with-purchase-options/all', [DishController::class, 'index_with_purchase_options']);
     Route::get('/dishes/with-purchase-options/{id}', [DishController::class, 'show_with_purchase_options']);
     
+    Route::post('/dishes/upload-image', [DishController::class, 'upload_image']);
+
     Route::get('/dish-categories/all', [DishCategoryController::class, 'index']);
     Route::get('/dish-categories/{id}', [DishCategoryController::class, 'show']);
     Route::get('/dish-categories/with-dishes/all', [DishCategoryController::class, 'index_loaded']);
@@ -80,12 +92,16 @@ Route::middleware(['auth:sanctum'])->group(function(){
     Route::get('/distributors/with-purchase-options/{id}', [DistributorController::class, 'show_loaded']);
     Route::put('/distributors/with-purchase-options/update/{id}', [DistributorController::class, 'update_loaded']);
     Route::post('/distributors/with-purchase-options/create', [DistributorController::class, 'store_loaded']);
+    Route::post('/distributors/with-purchase-options/upload-options-file', [DistributorController::class, 'upload_options_file']);
         
     Route::get('/products/all', [ProductController::class, 'index']);
+    Route::post('/products/create', [ProductController::class, 'store']);
     Route::get('/products/{id}', [ProductController::class, 'show']);
     Route::put('/products/update/{id}', [ProductController::class, 'update']);
-    Route::post('/products/create', [ProductController::class, 'store']);
     Route::delete('/products/delete/{id}', [ProductController::class, 'destroy']);
+    Route::get('/products/with-purchase-options/all', [ProductController::class, 'index_with_purchase_options']);
+    Route::post('/products/with-purchase-options/create', [ProductController::class, 'store_with_purchase_options']);
+    Route::put('/products/with-purchase-options/update/{id}', [ProductController::class, 'update_with_purchase_options']);
     Route::get('/products/with-purchase-options/{id}', [ProductController::class, 'show_with_purchase_options']);
     
     Route::get('/product-categories/all', [ProductCategoryController::class, 'index']);

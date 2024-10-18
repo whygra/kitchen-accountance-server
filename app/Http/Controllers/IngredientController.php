@@ -9,7 +9,9 @@ use App\Http\Requests\Ingredient\StoreIngredientRequest;
 use App\Http\Requests\Ingredient\StoreIngredientWithProductsRequest;
 use App\Http\Requests\Ingredient\UpdateIngredientRequest;
 use App\Http\Requests\Ingredient\UpdateIngredientWithProductsRequest;
+use App\Http\Resources\Dish\DishIngredientWithPurchaseOptionsResource;
 use App\Http\Resources\Ingredient\IngredientResource;
+use App\Http\Resources\Ingredient\IngredientWithPurchaseOptionsResource;
 use App\Models\Ingredient\AbstractIngredient;
 use App\Models\Ingredient\Ingredient;
 use App\Models\Ingredient\IngredientCategory;
@@ -20,6 +22,7 @@ use App\Models\Product\Product;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class IngredientController extends Controller
 {
@@ -79,14 +82,14 @@ class IngredientController extends Controller
     public function index_loaded(GetIngredientWithProductsRequest $request)
     {
         $all = Ingredient::with(
-            'products', 'type', 'category',
+            'products.category', 'type', 'category',
         )->get();
         return response()->json(IngredientResource::collection($all));
     }
 
     public function show_loaded(GetIngredientRequest $request, $id)
     {
-        $item = Ingredient::with('products', 'type', 'category')->find($id);
+        $item = Ingredient::with('products.category', 'products.purchase_options.distributor', 'type', 'category', 'dishes.category')->find($id);
         if (empty($item))
             return response()->json([
                 'message' => "404"
@@ -95,26 +98,40 @@ class IngredientController extends Controller
         return response()->json(new IngredientResource($item));
     }
 
+    public function show_with_purchase_options(GetIngredientRequest $request, $id)
+    {
+        $item = Ingredient::with('products.category','products.purchase_options.distributor', 'type', 'category', 'dishes.category')->find($id);
+        if (empty($item))
+            return response()->json([
+                'message' => "404"
+            ], 404);
+            
+        return response()->json(new IngredientWithPurchaseOptionsResource($item));
+    }
+
     // создание
     public function store_loaded(StoreIngredientWithProductsRequest $request)
     {
         $item = new Ingredient;
-        // сначала создаем ингредиент - потом связи
-        $item->name = $request['name'];
-        $item->item_weight = $request['item_weight'];
-        $item->type_id = $request['type']['id'];
 
-        $category = IngredientCategory::findOrNew($request['category']['id']);
-        if(empty($category->id)){
-            $category->name = $request['category']['name'];
-            $category->save();
-        }
+        DB::transaction(function() use ($request, $item) {
+            // сначала создаем ингредиент - потом связи
+            $item->name = $request['name'];
+            $item->item_weight = $request['item_weight'];
+            $item->type_id = $request['type']['id'];
 
-        $item->category()->associate($category->id);
+            $category = null;
+            if($request['category']['id'] !== 0)
+                $category = IngredientCategory::find($request['category']['id']);
+            else if(!empty($request['category']['name']))
+                $category = IngredientCategory::create(['name'=>$request['category']['name']]);
 
-        $item->save();
+            $item->category()->associate($category);
 
-        $this->process_products($item, $request);
+            $item->save();
+
+            $this->process_products($item, $request);
+        });
         
         return response()->json($item, 201);
     }
@@ -131,22 +148,25 @@ class IngredientController extends Controller
                 'message' => "Компонент с id=$id не найден"
             ], 404);
 
-        $this->process_products($item, $request);
+        DB::transaction(function() use ($request, $item) {
+            $this->process_products($item, $request);
 
-        // обновление данных компонента
-        $item->name = $request->name;
-        $item->item_weight = $request['item_weight'];
-        $item->type_id = $request['type']['id'];
+            // обновление данных компонента
+            $item->name = $request->name;
+            $item->item_weight = $request['item_weight'];
+            $item->type_id = $request['type']['id'];
 
-        $category = IngredientCategory::findOrNew($request['category']['id']);
-        if(empty($category->id)){
-            $category->name = $request['category']['name'];
-            $category->save();
-        }
+            $category = null;
+            if($request['category']['id'] !== 0)
+                $category = IngredientCategory::find($request['category']['id']);
+            else if(!empty($request['category']['name']))
+                $category = IngredientCategory::create(['name'=>$request['category']['name']]);
 
-        $item->category()->associate($category);
+            $item->category()->associate($category);
 
-        $item->save();
+            $item->save();
+            
+        });
 
         return response()->json($item, 200);
     }

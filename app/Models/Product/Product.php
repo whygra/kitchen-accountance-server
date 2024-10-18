@@ -59,7 +59,7 @@ class Product extends Model
 
     public function category(): BelongsTo
     {
-        return $this->belongsTo(IngredientCategory::class, 'category_id', 'id');
+        return $this->belongsTo(ProductCategory::class, 'category_id', 'id');
     }
 
 }

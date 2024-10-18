@@ -27,7 +27,7 @@ class UpdateIngredientCategoryWithIngredientsRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
     /**
@@ -40,12 +40,19 @@ class UpdateIngredientCategoryWithIngredientsRequest extends FormRequest
     {
         return [
             'id'=>'required|exists:ingredient_categories,id',
-            'name'=>'required|string',
-            'ingredients'=>'array|nullable',
+            'name'=>'required|string|max:60|unique:ingredient_categories,name,'.$this['id'],
+
+            'ingredients'=>'nullable|array',
             'ingredients.*.id'=>'required',
-            'ingredients.*.name'=>'required|string',
-            'ingredients.*.type_id'=>'required|exists:ingredient_types,id',
-            'ingredients.*.category_id'=>'required|exists:ingredient_categories,id',
+            'ingredients.*.name'=>[
+                'exclude_unless:ingredients.*.id,0',
+                'string',
+                'max:60',
+                'unique:dishes,name',
+                'distinct:ignore_case',
+            ],
+            'ingredients.*.type.id'=>'required|exists:ingredient_types,id',
+
         ];
     }
     

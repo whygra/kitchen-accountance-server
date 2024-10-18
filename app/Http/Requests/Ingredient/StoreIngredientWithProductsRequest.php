@@ -27,7 +27,7 @@ class StoreIngredientWithProductsRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
     /**
@@ -38,20 +38,37 @@ class StoreIngredientWithProductsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type_id'=>'required|exists:ingredient_types,id',
-            'category_id'=>'required|exists:ingredient_categories,id',
-            'name'=>'required|string',
+            'name'=>'required|string|max:60|unique:ingredients,name',
+
+            'type.id'=>'required|exists:ingredient_types,id',
+
+            'category.id'=>'nullable',
+            'category.name'=>[
+                'nullable',
+                'exclude_unless:category.id,0',
+                'string',
+                'max:60',
+                'unique:ingredient_categories,name',
+            ],
+
+            'products'=>'nullable|array',
             'products.*.id'=>'required',
-            'products.*.raw_content_percentage'=>'required|numeric|min:1|max:100',
-            'products.*.waste_percentage'=>'required|numeric|min:0|max:99',
-            'products.*.name'=>'required|string',
+            'products.*.raw_content_percentage'=>'required|numeric|min:0|max:100',
+            'products.*.waste_percentage'=>'required|numeric|min:0|max:100',
+            'products.*.name'=>[
+                'exclude_unless:products.*.id,0',
+                'string',
+                'max:60',
+                'distinct:ignore_case',
+                'unique:products,name',
+            ]
         ];
     }
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
             'success'   => false,
-            'message'   => 'Ошибки валидации',
+            'message'   => 'Ошибки валидации: '.$validator->errors()->first(),
             'errors'      => $validator->errors()
         ], 400));
     }

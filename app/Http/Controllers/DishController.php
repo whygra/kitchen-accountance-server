@@ -10,6 +10,7 @@ use App\Http\Requests\Dish\StoreDishWithProductsRequest;
 use App\Http\Requests\Dish\UpdateDishRequest;
 use App\Http\Requests\Dish\UpdateDishWithIngredientsRequest;
 use App\Http\Requests\Dish\UpdateDishWithProductsRequest;
+use App\Http\Requests\Dish\UploadDishImageRequest;
 use App\Http\Resources\Dish\DishResource;
 use App\Http\Resources\Dish\DishWithPurchaseOptionsResource;
 use App\Models\Ingredient\Ingredient;
@@ -20,6 +21,8 @@ use App\Models\Ingredient\SecondaryIngredient;
 use App\Models\Product\Product;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class DishController extends Controller
 {
@@ -98,26 +101,41 @@ class DishController extends Controller
         return response()->json(new DishResource($item));
     }
 
+    public function upload_image(UploadDishImageRequest $request){
+
+        $file = $request->file('file');
+        $image_uploaded_path = $file->store('images/dishes', 'public');        
+
+        return response()->json([
+            "name" => basename($image_uploaded_path),
+            "url" => Storage::url($image_uploaded_path),
+        ], 201);
+
+    }
+
     public function store_loaded(StoreDishWithIngredientsRequest $request)
     {
-        
         $item = new Dish;
+        DB::transaction(function() use ($request, $item) {
 
-        // обновление данных блюда
-        $category = DishCategory::findOrNew($request['category']['id']);
-        if(empty($category->id)){
-            $category->name = $request['category']['name'];
-            $category->save();
-        }
-        $item->category()->associate($category);
-        $item->name = $request->name;
-        $item->image_path = $request->image_path ?? "";
+            // добавление данных блюда
+            $category = null;
+            if($request['category']['id'] !== 0)
+                $category = DishCategory::find($request['category']['id']);
+            else if(!empty($request['category']['name']))
+                $category = DishCategory::create(['name'=>$request['category']['name']]);
+            $item->category()->associate($category);
+            $item->name = $request->name;
 
-        $item->save();
-        
-        $this->process_ingredients($item, $request);
-
+            $item->image_path = $request['image']['name'] ?? '';
+    
+            $item->save();
+    
+            $this->process_ingredients($item, $request);
+        });
+	
         return response()->json($item, 201);
+        
     }
 
     /**
@@ -126,24 +144,31 @@ class DishController extends Controller
     public function update_loaded(UpdateDishWithIngredientsRequest $request, $id)
     {
         $item = Dish::find($id);
+
         if (empty($item))
             return response()->json([
                 'message' => "Компонент с id=$id не найден"
             ], 404);
 
-        // обновление данных блюда
-        $category = DishCategory::findOrNew($request['category']['id']);
-        if(empty($category->id)){
-            $category->name = $request['category']['name'];
-            $category->save();
-        }
-        $item->category()->associate($category);
-        $item->name = $request->name;
-        $item->image_path = $request->image_path ?? "";
 
-        $item->save();
-        
-        $this->process_ingredients($item, $request);
+        DB::transaction(function() use ($request, $item) {
+            // обновление данных блюда
+            $category = null;
+            if($request['category']['id'] !== 0)
+                $category = DishCategory::find($request['category']['id']);
+            else if(!empty($request['category']['name']))
+                $category = DishCategory::create(['name'=>$request['category']['name']]);
+
+                $item->category()->associate($category);
+                
+            $item->name = $request->name;
+            if(!empty($request['image']))
+                $item->image_path = $request['image']['name'] ?? '';
+
+            $item->save();
+            
+            $this->process_ingredients($item, $request);
+        });
 
         return response()->json($item, 200);
     }
@@ -171,10 +196,30 @@ class DishController extends Controller
     }
 
     // блюдо с позициями закупки
+    public function index_with_purchase_options(GetDishRequest $request)
+    {
+        $items = Dish::with(
+            'ingredients.products.purchase_options.distributor',
+            'ingredients.type',
+            // 'ingredients.category',
+            'category',
+            )->get();
+        if (empty($items))
+            return response()->json([
+                'message' => "404"
+            ], 404);
+            
+        return response()->json(DishWithPurchaseOptionsResource::collection($items));
+    }
+
+    // блюдо с позициями закупки
     public function show_with_purchase_options(GetDishRequest $request, $id)
     {
         $item = Dish::with(
             'ingredients.products.purchase_options.distributor',
+            'ingredients.type',
+            'ingredients.category',
+            'category',
             )->find($id);
         if (empty($item))
             return response()->json([

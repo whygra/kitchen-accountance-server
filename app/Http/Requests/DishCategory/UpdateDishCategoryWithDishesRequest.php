@@ -27,7 +27,7 @@ class UpdateDishCategoryWithDishesRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
     /**
@@ -40,11 +40,17 @@ class UpdateDishCategoryWithDishesRequest extends FormRequest
     {
         return [
             'id'=>'required|exists:dish_categories,id',
-            'name'=>'required|string',
-            'dishes'=>'array|nullable',
+            'name'=>'required|string|max:60|unique:dish_categories,name,'.$this['id'],
+
+            'dishes'=>'nullable|array',
             'dishes.*.id'=>'required',
-            'dishes.*.name'=>'required|string',
-            'dishes.*.category_id'=>'required|exists:dish_categories,id',
+            'dishes.*.name'=>[
+                'exclude_unless:dishes.*.id,0',
+                'string',
+                'max:60',
+                'unique:dishes,name',
+                'distinct:ignore_case',
+            ],
         ];
     }
     

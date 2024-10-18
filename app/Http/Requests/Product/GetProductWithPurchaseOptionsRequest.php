@@ -28,30 +28,7 @@ class GetProductWithPurchaseOptionsRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
-
-    public function rules(): array
-    {
-        return [
-            'name'=>'required|string',
-            'purchase_options.*.id'=>'required|exists:purchase_options,id',
-            'purchase_options.*.product_share'=>'required|numeric|min:1|max:100',
-        ];
-    }
-    
-    public function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Ошибки валидации',
-            'errors'      => $validator->errors()
-        ]));
-    }
 }

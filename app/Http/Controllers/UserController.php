@@ -7,6 +7,7 @@ use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\AssignUserRolesRequest;
 use App\Http\Requests\User\GetUsersRequest;
 use App\Http\Requests\User\RegisterRequest;
+use App\Http\Requests\User\UpdatePasswordRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\User\UserResource;
 use Error;
@@ -36,7 +37,6 @@ class UserController extends Controller
 
      public function register(RegisterRequest $request)
     {
-
         $user = User::create([
             'name' => $request['name'],
             'email' => $request['email'],
@@ -44,7 +44,7 @@ class UserController extends Controller
         ]);
         event(new Registered($user));
 
-        $user->sendEmailVerificationNotification();
+        // $user->sendEmailVerificationNotification();
 
         $token = $user->createToken($user->name.'-AuthToken')->plainTextToken;
 
@@ -63,7 +63,7 @@ class UserController extends Controller
         $user = User::where('email',$request['email'])->first();
         if(!$user || !Hash::check($request['password'],$user->password)){
             return response()->json([
-                'message' => 'Неверный пароль'
+                'message' => 'Неверные данные авторизации'
             ],401);
         }
         $token = $user->createToken($user->name.'-AuthToken')->plainTextToken;
@@ -128,14 +128,6 @@ class UserController extends Controller
     }
 
     /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(User $user)
-    {
-        //
-    }
-
-    /**
      * Update the specified resource in storage.
      */
     public function update(UpdateUserRequest $request)
@@ -143,11 +135,37 @@ class UserController extends Controller
         $item = User::find(Auth::user()->id);
         if(empty($item))
             return response()->json([
-                'message' => ''
+                'message' => 'пользователь не найден'
             ], 404);
 
-        $item->name = $request->name;
-        $item->email = $request->email;
+        if($item->is_superuser)
+            return response()->json([
+                'message' => 'Изменение данных суперпользователя запрещено'
+            ],400);
+            
+        if(!empty($request->name))
+            $item->name = $request->name;
+        if(!empty($request->email))
+            $item->email = $request->email;
+
+        $item->save();
+        return response()->json($item, 204);
+    }
+    
+    public function update_password(UpdatePasswordRequest $request)
+    {
+        $item = User::find(Auth::user()->id);
+        if(empty($item))
+            return response()->json([
+                'message' => 'пользователь не найден'
+            ], 404);
+
+        if(!$item || !Hash::check($request['password'],$item->password))
+            return response()->json([
+                'message' => 'Неверный пароль'
+            ],401);
+
+        $item->password = Hash::make($request->new_password);
 
         $item->save();
         return response()->json($item, 204);
@@ -160,6 +178,11 @@ class UserController extends Controller
             return response()->json([
                 'message' => ''
             ], 404);
+
+        if($item->is_superuser)
+            return response()->json([
+                'message' => 'Изменение данных суперпользователя запрещено'
+            ],400);    
 
         $item->syncRoles(array_map(fn($r)=>$r['name'], $request->roles));
 
@@ -184,6 +207,6 @@ class UserController extends Controller
             ], 404);
 
         $item->delete();
-        return response()->json($item, 204);
+        return response()->json($item, 200);
     }
 }

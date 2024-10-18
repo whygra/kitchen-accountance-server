@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('dish_categories', function (Blueprint $table) {
             $table->id();
             // название
-            $table->text('name')->unique();
+            $table->string('name')->unique();
             $table->timestamps();
         });
     }

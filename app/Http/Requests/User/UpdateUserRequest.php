@@ -17,6 +17,14 @@ class UpdateUserRequest extends FormRequest
     {
         return !empty(Auth::user()->id);
     }
+    
+    public function failedAuthorization()
+    {
+        throw new HttpResponseException(response()->json([
+            'success'   => false,
+            'message'   => 'Необходимо авторизоваться: '.$this::class,
+        ], 401));
+    }
 
     /**
      * Get the validation rules that apply to the request.
@@ -26,8 +34,8 @@ class UpdateUserRequest extends FormRequest
     public function rules()
     {
        return [
-            'name'=>'required|string|unique:users', 
-            'email' => 'required|email|exists:users,email|max:50',
+            'name'=>'nullable|string|max:50|unique:users,name,'.Auth::user()->id, 
+            'email' => 'nullable|email|max:50|exists:users,email,'.Auth::user()->id,
        ];
     }
 

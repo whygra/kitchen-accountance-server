@@ -15,6 +15,7 @@ class PurchaseOptionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'code' => $this->code,
             'name' => $this->name,
             'net_weight' => $this->net_weight,
             'price' => $this->price,

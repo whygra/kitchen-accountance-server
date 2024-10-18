@@ -27,34 +27,43 @@ class UpdateDishWithIngredientsRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
         return [
             'id'=>'required|exists:ingredients,id',
-            'type_id'=>'required|exists:ingredient_types,id',
-            'category_id'=>'required|exists:dish_categories,id',
-            'name'=>'required|string',
-            'ingredients'=>'array',
+
+            'name'=>[
+                'required',
+                'string',
+                'max:60',
+                'unique:dishes,name,'.$this['id']
+            ],
+
+            'category.id'=>'required',
+            'category.name'=>'nullable|exclude_unless:category.id,0|nullable|string|max:60|unique:dish_categories,name',
+
+            'ingredients'=>'nullable|array',
             'ingredients.*.id'=>'required',
             'ingredients.*.ingredient_amount'=>'required|numeric|min:1',
             'ingredients.*.waste_percentage'=>'required|numeric|min:0|max:99',
-            'ingredients.*.name'=>'required|string',
+            'ingredients.*.name'=> [
+                'exclude_unless:ingredients.*.id,0',
+                'string',
+                'max:60',
+                'unique:ingredients,name',
+                'distinct:ignore_case',
+            ],     
         ];
     }
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
             'success'   => false,
-            'message'   => 'Ошибки валидации',
-            'errors'      => $validator->errors()
+            'message'   => $validator->errors()->first().'. (и ещё '.count($validator->errors())." ошибок)",
+            'errors'    => $validator->errors()
         ], 400));
     }
 }

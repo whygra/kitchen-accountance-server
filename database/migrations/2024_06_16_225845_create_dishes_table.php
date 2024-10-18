@@ -15,12 +15,12 @@ return new class extends Migration
         Schema::create('dishes', function (Blueprint $table) {
             $table->id();
             // название
-            $table->text('name')->unique();
+            $table->string('name')->unique();
             // путь к файлу изображения
-            $table->text('image_path');
+            $table->string('image_path')->nullable();
             // категория
-            $table->foreignId('category_id')->default('1');
-            $table->foreign('category_id')->references('id')->on('dish_categories')->onDelete('set default');
+            $table->foreignId('category_id')->nullable();
+            $table->foreign('category_id')->references('id')->on('dish_categories')->onDelete('set null');
             $table->timestamps();
         });
     }

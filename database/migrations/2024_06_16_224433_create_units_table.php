@@ -15,9 +15,9 @@ return new class extends Migration
         Schema::create('units', function (Blueprint $table) {
             $table->id();
             // полное название
-            $table->text('long');
+            $table->string('long')->unique();
             // краткое название
-            $table->text('short');
+            $table->string('short')->unique();
             $table->timestamps();
         });
     }

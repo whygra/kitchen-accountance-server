@@ -28,7 +28,7 @@ class StoreDishWithIngredientsRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
     /**
@@ -39,22 +39,35 @@ class StoreDishWithIngredientsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'type_id'=>'required|exists:ingredient_types,id',
-            'category_id'=>'required|exists:dish_categories,id',
-            'name'=>'required|string',
-            'ingredients'=>'array',
+            'category.id'=>'required',
+            'category.name'=>'nullable|exclude_unless:category.id,0|nullable|string|max:60|unique:dish_categories,name',
+
+            'name'=>[
+                'required',
+                'string',
+                'max:60',
+                'unique:dishes,name',
+            ],
+
+            'ingredients'=>'nullable|array',
             'ingredients.*.id'=>'required',
             'ingredients.*.ingredient_amount'=>'required|numeric|min:1',
             'ingredients.*.waste_percentage'=>'required|numeric|min:0|max:99',
-            'ingredients.*.name'=>'required|string',
+            'ingredients.*.name'=>[
+                'exclude_unless:ingredients.*.id,0',
+                'string',
+                'max:60',
+                'unique:ingredients,name',
+                'distinct:ignore_case',
+            ],
         ];
     }
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([
             'success'   => false,
-            'message'   => 'Ошибки валидации',
-            'errors'      => $validator->errors()
+            'message'   => "Ошибки валидации:\n".$validator->errors()->first().' ...',
+            'errors'    => $validator->errors()
         ], 400));
     }
 }

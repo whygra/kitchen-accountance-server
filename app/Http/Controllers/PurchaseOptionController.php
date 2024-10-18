@@ -12,6 +12,7 @@ use App\Models\Product\Product;
 use App\Models\Product\ProductPurchaseOption;
 use Exception;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\DB;
 
 class PurchaseOptionController extends Controller
 {
@@ -20,7 +21,7 @@ class PurchaseOptionController extends Controller
      */
     public function index(GetPurchaseOptionWithProductsRequest $request)
     {
-        $all = PurchaseOption::all();
+        $all = PurchaseOption::with('unit', 'distributor')->get();
         return response()->json($all);
     }
     public function index_loaded(GetPurchaseOptionWithProductsRequest $request)
@@ -56,9 +57,7 @@ class PurchaseOptionController extends Controller
         $new->distributor_id = $request->distributor_id;
         $new->price = $request->price;
         $new->save();
-        return response()->json([
-            'message' => "201"
-        ], 201);    
+        return response()->json($new, 201);    
     }        
 
     /**
@@ -80,9 +79,7 @@ class PurchaseOptionController extends Controller
         $item->save();
 
 
-        return response()->json([
-            'message' => ''
-        ], 200);
+        return response()->json($item, 200);
     }
 
 
@@ -91,17 +88,20 @@ class PurchaseOptionController extends Controller
      */ 
     public function store_loaded(StorePurchaseOptionWithProductsRequest $request)
     {
-        $new = new PurchaseOption;
-        $new->unit_id = $request->unit_id;
-        $new->name = $request->name;
-        $new->net_weight = $request->net_weight;
-        $new->distributor_id = $request->distributor_id;
-        $new->price = $request->price;
-        $this->process_products($new, $request);
-        $new->save();
-        return response()->json([
-            'message' => "201"
-        ], 201);    
+        $item = new PurchaseOption;
+        DB::transaction(function() use ($request, $item) {
+
+            $item->unit_id = $request['unit']['id'];
+            $item->name = $request->name;
+            $item->code = $request->code;
+            $item->net_weight = $request->net_weight;
+            $item->distributor_id = $request['distributor']['id'];
+            $item->price = $request->price;
+            $item->save();
+            $this->process_products($item, $request);
+        });
+
+        return response()->json($item, 201);    
     }        
 
     /**
@@ -115,19 +115,20 @@ class PurchaseOptionController extends Controller
                 'message' => ''
             ], 404);
 
-        $item->unit_id = $request->unit_id;
-        $item->name = $request->name;
-        $item->net_weight = $request->net_weight;
-        $item->distributor_id = $request->distributor_id;
-        $item->price = $request->price;
+        DB::transaction(function() use ($request, $item) {
+            $item->unit_id = $request['unit']['id'];
+            $item->name = $request->name;
+            $item->code = $request->code;
+            $item->net_weight = $request->net_weight;
+            $item->distributor_id = $request['distributor']['id'];
+            $item->price = $request->price;
 
-        $this->process_products($item, $request);
+            $this->process_products($item, $request);
 
-        $item->save();
+            $item->save();
+        });
 
-        return response()->json([
-            'message' => ''
-        ], 200);
+        return response()->json($item, 200);
     }
 
     private function process_products(PurchaseOption $item, FormRequest $request) {
@@ -155,7 +156,7 @@ class PurchaseOptionController extends Controller
                 'message' => ''
             ], 404);
 
-        $item->save();
+        $item->delete();
         return response()->json($item, 200);
     }
 }

@@ -64,11 +64,11 @@ class IngredientCategoryController extends Controller
      * Display the specified resource.
      */
 
-     public function index_loaded(GetIngredientRequest $request)
-     {
-         $all = IngredientCategory::with('ingredients')->all();
-         return response()->json($all);
-     }
+    public function index_loaded(GetIngredientRequest $request)
+    {
+        $all = IngredientCategory::with('ingredients')->all();
+        return response()->json($all);
+    }
      
 
     public function show_loaded(GetIngredientRequest $request, $id)

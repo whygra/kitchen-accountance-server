@@ -15,7 +15,7 @@ return new class extends Migration
         Schema::create('ingredient_types', function (Blueprint $table) {
             $table->id();
             // тип
-            $table->text('name')->unique();
+            $table->string('name')->unique();
             $table->timestamps();
         });
     }

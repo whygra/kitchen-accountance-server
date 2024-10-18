@@ -8,6 +8,7 @@ use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
 
 class StorePurchaseOptionWithProductsRequest extends FormRequest
 {
@@ -25,7 +26,7 @@ class StorePurchaseOptionWithProductsRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Нет прав доступа: '.$this::class,
-        ], 401));
+        ], 403));
     }
 
     /**
@@ -37,14 +38,39 @@ class StorePurchaseOptionWithProductsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'unit_id'=>'required|exists:units,id',
-            'name'=>'required|string',
+            'distributor.id'=>'required|exists:distributors,id',
+            'name'=>[
+                'required',
+                'string',
+                'max:120',
+                Rule::unique('purchase_options', 'name')->where('distributor_id', $this['distributor']['id']),
+            ],
+            'unit.id'=>'required',
+            'unit.long'=>[
+                'exclude_unless:purchase_options.unit.id,0',
+                'string',
+                'max:60',
+                'unique:units,long',
+            ],
+            'unit.short'=>[
+                'exclude_unless:purchase_options.unit.id,0',
+                'string',
+                'max:6',
+                'unique:units,short',
+            ],
             'net_weight'=>'required|numeric|min:1',
-            'distributor_id'=>'required|exists:distributors,id',
             'price'=>'required|numeric|min:0',
+
+            'products'=>'nullable|array',
             'products.*.id'=>'required',
             'products.*.product_share'=>'required|numeric|min:1|max:100',
-            'products.*.name'=>'required|string',
+            'products.*.name'=>[
+                'exclude_unless:products.*.id,0',
+                'string',
+                'max:60',
+                'unique:products,name',
+                'distinct:ignore_case',
+            ]
         ];
     }
     
@@ -52,7 +78,7 @@ class StorePurchaseOptionWithProductsRequest extends FormRequest
     {
         throw new HttpResponseException(response()->json([
             'success'   => false,
-            'message'   => 'Ошибки валидации',
+            'message'   => 'Ошибки валидации: '.$validator->errors()->first(),
             'errors'      => $validator->errors()
         ], 400));
     }

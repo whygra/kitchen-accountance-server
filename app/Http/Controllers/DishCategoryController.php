@@ -90,8 +90,7 @@ class DishCategoryController extends Controller
             return response()->json([
                 'message' => "Не удалось найти категорию блюда с id=$id"
             ], 404);
-            
-            
+
         $item->delete();
         return response()->json($item);
     }
