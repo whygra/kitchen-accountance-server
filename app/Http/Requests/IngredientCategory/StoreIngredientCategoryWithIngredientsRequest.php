@@ -2,32 +2,24 @@
 
 namespace App\Http\Requests\IngredientCategory;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Http\Rules\IngredientCategoryRules;
+use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Rules\ProjectRules;
 
-class StoreIngredientCategoryWithIngredientsRequest extends FormRequest
+
+class StoreIngredientCategoryWithIngredientsRequest extends ChecksPermissionsRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = User::find(Auth::user()->id);
-        return empty($user) ? false : $user->hasAnyPermission([
-            Permissions::CRUD_INGREDIENTS->value,
-        ]);
-    }
-
-     public function failedAuthorization()
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Нет прав доступа: '.$this::class,
-        ], 403));
+    
+    public function __construct() {
+        
+        parent::__construct([PermissionNames::CRUD_INGREDIENTS->value]);
     }
 
     /**
@@ -38,28 +30,11 @@ class StoreIngredientCategoryWithIngredientsRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'name'=>'required|string|max:60|unique:dish_categories,name',
-
-            'ingredients'=>'nullable|array',
-            'ingredients.*.id'=>'required',
-            'ingredients.*.name'=>[
-                'exclude_unless:ingredients.*.id,0',
-                'string',
-                'max:60',
-                'unique:ingredients,name',
-                'distinct:ignore_case',
-            ],
-            'ingredients.*.type.id'=>'required|exists:ingredient_types,id',
-        ];
+        return array_merge(
+            ProjectRules::projectRules(),
+            IngredientCategoryRules::storeIngredientCategory($this->project_id),
+            IngredientCategoryRules::ingredientCategoryIngredients($this->project_id),
+        );
     }
     
-    public function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Ошибка валидации',
-            'errors'      => $validator->errors()
-        ], 400));
-    }
 }

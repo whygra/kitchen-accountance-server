@@ -2,33 +2,27 @@
 
 namespace App\Http\Requests\IngredientCategory;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Rules\ProjectRules;
 
-class GetIngredientCategoryRequest extends FormRequest
+
+class GetIngredientCategoryRequest extends ChecksPermissionsRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = User::find(Auth::user()->id);
-        return empty($user) ? false : $user->hasAnyPermission([
-            Permissions::READ_INGREDIENTS->value,
-            Permissions::CRUD_INGREDIENTS->value,
+    
+    public function __construct() {
+        
+        parent::__construct([
+            PermissionNames::CRUD_INGREDIENTS->value,
+            PermissionNames::READ_INGREDIENTS->value,
         ]);
-    }
 
-     public function failedAuthorization()
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Нет прав доступа: '.$this::class,
-        ], 403));
     }
 
     /**
@@ -39,8 +33,7 @@ class GetIngredientCategoryRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-        ];
+        return ProjectRules::projectRules();
     }
     
 }

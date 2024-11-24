@@ -2,32 +2,25 @@
 
 namespace App\Http\Requests\Ingredient;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Http\Rules\IngredientRules;
+use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Rules\ProjectRules;
 
-class UpdateIngredientRequest extends FormRequest
+
+class UpdateIngredientRequest extends ChecksPermissionsRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = User::find(Auth::user()->id);
-        return empty($user) ? false : $user->hasAnyPermission([
-            Permissions::CRUD_INGREDIENTS->value,
-        ]);
-    }
+    
 
-     public function failedAuthorization()
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Нет прав доступа: '.$this::class,
-        ], 403));
+    public function __construct() {
+        
+        parent::__construct([PermissionNames::CRUD_INGREDIENTS->value]);
     }
 
     /**
@@ -37,19 +30,9 @@ class UpdateIngredientRequest extends FormRequest
      */
     public function rules()
     {
-       return [
-            'id'=>'required|exists:ingredients,id', 
-            'name'=>'required|string', 
-            'type_id' => 'required|exists:ingredient_types,id',
-       ];
-    }
-
-    public function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Ошибки валидации',
-            'errors'    => $validator->errors()
-        ], 400));
+        return array_merge(
+            ProjectRules::projectRules(),
+            IngredientRules::getUpdateIngredientRules($this->id, $this->project_id),
+        );
     }
 }

@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Requests\User;
+namespace App\Http\Requests\Auth;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -7,22 +7,23 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Hash;
 
-class UpdateUserRequest extends FormRequest
+class LoginRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        return !empty(Auth::user()->id);
+        return true;//(Auth::attempt(['email'=>$this->email, 'password'=>Hash::make($this->password)], $this->boolean('remember')));
     }
-    
+
     public function failedAuthorization()
     {
         throw new HttpResponseException(response()->json([
             'success'   => false,
-            'message'   => 'Необходимо авторизоваться: '.$this::class,
+            'message'   => 'Неверные данные входа: '.$this::class,
         ], 401));
     }
 
@@ -34,8 +35,8 @@ class UpdateUserRequest extends FormRequest
     public function rules()
     {
        return [
-            'name'=>'nullable|string|max:50|unique:users,name,'.Auth::user()->id, 
-            'email' => 'nullable|email|max:50|exists:users,email,'.Auth::user()->id,
+            'email' => 'required|email:rfc,dns|exists:users,email',
+            'password' => 'required|min:8'
        ];
     }
 
@@ -44,7 +45,7 @@ class UpdateUserRequest extends FormRequest
         throw new HttpResponseException(response()->json([
             'success'   => false,
             'message'   => 'Ошибки валидации',
-            'errors'      => $validator->errors()
+            'errors'    => $validator->errors()
         ], 400));
     }
 }

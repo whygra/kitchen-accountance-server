@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User\Roles;
 use App\Models\User\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -17,6 +16,6 @@ class UserSeeder extends Seeder
             'name' => env('SUPERUSER_NAME'),
             'email' => env('SUPERUSER_EMAIL'),
             'password' => Hash::make(env('SUPERUSER_PASSWORD')),
-        ])->assignRole(Roles::ADMIN->value);
+        ]);
     }
 }

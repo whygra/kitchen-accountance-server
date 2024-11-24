@@ -19,6 +19,7 @@ class ProductIngredientResource extends JsonResource
             'name' => $this->name,
             'type' => $this->type,
             'category' => $this->category,
+            'group' => $this->group,
             'item_weight' => $this->item_weight,
             'is_item_measured' => $this->is_item_measured,
             'dishes' => IngredientDishResource::collection($this->dishes),

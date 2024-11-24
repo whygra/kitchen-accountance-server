@@ -2,16 +2,22 @@
 
 namespace App\Http\Requests\Distributor;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Http\Rules\DishRules;
+use App\Http\Rules\DistributorRules;
+use App\Models\User\PermissionNames;
+use App\Models\User\User;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Rules\ProjectRules;
 
-class UpdateDistributorRequest extends FormRequest
+
+class UpdateDistributorRequest extends ChecksPermissionsRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return false;
+
+    public function __construct() {
+        
+        parent::__construct([PermissionNames::CRUD_DISTRIBUTORS->value]);
     }
 
     /**
@@ -21,8 +27,9 @@ class UpdateDistributorRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            //
-        ];
+        return array_merge(
+            ProjectRules::projectRules(),
+            DistributorRules::getUpdateDistributorRules($this->id, $this->project_id),
+        );
     }
 }

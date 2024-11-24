@@ -2,68 +2,34 @@
 
 namespace App\Http\Requests\Dish;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Http\Rules\DishRules;
+use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Rules\ProjectRules;
 
-class UpdateDishWithIngredientsRequest extends FormRequest
+
+class UpdateDishWithIngredientsRequest extends ChecksPermissionsRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = User::find(Auth::user()->id);
-        return empty($user) ? false : $user->hasAnyPermission([
-            Permissions::CRUD_DISHES->value,
-        ]);
-    }
-
-     public function failedAuthorization()
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Нет прав доступа: '.$this::class,
-        ], 403));
+    
+    public function __construct() {
+        
+        parent::__construct([PermissionNames::CRUD_DISHES->value]);
     }
 
     public function rules(): array
     {
-        return [
-            'id'=>'required|exists:ingredients,id',
-
-            'name'=>[
-                'required',
-                'string',
-                'max:60',
-                'unique:dishes,name,'.$this['id']
-            ],
-
-            'category.id'=>'required',
-            'category.name'=>'nullable|exclude_unless:category.id,0|nullable|string|max:60|unique:dish_categories,name',
-
-            'ingredients'=>'nullable|array',
-            'ingredients.*.id'=>'required',
-            'ingredients.*.ingredient_amount'=>'required|numeric|min:1',
-            'ingredients.*.waste_percentage'=>'required|numeric|min:0|max:99',
-            'ingredients.*.name'=> [
-                'exclude_unless:ingredients.*.id,0',
-                'string',
-                'max:60',
-                'unique:ingredients,name',
-                'distinct:ignore_case',
-            ],     
-        ];
-    }
-    public function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => $validator->errors()->first().'. (и ещё '.count($validator->errors())." ошибок)",
-            'errors'    => $validator->errors()
-        ], 400));
+        return array_merge(
+            ProjectRules::projectRules(),
+            DishRules::getUpdateDishRules($this->id, $this->project_id),
+            DishRules::getDishCategoryRules($this->project_id),
+            DishRules::dishGroupRules($this->project_id),
+            DishRules::dishIngredientsRules($this->project_id)
+        );
     }
 }

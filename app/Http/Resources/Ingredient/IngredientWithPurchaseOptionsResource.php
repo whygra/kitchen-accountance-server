@@ -16,9 +16,12 @@ class IngredientWithPurchaseOptionsResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'project_id' => $this->project_id,
+            'updated_by_user' => $this->updated_by_user(),
             'name' => $this->name,
             'type' => $this->type,
             'category' => $this->category,
+            'group' => $this->group,
             'products' => IngredientProductWithPurchaseOptionsResource::collection($this->products),
             'item_weight' => $this->item_weight,
         ];

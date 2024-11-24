@@ -7,15 +7,29 @@ use App\Models\Distributor\PurchaseOption;
 use App\Models\Ingredient\Ingredient;
 use App\Models\Ingredient\IngredientCategory;
 use App\Models\Ingredient\IngredientProduct;
+use App\Models\User\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
 
 class Product extends Model
 {
     use HasFactory;
+    
+    protected static function booted(): void
+    {
+        static::created(function ($model) {
+            if(Auth::user())
+                $model->updated_by_user_id = Auth::user()->id;
+        });
+        static::updated(function ($model) {
+            if(Auth::user())
+                $model->updated_by_user_id = Auth::user()->id;
+        });
+    }
     
     /**
      * The table associated with the model.
@@ -35,12 +49,16 @@ class Product extends Model
      */
     protected $fillable = [
         'name',
+        'category_id',
+        'group_id',
         'item_cost',
         'item_weight',
     ];
 
     protected $foreignKeys = [
         'category' => 'category_id',
+        'group' => 'group_id',
+        'updated_by_user' => 'updated_by_user_id'
     ];
 
     public function ingredients(): BelongsToMany
@@ -60,6 +78,16 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(ProductCategory::class, 'category_id', 'id');
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(ProductGroup::class, 'group_id', 'id');
+    }
+
+    public function updated_by_user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by_user_id', 'id');
     }
 
 }

@@ -2,32 +2,24 @@
 
 namespace App\Http\Requests\Ingredient;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Http\Rules\IngredientRules;
+use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Rules\ProjectRules;
 
-class StoreIngredientWithProductsRequest extends FormRequest
+
+class StoreIngredientWithProductsRequest extends ChecksPermissionsRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = User::find(Auth::user()->id);
-        return empty($user) ? false : $user->hasAnyPermission([
-            Permissions::CRUD_INGREDIENTS->value,
-        ]);
-    }
 
-     public function failedAuthorization()
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Нет прав доступа: '.$this::class,
-        ], 403));
+    public function __construct() {
+        
+        parent::__construct([PermissionNames::CRUD_INGREDIENTS->value]);
     }
 
     /**
@@ -37,39 +29,13 @@ class StoreIngredientWithProductsRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            'name'=>'required|string|max:60|unique:ingredients,name',
-
-            'type.id'=>'required|exists:ingredient_types,id',
-
-            'category.id'=>'nullable',
-            'category.name'=>[
-                'nullable',
-                'exclude_unless:category.id,0',
-                'string',
-                'max:60',
-                'unique:ingredient_categories,name',
-            ],
-
-            'products'=>'nullable|array',
-            'products.*.id'=>'required',
-            'products.*.raw_content_percentage'=>'required|numeric|min:0|max:100',
-            'products.*.waste_percentage'=>'required|numeric|min:0|max:100',
-            'products.*.name'=>[
-                'exclude_unless:products.*.id,0',
-                'string',
-                'max:60',
-                'distinct:ignore_case',
-                'unique:products,name',
-            ]
-        ];
-    }
-    public function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Ошибки валидации: '.$validator->errors()->first(),
-            'errors'      => $validator->errors()
-        ], 400));
+        return array_merge(
+            ProjectRules::projectRules(),
+            IngredientRules::storeIngredientRules($this->project_id),
+            IngredientRules::ingredientCategoryRules($this->project_id),
+            IngredientRules::ingredientGroupRules($this->project_id),
+            IngredientRules::ingredientProductRules($this->project_id),
+        ); 
+        
     }
 }

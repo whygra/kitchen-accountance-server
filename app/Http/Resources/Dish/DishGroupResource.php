@@ -1,10 +1,10 @@
 <?php
-namespace App\Http\Resources\User;
+namespace App\Http\Resources\Dish;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class UserPermissionResource extends JsonResource
+class DishGroupResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -14,8 +14,9 @@ class UserPermissionResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'=>$this->id,
-            'name'=>$this->name,
+            'id' => $this->id,
+            'name' => $this->name,
+            'dishes' => DishResource::collection($this->dishes),
         ];
     }
 }

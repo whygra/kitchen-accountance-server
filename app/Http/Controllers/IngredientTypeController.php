@@ -20,7 +20,7 @@ class IngredientTypeController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(GetIngredientTypeRequest $request, $id)
+    public function show(GetIngredientTypeRequest $request, $project_id, $id)
     {
         $item = IngredientType::find($id);
         return response()->json($item);

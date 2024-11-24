@@ -4,16 +4,35 @@ namespace App\Models\Dish;
 
 use App\Models\Ingredient\Ingredient;
 use App\Models\MenuItem\MenuItem;
+use App\Models\Project;
+use App\Models\User\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class Dish extends Model
 {
     use HasFactory;
     
+    protected static function booted(): void
+    {
+        static::created(function ($model) {
+            if(Auth::user())
+                $model->updated_by_user_id = Auth::user()->id;
+        });
+        static::updated(function ($model) {
+            if(Auth::user())
+                $model->updated_by_user_id = Auth::user()->id;
+        });
+        static::deleted(function ($model) {
+            Storage::disk('public')->deleteDirectory($model->getImageDirectoryPath());
+        });
+    }
+
     /**
      * The table associated with the model.
      * @var string
@@ -32,15 +51,38 @@ class Dish extends Model
      */
     protected $fillable = [
         'name',
-        'image_path',
+        'image_name',
         'category_id',
     ];
 
     protected $foreignKeys = [
         'category' => 'category_id',
+        'group' => 'group_id',
+        'updated_by_user' => 'updated_by_user_id',
+        'project' => 'project_id'
     ];
 
-    
+    // путь к папке блюда в хранилище изображений
+    public function getImageDirectoryPath() : string {
+        return 'images/project_'.$this->project_id.'/dishes/'.$this->id;
+    }
+
+    public function uploadImage($file) : string {
+        // очистка папки
+        $dishPath = $this->getImageDirectoryPath();
+        Storage::disk('public')->deleteDirectory($dishPath);
+        
+        $image_uploaded_path = $file->store($dishPath, 'public'); 
+        $this->image_name = basename($image_uploaded_path);
+        $this->save();
+        return $image_uploaded_path;
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class, 'project_id', 'id');
+    }
+
     // связи M-N с ингредиентами
     public function ingredients(): BelongsToMany
     {
@@ -58,5 +100,15 @@ class Dish extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(DishCategory::class, 'category_id', 'id');
+    }
+
+    public function group(): BelongsTo
+    {
+        return $this->belongsTo(DishGroup::class, 'group_id', 'id');
+    }
+
+    public function updated_by_user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by_user_id', 'id');
     }
 }

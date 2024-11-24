@@ -40,7 +40,9 @@ class IngredientProduct extends Pivot
     protected $foreignKeys = [
         'ingredient' => 'ingredient_id',
         'product' => 'product_id',
+        'updated_by_user' => 'updated_by_user_id'
     ];
+
 
     protected $casts = [
         'raw_content_percentage' => 'float',

@@ -2,6 +2,8 @@
 
 namespace App\Http\Requests\Distributor;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
@@ -10,6 +12,8 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
+use App\Http\Rules\ProjectRules;
+
 
 class UploadPurchaseOptionsFileRequest extends FormRequest
 {
@@ -19,10 +23,10 @@ class UploadPurchaseOptionsFileRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        $user = User::find(Auth::user()->id);
-        return empty($user) ? false : $user->hasAnyPermission([
-            Permissions::CRUD_DISTRIBUTORS->value,
-        ]);
+        $user = User::find(Auth::user()?->id);
+        return empty($user) ? false : $user->hasAnyPermission($this->project_id, 
+        [PermissionNames::CRUD_DISTRIBUTORS->value]
+        );
     }
 
      public function failedAuthorization()
@@ -42,22 +46,26 @@ class UploadPurchaseOptionsFileRequest extends FormRequest
     protected function prepareForValidation():void
     {
         $this->merge([
-            'column_indexes' => json_decode($this->column_indexes, true),
-            'id' => json_decode($this->id),
+            'project_id' => $this->route('project_id'),
+            'column_indexes' => json_decode($this['column_indexes'], true),
+            'id' => $this->route('id'),
         ]);
     }
 
     public function rules(): array
     {
-        return [
-            'id'=>'required|exists:distributors,id',
-
-            'column_indexes'=>'required|array|required_array_keys:name,price',
-            'file'=>[
-                'required', 
-                File::types(['xlsx', 'csv'])
-            ],
-        ];
+        return array_merge(
+            ProjectRules::projectRules(),
+            [
+                'id'=>'required|exists:distributors,id',
+                'column_indexes'=>'required|array|required_array_keys:name,price',
+                'column_indexes.*'=>'nullable|distinct',
+                'file'=>[
+                    'required', 
+                    File::types(['xlsx', 'csv'])
+                ],
+            ]
+        );
     }
     
     public function failedValidation(Validator $validator)

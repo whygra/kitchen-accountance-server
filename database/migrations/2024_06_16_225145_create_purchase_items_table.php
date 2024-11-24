@@ -19,7 +19,8 @@ return new class extends Migration
             $table->decimal('discount');
             // позиция закупки
             $table->foreignId('purchase_option_id');
-            $table->foreign('purchase_option_id')->references('id')->on('purchase_options');
+            $table->foreign('purchase_option_id')
+                ->references('id')->on('purchase_options');
             // закупка
             $table->foreignId('purchase_id');
             $table->foreign('purchase_id')->references('id')->on('purchases')->onDelete('cascade');

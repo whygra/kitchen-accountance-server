@@ -18,6 +18,7 @@ class DishIngredientWithPurchaseOptionsResource extends JsonResource
             'name' => $this->name,
             'type' => $this->type,
             'category' => $this->category,
+            'group' => $this->group,
             'products' => IngredientProductWithPurchaseOptionsResource::collection($this->products),
             'ingredient_amount' => $this->pivot->ingredient_amount,
             'item_weight' => $this->item_weight,

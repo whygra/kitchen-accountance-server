@@ -4,16 +4,31 @@ namespace App\Models\Distributor;
 
 use App\Models\Product\Product;
 use App\Models\Product\ProductPurchaseOption;
+use App\Models\User\User;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\Auth;
 
 class PurchaseOption extends Model
 {
     use HasFactory;
+    
+    protected static function booted(): void
+    {
+        static::created(function ($model) {
+            if(Auth::user())
+                $model->updated_by_user()->associate(Auth::user()->id);
+        });
+        static::updated(function ($model) {
+            if(Auth::user())
+                $model->updated_by_user()->associate(Auth::user()->id);
+        });
+    }
     
     /**
      * The table associated with the model.
@@ -43,6 +58,7 @@ class PurchaseOption extends Model
     protected $foreignKeys = [
         'unit' => 'unit_id', 
         'distributor' => 'distributor_id', 
+        'updated_by_user' => 'updated_by_user_id'
     ];
 
     protected $casts = [
@@ -69,5 +85,10 @@ class PurchaseOption extends Model
     public function distributor(): BelongsTo
     {
         return $this->belongsTo(Distributor::class, 'distributor_id', 'id');
+    }
+
+    public function updated_by_user(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'updated_by_user_id', 'id');
     }
 }

@@ -15,13 +15,37 @@ return new class extends Migration
         Schema::create('dishes', function (Blueprint $table) {
             $table->id();
             // название
-            $table->string('name')->unique();
+            $table->string('name');
             // путь к файлу изображения
-            $table->string('image_path')->nullable();
+            $table->string('image_name')->nullable();
             // категория
             $table->foreignId('category_id')->nullable();
-            $table->foreign('category_id')->references('id')->on('dish_categories')->onDelete('set null');
+            $table->foreign('category_id')
+                ->references('id')
+                ->on('dish_categories')
+                ->onDelete('set null');
+            // группа
+            $table->foreignId('group_id')->nullable();
+            $table->foreign('group_id')
+                ->references('id')
+                ->on('dish_groups')
+                ->onDelete('set null');
+            // проект
+            $table->foreignId('project_id');
+            $table->foreign('project_id')
+                ->references('id')
+                ->on('projects')
+                ->onDelete('cascade');
+            // пользователь, внесший последние изменения
+            $table->foreignId('updated_by_user_id')->nullable();
+            $table->foreign('updated_by_user_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('set null');
+
             $table->timestamps();
+
+            $table->unique(['name', 'project_id']);
         });
     }
 

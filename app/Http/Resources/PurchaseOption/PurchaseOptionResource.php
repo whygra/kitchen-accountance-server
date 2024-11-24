@@ -16,12 +16,18 @@ class PurchaseOptionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'project_id' => $this->project_id,
+            'updated_by_user' => $this->updated_by_user(),
             'code' => $this->code,
             'name' => $this->name,
             'net_weight' => $this->net_weight,
             'price' => $this->price,
             'distributor' => $this->distributor,
-            'unit' => $this->unit,
+            'unit' => [
+                'id'=>$this->unit->id,
+                'long'=>$this->unit->long,
+                'short'=>$this->unit->short,
+            ],
             'products' => PurchaseOptionProductResource::collection($this->products),
         ];
     }

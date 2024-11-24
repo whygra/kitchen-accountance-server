@@ -15,8 +15,11 @@ class ProductResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'project_id' => $this->project_id,
+            'updated_by_user' => $this->updated_by_user(),
             'name' => $this->name,
             'category' => $this->category,
+            'group' => $this->group,
             'purchase_options' => PurchaseOptionResource::collection($this->purchase_options),
             'ingredients' => ProductIngredientResource::collection($this->ingredients),
         ];

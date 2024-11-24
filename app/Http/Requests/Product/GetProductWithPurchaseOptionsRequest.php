@@ -2,33 +2,37 @@
 
 namespace App\Http\Requests\Product;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Rules\ProjectRules;
 
-class GetProductWithPurchaseOptionsRequest extends FormRequest
+
+class GetProductWithPurchaseOptionsRequest extends ChecksPermissionsRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = User::find(Auth::user()->id);
-        return empty($user) ? false : $user->hasAnyPermission([
-            Permissions::CRUD_PRODUCTS->value,
-            Permissions::READ_PRODUCTS->value,
+    
+    public function __construct() {
+        
+        parent::__construct([
+            PermissionNames::CRUD_PRODUCTS->value,
+            PermissionNames::READ_PRODUCTS->value,
         ]);
+
     }
 
-     public function failedAuthorization()
+    /**
+     * Get the validation rules that apply to the request.
+     *
+     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     */
+    public function rules(): array
     {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Нет прав доступа: '.$this::class,
-        ], 403));
+        return ProjectRules::projectRules();
     }
 
 }

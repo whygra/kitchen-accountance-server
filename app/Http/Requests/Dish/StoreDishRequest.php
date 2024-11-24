@@ -2,16 +2,24 @@
 
 namespace App\Http\Requests\Dish;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Http\Rules\DishRules;
+use App\Models\User\PermissionNames;
+use App\Models\User\Permissions;
+use App\Models\User\User;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Rules\ProjectRules;
 
-class StoreDishRequest extends FormRequest
-{
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return true;
+
+class StoreDishRequest extends ChecksPermissionsRequest
+{   
+    
+    public function __construct() {
+        
+        parent::__construct([PermissionNames::CRUD_DISHES->value]);
     }
 
     /**
@@ -21,8 +29,9 @@ class StoreDishRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-            //
-        ];
+        return array_merge(
+            ProjectRules::projectRules(),
+            DishRules::storeDishRules($this->project_id)
+        );
     }
 }

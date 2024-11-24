@@ -2,27 +2,32 @@
 
 namespace App\Http\Requests\Dish;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Http\Rules\DishRules;
+use App\Models\User\PermissionNames;
+use App\Models\User\Permissions;
+use App\Models\User\User;
+use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Support\Facades\Auth;
+use App\Http\Rules\ProjectRules;
 
-class UpdateDishRequest extends FormRequest
+
+class UpdateDishRequest extends ChecksPermissionsRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        return false;
+    
+    public function __construct() {
+        
+        parent::__construct([PermissionNames::CRUD_DISHES->value]);
     }
 
-    /**
-     * Get the validation rules that apply to the request.
-     *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
-     */
     public function rules(): array
     {
-        return [
-            //
-        ];
+        return array_merge(
+            ProjectRules::projectRules(),
+            DishRules::getUpdateDishRules($this->id, $this->project_id),
+            DishRules::dishIngredientsRules($this->project_id)
+        );
     }
 }

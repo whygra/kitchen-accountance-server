@@ -2,17 +2,22 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\User\AssignUserRoleRequest;
 use App\Models\User\User;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\AssignUserRolesRequest;
-use App\Http\Requests\User\GetUsersRequest;
+use App\Http\Requests\User\GetProjectUsersRequest;
 use App\Http\Requests\User\RegisterRequest;
 use App\Http\Requests\User\UpdatePasswordRequest;
 use App\Http\Requests\User\UpdateUserRequest;
+use App\Http\Resources\User\ProjectUserResource;
 use App\Http\Resources\User\UserResource;
+use App\Models\Project;
 use Error;
 use Exception;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Auth\Events\Verified;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -25,99 +30,12 @@ class UserController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(GetProjectUsersRequest $request)
     {
-        $all = User::with('roles')->get();
-        return response()->json($all);
+        $all = Project::find($request->project_id)->users()->get();
+        return response()->json(ProjectUserResource::collection($all));
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-
-     public function register(RegisterRequest $request)
-    {
-        $user = User::create([
-            'name' => $request['name'],
-            'email' => $request['email'],
-            'password' => Hash::make($request['password']),
-        ]);
-        event(new Registered($user));
-
-        // $user->sendEmailVerificationNotification();
-
-        $token = $user->createToken($user->name.'-AuthToken')->plainTextToken;
-
-        return response()->json([
-            'access_token' => $token,
-            'message' => 'Учетная запись создана',
-        ]);
-    }
-    /**
-     * Login api
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function login(Request $request): JsonResponse
-    {
-        $user = User::where('email',$request['email'])->first();
-        if(!$user || !Hash::check($request['password'],$user->password)){
-            return response()->json([
-                'message' => 'Неверные данные авторизации'
-            ],401);
-        }
-        $token = $user->createToken($user->name.'-AuthToken')->plainTextToken;
-        return response()->json([
-            'access_token' => $token,
-        ]);
-
-    }
-    public function logout(): JsonResponse
-    {
-        $user = User::find(Auth::user()->id)->tokens()->delete(); 
-        
-        return response()->json([
-            'message' => 'Выполнен выход',
-        ]);
-    }
-
-    public function authorization_needed() {
-        return response()->json([
-            'message' => 'для доступа к ресурсу требуется авторизоваться'
-        ], 401);
-    } 
-
-    public function verify($user_id, Request $request) {
-        if (!$request->hasValidSignature()) {
-            return response()->json(["message" => "Некорректная/устаревшая ссылка"], 401);
-        }
-    
-        $user = User::findOrFail($user_id);
-    
-        if (!$user->hasVerifiedEmail()) {
-            $user->markEmailAsVerified();
-        }
-    
-        return response()->json();
-    }
-    
-    public function resend($user_id) {
-        $user = User::findOrFail($user_id);
-
-        if ($user->hasVerifiedEmail()) {
-            return response()->json(["message" => "Email уже подтвержден"], 400);
-        }
-    
-        $user->sendEmailVerificationNotification();
-    
-        return response()->json(["message" => "Ссылка отправлена на адрес ".$user->email]);
-    }
-
-    public function current()
-    { 
-        $user = User::find(Auth::user()->id);
-        return response()->json(new UserResource($user));
-    }
     /**
      * Display the specified resource.
      */
@@ -127,70 +45,28 @@ class UserController extends Controller
         return response()->json($item);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(UpdateUserRequest $request)
+    public function assign_role(AssignUserRoleRequest $request, $project_id, $id)
     {
-        $item = User::find(Auth::user()->id);
-        if(empty($item))
-            return response()->json([
-                'message' => 'пользователь не найден'
-            ], 404);
-
-        if($item->is_superuser)
-            return response()->json([
-                'message' => 'Изменение данных суперпользователя запрещено'
-            ],400);
-            
-        if(!empty($request->name))
-            $item->name = $request->name;
-        if(!empty($request->email))
-            $item->email = $request->email;
-
-        $item->save();
-        return response()->json($item, 204);
-    }
-    
-    public function update_password(UpdatePasswordRequest $request)
-    {
-        $item = User::find(Auth::user()->id);
-        if(empty($item))
-            return response()->json([
-                'message' => 'пользователь не найден'
-            ], 404);
-
-        if(!$item || !Hash::check($request['password'],$item->password))
-            return response()->json([
-                'message' => 'Неверный пароль'
-            ],401);
-
-        $item->password = Hash::make($request->new_password);
-
-        $item->save();
-        return response()->json($item, 204);
-    }
-
-    public function assign_roles(AssignUserRolesRequest $request, $id)
-    {
-        $item = User::find($id);
-        if(empty($item))
+        $user = User::find($id);
+        if(empty($user))
             return response()->json([
                 'message' => ''
             ], 404);
 
-        if($item->is_superuser)
+        $project = $user->projects()->find($project_id);
+
+        if(empty($project))
             return response()->json([
-                'message' => 'Изменение данных суперпользователя запрещено'
-            ],400);    
+                'message' => ''
+            ], 404);
 
-        $item->syncRoles(array_map(fn($r)=>$r['name'], $request->roles));
+        $user->role()->associate($request->role['id']);
 
-        $item->save();
-        return response()->json(new UserResource($item), 200);
+        $user->save();
+        return response()->json(new UserResource($user), 200);
     }
 
-    public function get_roles(GetUsersRequest $request)
+    public function get_roles(GetProjectUsersRequest $request)
     {
         return response()->json(Role::with('permissions')->get(), 200);
     }
@@ -198,9 +74,9 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy($id)
+    public function destroy()
     {
-        $item = User::find($id);
+        $item = User::find(id: Auth::user()->id);
         if(empty($item))
             return response()->json([
                 'message' => ''

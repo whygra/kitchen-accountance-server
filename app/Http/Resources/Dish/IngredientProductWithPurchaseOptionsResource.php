@@ -17,6 +17,7 @@ class IngredientProductWithPurchaseOptionsResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'category' => $this->category,
+            'group' => $this->group,
             'purchase_options' => ProductPurchaseOptionResource::collection($this->purchase_options),
             'raw_content_percentage' => $this->pivot->raw_content_percentage,
             'waste_percentage' => $this->pivot->waste_percentage,

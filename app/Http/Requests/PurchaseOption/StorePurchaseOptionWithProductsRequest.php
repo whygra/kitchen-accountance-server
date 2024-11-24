@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests\PurchaseOption;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Http\Rules\PurchaseOptionRules;
+use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
@@ -9,24 +12,15 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use App\Http\Rules\ProjectRules;
 
-class StorePurchaseOptionWithProductsRequest extends FormRequest
+
+class StorePurchaseOptionWithProductsRequest extends ChecksPermissionsRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = User::find(Auth::user()->id);
-        return empty($user) ? false : $user->hasAnyPermission(Permissions::CRUD_DISTRIBUTORS->value);
-    }
-
-    public function failedAuthorization()
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Нет прав доступа: '.$this::class,
-        ], 403));
+    
+    public function __construct() {
+        
+        parent::__construct([PermissionNames::CRUD_DISTRIBUTORS->value]);
     }
 
     /**
@@ -37,49 +31,11 @@ class StorePurchaseOptionWithProductsRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'distributor.id'=>'required|exists:distributors,id',
-            'name'=>[
-                'required',
-                'string',
-                'max:120',
-                Rule::unique('purchase_options', 'name')->where('distributor_id', $this['distributor']['id']),
-            ],
-            'unit.id'=>'required',
-            'unit.long'=>[
-                'exclude_unless:purchase_options.unit.id,0',
-                'string',
-                'max:60',
-                'unique:units,long',
-            ],
-            'unit.short'=>[
-                'exclude_unless:purchase_options.unit.id,0',
-                'string',
-                'max:6',
-                'unique:units,short',
-            ],
-            'net_weight'=>'required|numeric|min:1',
-            'price'=>'required|numeric|min:0',
-
-            'products'=>'nullable|array',
-            'products.*.id'=>'required',
-            'products.*.product_share'=>'required|numeric|min:1|max:100',
-            'products.*.name'=>[
-                'exclude_unless:products.*.id,0',
-                'string',
-                'max:60',
-                'unique:products,name',
-                'distinct:ignore_case',
-            ]
-        ];
-    }
-    
-    public function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Ошибки валидации: '.$validator->errors()->first(),
-            'errors'      => $validator->errors()
-        ], 400));
+        return array_merge(
+            ProjectRules::projectRules(),
+            PurchaseOptionRules::getStorePurchaseOptionRules($this['distributor']['id'], $this->project_id),
+            PurchaseOptionRules::purchaseOptionProductsRules($this->project_id),
+            PurchaseOptionRules::purchaseOptionUnitRules($this->project_id),
+        );
     }
 }

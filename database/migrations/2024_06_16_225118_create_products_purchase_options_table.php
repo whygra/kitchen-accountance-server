@@ -16,10 +16,16 @@ return new class extends Migration
             $table->id();
             // продукт
             $table->foreignId('product_id');
-            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->foreign('product_id')
+                ->references('id')
+                ->on('products')
+                ->onDelete('cascade');
             // единица измерения
             $table->foreignId('purchase_option_id');
-            $table->foreign('purchase_option_id')->references('id')->on('purchase_options')->onDelete('cascade');
+            $table->foreign('purchase_option_id')
+                ->references('id')
+                ->on('purchase_options')
+                ->onDelete('cascade');
             // доля веса продукта в массе нетто товара
             $table->decimal('product_share');
             $table->timestamps();

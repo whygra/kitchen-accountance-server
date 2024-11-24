@@ -2,9 +2,13 @@
 
 namespace App\Imports;
 
+use App\Models\Distributor\Distributor;
 use App\Models\Distributor\PurchaseOption;
 use App\Models\Distributor\Unit;
+use App\Models\Project;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
@@ -16,6 +20,7 @@ use Maatwebsite\Excel\Concerns\WithSkipDuplicates;
 use Maatwebsite\Excel\Concerns\WithUpserts;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Validators\Failure;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class PurchaseOptionsImport implements ToModel, SkipsEmptyRows, WithValidation, SkipsOnFailure, WithUpserts, WithSkipDuplicates
 {
@@ -99,32 +104,56 @@ class PurchaseOptionsImport implements ToModel, SkipsEmptyRows, WithValidation, 
 
     public function model(array $row)
     {
-        $new = new PurchaseOption;
-        
-        $new->distributor()->associate($this->distributor_id);
-        $new->code = empty($this->columnIndexes['code']) ? null : $row[$this->columnIndexes['code']];
-        $new->name = $row[$this->columnIndexes['name']];
-        $unit = empty($this->columnIndexes['unit']) || empty($row[$this->columnIndexes['unit']])
-            ? Unit::find(1) 
-            : Unit::where('short', $row[$this->columnIndexes['unit']])->first();
-        if(empty($unit->id))
-            $unit = Unit::create([
-                'long'=>$row[$this->columnIndexes['unit']], 
-                'short'=>$row[$this->columnIndexes['unit']],
-            ]);
-        
+        $distributor = Distributor::find($this->distributor_id);
+        $project = Project::find($distributor->project_id);
 
-        $new->unit()->associate($unit->id);
-        $new->net_weight = empty($this->columnIndexes['net_weight'])?1000:$row[$this->columnIndexes['net_weight']];
-        $new->price = empty($this->columnIndexes['price'])?0:$row[$this->columnIndexes['price']];
-        return $new;
+        $item = $distributor->purchase_options()->where('name', $row[$this->columnIndexes['name']])->firstOrNew();
+        if (empty($item->id)){
+            
+            $item->distributor()->associate($this->distributor_id);
+            
+            if(!empty($this->columnIndexes['code']))
+            $item->code = $row[$this->columnIndexes['code']];
+        
+            $item->name = $row[$this->columnIndexes['name']];
+            
+            $unit = empty($this->columnIndexes['unit']) || empty($row[$this->columnIndexes['unit']])
+            ? $project->units()->first()
+            : $project->units()->where('short', $row[$this->columnIndexes['unit']])->firstOrNew();
+            
+            if(empty($unit->id)){
+                $unit->project_id = $project->id;
+                $unit->long = $row[$this->columnIndexes['unit']];
+                $unit->short = $row[$this->columnIndexes['unit']];
+                $unit->save();
+            }
+            
+            $item->unit()->associate($unit->id);
+            $item->net_weight = empty($this->columnIndexes['net_weight'])?1000:$row[$this->columnIndexes['net_weight']];
+            $item->price = empty($this->columnIndexes['price'])?0:$row[$this->columnIndexes['price']];
+        } else {
+            if(!empty($this->columnIndexes['code']))
+                $item->code = $row[$this->columnIndexes['code']];
+            if(!empty($this->columnIndexes['net_weight']))
+                $item->net_weight = $row[$this->columnIndexes['net_weight']];
+            if(!empty($this->columnIndexes['price']))
+                $item->price = $row[$this->columnIndexes['price']];
+        }
+        return $item;
     }
 
     public function collection(Collection $rows)
     {
-        foreach ($rows as $row)
-        {
-            $this->model($row->toArray())->save();
-        }
+        DB::transaction(function() use($rows){
+
+            foreach ($rows as $row)
+            {
+                $this->model($row->toArray())->save();
+            }
+
+            $distributor = Distributor::find($this->distributor_id);
+            if(Auth::user()->id)
+            $distributor->updated_by_user_id = Auth::user()->id;
+        });
     }
 }

@@ -15,8 +15,11 @@ return new class extends Migration
         Schema::create('purchase_options', function (Blueprint $table) {
             $table->id();
             // единица измерения
-            $table->foreignId('unit_id')->default(1);
-            $table->foreign('unit_id')->references('id')->on('units')->onDelete('set default');
+            $table->foreignId('unit_id')->nullable();
+            $table->foreign('unit_id')
+                ->references('id')
+                ->on('units')
+                ->onDelete('set null');
             // код
             $table->integer('code')->nullable();
             // наименование
@@ -27,7 +30,16 @@ return new class extends Migration
             $table->decimal('price');
             // поставщик
             $table->foreignId('distributor_id');
-            $table->foreign('distributor_id')->references('id')->on('distributors')->onDelete('cascade');
+            $table->foreign('distributor_id')
+                ->references('id')
+                ->on('distributors')
+                ->onDelete('cascade');
+            // пользователь, внесший последние изменения
+            $table->foreignId('updated_by_user_id')->nullable();
+            $table->foreign('updated_by_user_id')
+                ->references('id')
+                ->on('users')
+                ->onDelete('set null');
 
             $table->unique(['name','distributor_id']);
             $table->unique(['code','distributor_id']);

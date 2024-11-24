@@ -2,32 +2,24 @@
 
 namespace App\Http\Requests\DishCategory;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Http\Rules\DishCategoryRules;
+use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Rules\ProjectRules;
 
-class UpdateDishCategoryWithDishesRequest extends FormRequest
+
+class UpdateDishCategoryWithDishesRequest extends ChecksPermissionsRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = User::find(Auth::user()->id);
-        return empty($user) ? false : $user->hasAnyPermission([
-            Permissions::CRUD_DISHES->value,
-        ]);
-    }
-
-     public function failedAuthorization()
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Нет прав доступа: '.$this::class,
-        ], 403));
+    
+    public function __construct() {
+        
+        parent::__construct([PermissionNames::CRUD_DISHES->value]);
     }
 
     /**
@@ -38,28 +30,10 @@ class UpdateDishCategoryWithDishesRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'id'=>'required|exists:dish_categories,id',
-            'name'=>'required|string|max:60|unique:dish_categories,name,'.$this['id'],
-
-            'dishes'=>'nullable|array',
-            'dishes.*.id'=>'required',
-            'dishes.*.name'=>[
-                'exclude_unless:dishes.*.id,0',
-                'string',
-                'max:60',
-                'unique:dishes,name',
-                'distinct:ignore_case',
-            ],
-        ];
-    }
-    
-    public function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Ошибка валидации',
-            'errors'      => $validator->errors()
-        ], 400));
+        return array_merge(
+            ProjectRules::projectRules(),
+            DishCategoryRules::updateDishCategoryRules($this->id, $this->project_id),
+            DishCategoryRules::dishCategoryDishesRules($this->project_id)
+        );
     }
 }

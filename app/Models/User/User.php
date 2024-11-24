@@ -4,18 +4,28 @@ namespace App\Models\User;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 
+use App\Models\Dish\Dish;
+use App\Models\Distributor\Distributor;
+use App\Models\Distributor\PurchaseOption;
+use App\Models\Ingredient\Ingredient;
+use App\Models\Product\Product;
+use App\Models\Project;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable //implements MustVerifyEmail
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable, HasRoles;
-    
+    use HasApiTokens, HasFactory, Notifiable;
+    protected $table = 'users';
+
     protected $guard_name = 'web';
     /**
      * The attributes that are mass assignable.
@@ -50,17 +60,60 @@ class User extends Authenticatable //implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+    public function projects(): BelongsToMany{
+        return $this->belongsToMany(Project::class, 'users_projects')
+            ->withPivot(['role_id'])
+            ->using(UserProject::class);
+    }
 
-     // признак - суперпользователь
-    protected $appends = [
-        'is_superuser'
-    ];
+    public function created_projects() : HasMany {
+        return $this->hasMany(Project::class, 'creator_id', 'id');
+    }
 
-    protected function isSuperuser(): Attribute
+    public function last_updated_projects(): HasMany
     {
-        return new Attribute(
-            get: fn () => $this->name == env('SUPERUSER_NAME'),
-        );
+        return $this->hasMany(Project::class, 'updated_by_user_id', 'id');
+    }
+
+    public function last_updated_distributors(): HasMany
+    {
+        return $this->hasMany(Distributor::class, 'updated_by_user_id', 'id');
+    }
+
+    public function last_updated_purchase_options(): HasMany
+    {
+        return $this->hasMany(PurchaseOption::class, 'updated_by_user_id', 'id');
+    }
+
+    public function last_updated_products(): HasMany
+    {
+        return $this->hasMany(Product::class, 'updated_by_user_id', 'id');
+    }
+
+    public function last_updated_ingredients(): HasMany
+    {
+        return $this->hasMany(Ingredient::class, 'updated_by_user_id', 'id');
+    }
+
+    public function last_updated_dishes(): HasMany
+    {
+        return $this->hasMany(Dish::class, 'updated_by_user_id', 'id');
+    }
+
+    public function hasAnyPermission(int $projectId, array $permissions) : bool {
+        $project = $this->projects()->find($projectId);
+        if(empty($project)) return false;
+
+        $role = Role::find($project->pivot->role_id);
+        if(empty($role)) return false;
+        foreach ($role->permissions()->get() as $perm){
+            if(in_array($perm->name, $permissions)){
+
+                return true;
+            }
+        }
+        
+        return false;
     }
 
 }

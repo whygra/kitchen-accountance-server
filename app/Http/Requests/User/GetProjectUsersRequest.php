@@ -1,6 +1,8 @@
 <?php
 namespace App\Http\Requests\User;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
@@ -9,18 +11,19 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Rules\ProjectRules;
+
 
 use function PHPUnit\Framework\isEmpty;
 
-class GetUsersRequest extends FormRequest
+class GetProjectUsersRequest extends ChecksPermissionsRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = User::find(Auth::user()->id);
-        return empty($user) ? false : $user->hasAnyPermission([Permissions::READ_USERS->value, Permissions::CRUD_USERS->value]);
+    
+    public function __construct() {
+        parent::__construct([
+            PermissionNames::READ_USERS->value,
+            PermissionNames::CRUD_USERS->value
+        ]);
     }
 
     /**
@@ -30,14 +33,8 @@ class GetUsersRequest extends FormRequest
      */
     public function rules()
     {
-        return [];
-    }
-
-    public function failedAuthorization()
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Нет прав доступа: '.$this::class,
-        ], 403));
+        return [
+            ProjectRules::projectRules()
+        ];
     }
 }

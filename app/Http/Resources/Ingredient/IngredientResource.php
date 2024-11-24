@@ -15,9 +15,12 @@ class IngredientResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'project_id' => $this->project_id,
+            'updated_by_user' => $this->updated_by_user(),
             'name' => $this->name,
             'type' => $this->type,
             'category' => $this->category,
+            'group' => $this->group,
             'item_weight' => $this->item_weight,
             'is_item_measured' => $this->is_item_measured,
             'products' => IngredientProductResource::collection($this->products),

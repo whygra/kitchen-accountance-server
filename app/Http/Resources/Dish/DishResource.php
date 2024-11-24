@@ -17,12 +17,15 @@ class DishResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'project_id' => $this->project_id,
+            'updated_by_user' => $this->updated_by_user(),
             'name' => $this->name,
             'category' => $this->category,
+            'group' => $this->group,
             'ingredients' => DishIngredientResource::collection($this->ingredients),
             'image' => [
-                'url'=>$this->image_path == '' ? '' : url()->to('/').Storage::url('images/dishes/'.$this->image_path),
-                'name'=>$this->image_path,
+                'url'=>$this->image_name == '' ? '' : url()->to('/').Storage::url($this->getImageDirectoryPath().'/'.$this->image_name),
+                'name'=>$this->image_name,
             ]
         ];
     }

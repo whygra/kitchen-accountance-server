@@ -2,6 +2,9 @@
 
 namespace App\Http\Requests\Dish;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Http\Rules\DishRules;
+use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
@@ -10,27 +13,15 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\File;
+use App\Http\Rules\ProjectRules;
 
-class UploadDishImageRequest extends FormRequest
+
+class UploadDishImageRequest extends ChecksPermissionsRequest
 {
     
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = User::find(Auth::user()->id);
-        return empty($user) ? false : $user->hasAnyPermission([
-            Permissions::CRUD_DISHES->value,
-        ]);
-    }
-
-     public function failedAuthorization()
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Нет прав доступа: '.$this::class,
-        ], 403));
+    public function __construct() {
+        
+        parent::__construct([PermissionNames::CRUD_DISHES->value]);
     }
 
     /**
@@ -41,21 +32,9 @@ class UploadDishImageRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'file'=>[
-                'required', 
-                'image:jpeg,png,jpg,gif,svg',
-                'max:2048'
-            ],
-        ];
-    }
-    
-    public function failedValidation(Validator $validator)
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Ошибки валидации: '.$validator->errors()->first(),
-            'errors'    => $validator->errors()
-        ], 400));
+        return array_merge(
+            ProjectRules::projectRules(), 
+            DishRules::uploadDishImageRules($this->project_id)
+        );
     }
 }

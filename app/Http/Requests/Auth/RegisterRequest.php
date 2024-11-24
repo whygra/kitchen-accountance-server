@@ -1,5 +1,5 @@
 <?php
-namespace App\Http\Requests\User;
+namespace App\Http\Requests\Auth;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
@@ -26,7 +26,7 @@ class RegisterRequest extends FormRequest
     {
        return [
             'name'=>'required|string|unique:users,name|max:50', 
-            'email' => 'required|email|unique:users,email|max:50',
+            'email' => 'required|email:rfc,dns|unique:users,email',
             'password' => 'required|min:8'
        ];
     }

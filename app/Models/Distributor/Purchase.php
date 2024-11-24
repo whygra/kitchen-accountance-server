@@ -37,6 +37,7 @@ class Purchase extends Model
 
     protected $foreignKeys = [
         'distributor' => 'distributor_id', 
+        'updated_by_user' => 'updated_by_user_id'
     ];
 
     public function purchase_items(): HasMany

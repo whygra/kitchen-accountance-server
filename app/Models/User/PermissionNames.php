@@ -2,8 +2,9 @@
 
 namespace App\Models\User;
 
-enum Permissions: string
+enum PermissionNames: string
 {
+    case EDIT_PROJECT = 'edit-project';
     case CRUD_DISTRIBUTORS = 'crud-distributors';
     case CRUD_PRODUCTS = 'crud-products';
     case CRUD_INGREDIENTS = 'crud-ingredients';

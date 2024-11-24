@@ -10,7 +10,9 @@ use App\Http\Requests\PurchaseOption\UpdatePurchaseOptionWithProductsRequest;
 use App\Http\Resources\PurchaseOption\PurchaseOptionResource;
 use App\Models\Product\Product;
 use App\Models\Product\ProductPurchaseOption;
+use App\Models\Project;
 use Exception;
+use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
 
@@ -19,28 +21,48 @@ class PurchaseOptionController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(GetPurchaseOptionWithProductsRequest $request)
+    public function index(GetPurchaseOptionWithProductsRequest $request, $project_id)
     {
-        $all = PurchaseOption::with('unit', 'distributor')->get();
+        $all = PurchaseOption::whereHas('distributor', 
+        function (Builder $query) use($project_id) {
+            $query->where('project_id', $project_id);
+        })->get();
         return response()->json($all);
     }
-    public function index_loaded(GetPurchaseOptionWithProductsRequest $request)
+    public function index_loaded(GetPurchaseOptionWithProductsRequest $request, $project_id)
     {
-        $all = PurchaseOption::with('unit', 'distributor', 'products')->get();
+        $all = PurchaseOption::whereHas('distributor', 
+        function (Builder $query) use($project_id) {
+            $query->where('project_id', $project_id);
+        })->with([
+            'unit', 
+            'products', 
+            'distributor'
+        ])->get();
         return response()->json(PurchaseOptionResource::collection($all));
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(GetPurchaseOptionWithProductsRequest $request, $id)
+    public function show(GetPurchaseOptionWithProductsRequest $request, $project_id, $id)
     {
-        $item = PurchaseOption::find($id);
+        $item = PurchaseOption::whereHas('distributor', 
+        function (Builder $query) use($project_id) {
+            $query->where('project_id', $project_id);
+        })->find($id);
         return response()->json($item);
     }
-    public function show_loaded(GetPurchaseOptionWithProductsRequest $request, $id)
+    public function show_loaded(GetPurchaseOptionWithProductsRequest $request, $project_id, $id)
     {
-        $item = PurchaseOption::with('unit', 'distributor', 'products')->find($id);
+        $item = PurchaseOption::whereHas('distributor', 
+        function (Builder $query) use($project_id) {
+            $query->where('project_id', $project_id);
+        })->with([
+            'unit', 
+            'products',
+            'distributor',
+        ])->find($id);
         return response()->json(new PurchaseOptionResource($item));
     }
 
@@ -63,7 +85,7 @@ class PurchaseOptionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdatePurchaseOptionWithProductsRequest $request, $id)
+    public function update(UpdatePurchaseOptionWithProductsRequest $request, $project_id, $id)
     {
         $item = PurchaseOption::find($id);
         if(empty($item))
@@ -86,10 +108,10 @@ class PurchaseOptionController extends Controller
     /**
      * Store a newly created resource in storage.
      */ 
-    public function store_loaded(StorePurchaseOptionWithProductsRequest $request)
+    public function store_loaded(StorePurchaseOptionWithProductsRequest $request, $project_id)
     {
         $item = new PurchaseOption;
-        DB::transaction(function() use ($request, $item) {
+        DB::transaction(function() use ($request, $project_id, $item) {
 
             $item->unit_id = $request['unit']['id'];
             $item->name = $request->name;
@@ -107,7 +129,7 @@ class PurchaseOptionController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update_loaded(UpdatePurchaseOptionWithProductsRequest $request, $id)
+    public function update_loaded(UpdatePurchaseOptionWithProductsRequest $request, $project_id, $id)
     {
         $item = PurchaseOption::find($id);
         if(empty($item))
@@ -115,7 +137,7 @@ class PurchaseOptionController extends Controller
                 'message' => ''
             ], 404);
 
-        DB::transaction(function() use ($request, $item) {
+        DB::transaction(function() use ($request, $project_id, $item) {
             $item->unit_id = $request['unit']['id'];
             $item->name = $request->name;
             $item->code = $request->code;
@@ -132,13 +154,15 @@ class PurchaseOptionController extends Controller
     }
 
     private function process_products(PurchaseOption $item, FormRequest $request) {
+        $project = Project::find($request->project_id);
         $products = [];
         foreach($request->products as $p){
-            $product = Product::findOrNew($p['id']);
+            $product = $project->products()
+                ->findOrNew($p['id']);
             if(empty($product->id))
             {
                 $product->name = $p['name'];
-                $product->save();
+                $project->products()->save($product);
             }
             $products[$product->id] = ['product_share'=>$p['product_share']];
         }
@@ -148,7 +172,7 @@ class PurchaseOptionController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(DeletePurchaseOptionRequest $request, $id)
+    public function destroy(DeletePurchaseOptionRequest $request, $project_id, $id)
     {
         $item = PurchaseOption::find($id);
         if(empty($item))

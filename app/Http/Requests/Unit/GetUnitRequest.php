@@ -2,32 +2,27 @@
 
 namespace App\Http\Requests\Unit;
 
+use App\Http\Requests\ChecksPermissionsRequest;
+use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Rules\ProjectRules;
 
-class GetUnitRequest extends FormRequest
+
+class GetUnitRequest extends ChecksPermissionsRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
-    public function authorize(): bool
-    {
-        $user = User::find(Auth::user()->id);
-        return empty($user) ? false : $user->hasAnyPermission(
-            [Permissions::CRUD_DISTRIBUTORS->value, Permissions::READ_DISTRIBUTORS->value]
-        );
-    }
+    
+    public function __construct() {
+        
+        parent::__construct([
+            PermissionNames::CRUD_DISTRIBUTORS->value,
+            PermissionNames::READ_DISTRIBUTORS->value,
+        ]);
 
-    public function failedAuthorization()
-    {
-        throw new HttpResponseException(response()->json([
-            'success'   => false,
-            'message'   => 'Нет прав доступа: '.$this::class,
-        ], 403));
     }
 
     /**
@@ -37,8 +32,7 @@ class GetUnitRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [
-        ];
+        return ProjectRules::projectRules();
     }
     
 }
