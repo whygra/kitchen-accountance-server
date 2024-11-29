@@ -81,7 +81,7 @@ class IngredientCategoryController extends Controller
     public function show_loaded(GetIngredientRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
-        $item = $project->ingredient_categories()->with('ingredients.type')->find($id);
+        $item = $project->ingredient_categories()->with(['ingredients.type', 'updated_by_user'])->find($id);
         if(empty($item))
             return response()->json([
                 'message' => "Не удалось найти категорию ингредиентов с id=".$item->id

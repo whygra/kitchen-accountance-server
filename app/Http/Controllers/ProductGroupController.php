@@ -20,7 +20,7 @@ class ProductGroupController extends Controller
     public function index(GetProductWithPurchaseOptionsRequest $request, $project_id)
     {
         $project = Project::find($project_id);
-        $all = $project->product_categories()->get();
+        $all = $project->product_groups()->get();
         return response()->json($all);
     }
 
@@ -42,7 +42,7 @@ class ProductGroupController extends Controller
     public function show(GetProductWithPurchaseOptionsRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
-        $item = $project->product_categories()->find($id);
+        $item = $project->product_groups()->find($id);
         if(empty($item))
             return response()->json([
                 'message' => "Не удалось найти категорию продуктов с id=".$item->id
@@ -56,13 +56,13 @@ class ProductGroupController extends Controller
     public function update(UpdateProductGroupWithProductsRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
-        $item = $project->product_categories()->find($id);
+        $item = $project->product_groups()->find($id);
         if(empty($item))
             return response()->json([
                 'message' => "Не удалось найти категорию продуктов с id=".$item->id
             ], 404);
         $item->name = $request->name;
-        $project->product_categories()->save($item);
+        $project->product_groups()->save($item);
         return response()->json($item, 200);
     }
 
@@ -73,7 +73,7 @@ class ProductGroupController extends Controller
     public function index_loaded(GetProductWithPurchaseOptionsRequest $request, $project_id)
     {
         $project = Project::find($project_id);
-        $all = $project->product_categories()->with('products')->get();
+        $all = $project->product_groups()->with('products')->get();
         return response()->json($all);
     }
      
@@ -81,7 +81,7 @@ class ProductGroupController extends Controller
     public function show_loaded(GetProductWithPurchaseOptionsRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
-        $item = $project->product_categories()->with('products')->find($id);
+        $item = $project->product_groups()->with(['products', 'updated_by_user'])->find($id);
         if(empty($item))
             return response()->json([
                 'message' => "Не удалось найти категорию продуктов с id=".$item->id
@@ -98,7 +98,7 @@ class ProductGroupController extends Controller
         DB::transaction(function() use($request, $project_id, $new){
             $project = Project::find($project_id);
             $new->name = $request->name;
-            $project->product_categories()->save($new);
+            $project->product_groups()->save($new);
             $this->process_products($new, $request);
         });
         
@@ -111,7 +111,7 @@ class ProductGroupController extends Controller
     public function update_loaded(UpdateProductGroupWithProductsRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
-        $item = $project->product_categories()->find($id);
+        $item = $project->product_groups()->find($id);
         if(empty($item))
             return response()->json([
                 'message' => "Не удалось найти категорию продуктов с id=".$item->id
@@ -119,7 +119,7 @@ class ProductGroupController extends Controller
         
         DB::transaction(function() use($request, $project, $item){
             $item->name = $request->name;
-            $project->product_categories()->save($item);
+            $project->product_groups()->save($item);
             $this->process_products($item, $request);
         });
 
@@ -130,7 +130,7 @@ class ProductGroupController extends Controller
     public function destroy(DeleteProductRequest $request, $project_id, $id) 
     {
         $project = Project::find($project_id);
-        $item = $project->product_categories()->find($id);
+        $item = $project->product_groups()->find($id);
         if (empty($item))
             return response()->json([
                 'message' => "Не удалось найти категорию продуктов с id=$id"

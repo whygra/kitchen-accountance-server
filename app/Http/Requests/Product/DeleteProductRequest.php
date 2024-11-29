@@ -28,7 +28,6 @@ class DeleteProductRequest extends ChecksPermissionsRequest
      */
     public function rules(): array
     {
-        dd($this->project_id);
         return ProjectRules::projectRules();
     }
 }

@@ -3,6 +3,7 @@
 namespace App\Http\Requests\PurchaseOption;
 
 use App\Http\Requests\ChecksPermissionsRequest;
+use App\Http\Rules\PurchaseOptionRules;
 use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
@@ -28,6 +29,9 @@ class DeletePurchaseOptionRequest extends ChecksPermissionsRequest
      */
     public function rules(): array
     {
-        return ProjectRules::projectRules();
+        return array_merge(
+            ProjectRules::projectRules(),
+            PurchaseOptionRules::deleteRules($this->project_id)
+        );
     }
 }

@@ -35,6 +35,7 @@ class IngredientProduct extends Pivot
         'product_id',
         'raw_content_percentage',
         'waste_percentage',
+        'updated_by_user_id',
     ];
 
     protected $foreignKeys = [
@@ -48,6 +49,7 @@ class IngredientProduct extends Pivot
         'raw_content_percentage' => 'float',
         'waste_percentage' => 'float',
    ];
+   protected $touches = ['ingredient'];
 
     public function ingredient(): BelongsTo
     {

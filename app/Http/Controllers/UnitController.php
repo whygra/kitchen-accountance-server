@@ -17,7 +17,7 @@ class UnitController extends Controller
      */
     public function index(GetUnitRequest $request, $project_id)
     {
-        $project = Project::find($project_id);
+        $project = Project::with(['updated_by_user'])->find($project_id);
         $all = $project->units()->get();
         return response()->json($all);
     }
@@ -32,7 +32,7 @@ class UnitController extends Controller
         $new->long = $request->long;
         $new->short = $request->short;
         $project->units()->save($new);
-        return response()->json($new, 201);
+        return response()->json($new, 204);
     }
 
     /**
@@ -57,7 +57,8 @@ class UnitController extends Controller
                 'message' => ''
             ], 404);
 
-        $item->name = $request->name;
+        $item->short = $request->short;
+        $item->long = $request->long;
 
         $item->save();
         return response()->json($item, 204);

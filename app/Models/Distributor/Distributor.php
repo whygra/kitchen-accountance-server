@@ -18,12 +18,13 @@ class Distributor extends Model
       
     protected static function booted(): void
     {
-        static::created(function ($model) {
+        static::creating(function ($model) {
             if(Auth::user()){
                 $model->updated_by_user_id = Auth::user()->id;
             }
         });
-        static::updated(function ($model) {
+        static::updating(function ($model) {
+            dd($model);
             if(Auth::user()){
                 $model->updated_by_user_id = Auth::user()->id;
             }
@@ -48,11 +49,13 @@ class Distributor extends Model
      */
     protected $fillable = [
         'name',
+        'updated_by_user_id',
+        'updated_at',
     ];
 
     protected $foreignKeys = [
         'updated_by_user' => 'updated_by_user_id',
-        'project' => 'project_id'
+        'project' => 'project_id',
     ];
 
     public function project(): BelongsTo

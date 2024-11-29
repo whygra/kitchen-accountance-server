@@ -16,7 +16,8 @@ class DistributorResource extends JsonResource
         return [
             'id' => $this->id,
             'project_id' => $this->project_id,
-            'updated_by_user' => $this->updated_by_user(),
+            'updated_by_user' => $this->updated_by_user()->first(),
+            'updated_at' => $this->updated_at,
             'name' => $this->name,
             'purchase_options' => PurchaseOptionResource::collection($this->purchase_options),
         ];

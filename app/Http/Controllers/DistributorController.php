@@ -122,9 +122,9 @@ class DistributorController extends Controller
         DB::transaction(function() use ($request, $project, $item) {
             // обновление данных поставщика
             $item->name = $request->name;
-            $project->distributors()->save($item);
             
             $this->process_purchase_options($request, $item);
+            $project->distributors()->save($item);
         });
         return response()->json($item);
 
@@ -191,7 +191,11 @@ class DistributorController extends Controller
             }
             
             $option->unit()->associate($unit);
-            $item->purchase_options()->save($option);
+
+            if($option->isDirty()){
+                $item->purchase_options()->save($option);
+                $item->touch();
+            }
 
             // создаем/изменяем продукт только если количество продуктов данной позиции не больше 1
             //     с коллекцией продуктов работает контроллер позиций закупки

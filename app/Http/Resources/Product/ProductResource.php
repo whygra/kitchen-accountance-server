@@ -16,7 +16,8 @@ class ProductResource extends JsonResource
         return [
             'id' => $this->id,
             'project_id' => $this->project_id,
-            'updated_by_user' => $this->updated_by_user(),
+            'updated_at' => $this->updated_at,
+            'updated_by_user' => $this->updated_by_user()->first(),
             'name' => $this->name,
             'category' => $this->category,
             'group' => $this->group,

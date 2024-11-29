@@ -45,6 +45,7 @@ class DishIngredient extends Pivot
         'ingredient_amount' => 'float',
         'waste_percentage' => 'float',
    ];
+   protected $touches = ['dish'];
 
     public function dish(): BelongsTo
     {

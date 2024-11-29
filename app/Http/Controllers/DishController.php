@@ -195,18 +195,12 @@ class DishController extends Controller
                 ]);
 
             $item->group()->associate($group);
-            
                 
             $item->name = $request->name;
-            if(!empty($request['image'])){
-                if($item->image_name != '')
-                    Storage::disk('public')->delete('images/dishes/'.$item->image_name);
-                $item->image_name = $request['image']['name'] ?? '';
-            }
-
-            $item->save();
             
             $this->process_ingredients($item, $request);
+            $item->save();
+            
         });
 
         return response()->json($item, 200);
@@ -232,7 +226,10 @@ class DishController extends Controller
             ];
         }
     
-        $item->ingredients()->sync($ingredients);
+        $sync = $item->ingredients()->sync($ingredients);
+        if(!empty($sync['detached'])||!empty($sync['attached'])||!empty($sync['updated']))
+            $item->touch();
+
     }
 
     // блюдо с позициями закупки

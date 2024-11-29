@@ -81,7 +81,7 @@ class ProductCategoryController extends Controller
     public function show_loaded(GetProductWithPurchaseOptionsRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
-        $item = $project->product_categories()->with('products')->find($id);
+        $item = $project->product_categories()->with(['products', 'updated_by_user'])->find($id);
         if(empty($item))
             return response()->json([
                 'message' => "Не удалось найти категорию продуктов с id=".$item->id

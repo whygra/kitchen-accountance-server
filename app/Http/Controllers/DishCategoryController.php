@@ -85,7 +85,7 @@ class DishCategoryController extends Controller
         $item = $project->dish_categories()->with('dishes.ingredients')->find($id);
         if(empty($item))
             return response()->json([
-                'message' => "Не удалось найти категорию блюд с id=".$item->id
+                'message' => "Не удалось найти категорию блюд с id=".$id
             ], 404);
         return response()->json(new DishCategoryResource($item));
     }
@@ -115,7 +115,7 @@ class DishCategoryController extends Controller
         $item = $project->dish_categories()->find($id);
         if(empty($item))
             return response()->json([
-                'message' => "Не удалось найти категорию блюд с id=".$item->id
+                'message' => "Не удалось найти категорию блюд с id=".$id
             ], 404);
         
         DB::transaction(function() use($request, $project, $item){

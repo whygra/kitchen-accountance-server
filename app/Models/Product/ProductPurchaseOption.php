@@ -45,6 +45,7 @@ class ProductPurchaseOption extends Pivot
     protected $casts = [
         'product_share' => 'float',
    ];
+   protected $touches = ['product'];
 
     public function purchase_option(): BelongsTo
     {

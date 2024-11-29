@@ -17,6 +17,8 @@ class DishGroupResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'dishes' => DishResource::collection($this->dishes),
+            'updated_by_user' => $this->updated_by_user()->first(),
+            'updated_at' => $this->updated_at,
         ];
     }
 }

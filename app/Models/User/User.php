@@ -66,36 +66,36 @@ class User extends Authenticatable implements MustVerifyEmail
             ->using(UserProject::class);
     }
 
-    public function created_projects() : HasMany {
+    public function creating_projects() : HasMany {
         return $this->hasMany(Project::class, 'creator_id', 'id');
     }
 
-    public function last_updated_projects(): HasMany
+    public function last_updating_projects(): HasMany
     {
         return $this->hasMany(Project::class, 'updated_by_user_id', 'id');
     }
 
-    public function last_updated_distributors(): HasMany
+    public function last_updating_distributors(): HasMany
     {
         return $this->hasMany(Distributor::class, 'updated_by_user_id', 'id');
     }
 
-    public function last_updated_purchase_options(): HasMany
+    public function last_updating_purchase_options(): HasMany
     {
         return $this->hasMany(PurchaseOption::class, 'updated_by_user_id', 'id');
     }
 
-    public function last_updated_products(): HasMany
+    public function last_updating_products(): HasMany
     {
         return $this->hasMany(Product::class, 'updated_by_user_id', 'id');
     }
 
-    public function last_updated_ingredients(): HasMany
+    public function last_updating_ingredients(): HasMany
     {
         return $this->hasMany(Ingredient::class, 'updated_by_user_id', 'id');
     }
 
-    public function last_updated_dishes(): HasMany
+    public function last_updating_dishes(): HasMany
     {
         return $this->hasMany(Dish::class, 'updated_by_user_id', 'id');
     }

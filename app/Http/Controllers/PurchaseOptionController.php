@@ -8,12 +8,16 @@ use App\Models\Distributor\PurchaseOption;
 use App\Http\Requests\PurchaseOption\StorePurchaseOptionWithProductsRequest;
 use App\Http\Requests\PurchaseOption\UpdatePurchaseOptionWithProductsRequest;
 use App\Http\Resources\PurchaseOption\PurchaseOptionResource;
+use App\Models\Distributor\Distributor;
 use App\Models\Product\Product;
 use App\Models\Product\ProductPurchaseOption;
 use App\Models\Project;
+use Carbon\Carbon;
+use DateTime;
 use Exception;
-use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
 class PurchaseOptionController extends Controller
@@ -70,15 +74,16 @@ class PurchaseOptionController extends Controller
     /**
      * Store a newly created resource in storage.
      */ 
-    public function store(StorePurchaseOptionWithProductsRequest $request)
+    public function store(StorePurchaseOptionWithProductsRequest $request, $project_id)
     {
         $new = new PurchaseOption;
         $new->unit_id = $request->unit_id;
         $new->name = $request->name;
         $new->net_weight = $request->net_weight;
-        $new->distributor_id = $request->distributor_id;
         $new->price = $request->price;
-        $new->save();
+
+        $distributor = Project::find($project_id)->distributors()->find($request->distributor_id);
+        $distributor->purchase_options()->save($new);
         return response()->json($new, 201);    
     }        
 
@@ -97,9 +102,9 @@ class PurchaseOptionController extends Controller
         $item->name = $request->name;
         $item->net_weight = $request->net_weight;
         $item->price = $request->price;
-
-        $item->save();
-
+        
+        $distributor = Project::find($project_id)->distributors()->find($item->distributor_id);
+        $distributor->purchase_options()->save($item);
 
         return response()->json($item, 200);
     }
@@ -117,10 +122,13 @@ class PurchaseOptionController extends Controller
             $item->name = $request->name;
             $item->code = $request->code;
             $item->net_weight = $request->net_weight;
-            $item->distributor_id = $request['distributor']['id'];
             $item->price = $request->price;
             $item->save();
             $this->process_products($item, $request);
+            
+
+            $distributor = Project::find($project_id)->distributors()->find($request->distributor_id);
+            $distributor->purchase_options()->save($item);
         });
 
         return response()->json($item, 201);    
@@ -147,7 +155,9 @@ class PurchaseOptionController extends Controller
 
             $this->process_products($item, $request);
 
-            $item->save();
+
+            $distributor = Project::find($project_id)->distributors()->find($item->distributor_id);
+            $distributor->purchase_options()->save($item);
         });
 
         return response()->json($item, 200);
@@ -167,7 +177,9 @@ class PurchaseOptionController extends Controller
             $products[$product->id] = ['product_share'=>$p['product_share']];
         }
     
-        $item->products()->sync($products);
+        $sync = $item->products()->sync($products);
+        if(!empty($sync['attached'])||!empty($sync['detached'])||!empty($sync['updated']))
+            $item->touch();
     }
     /**
      * Remove the specified resource from storage.
@@ -180,7 +192,7 @@ class PurchaseOptionController extends Controller
                 'message' => ''
             ], 404);
 
-        $item->delete();
+        $item->delete();            
         return response()->json($item, 200);
     }
 }

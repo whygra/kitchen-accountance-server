@@ -15,11 +15,11 @@ class Unit extends Model
     
     protected static function booted(): void
     {
-        static::created(function ($model) {
+        static::creating(function ($model) {
             if(Auth::user())
                 $model->updated_by_user_id = Auth::user()->id;
         });
-        static::updated(function ($model) {
+        static::updating(function ($model) {
             if(Auth::user())
                 $model->updated_by_user_id = Auth::user()->id;
         });
@@ -44,6 +44,7 @@ class Unit extends Model
     protected $fillable = [
         'long',
         'short',
+        'updated_by_user_id',
     ];
 
     protected $foreignKeys = [

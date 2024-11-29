@@ -203,7 +203,9 @@ class ProductController extends Controller
             $purchaseOptions[$option->id] = ['product_share'=>$o['product_share']];
         }
     
-        $item->purchase_options()->sync($purchaseOptions);
+        $sync = $item->purchase_options()->sync($purchaseOptions);
+        if(!empty($sync['attached'])||!empty($sync['detached'])||!empty($sync['updated']))
+            $item->touch();
 
     }
 }

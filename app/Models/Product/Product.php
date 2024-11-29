@@ -21,11 +21,11 @@ class Product extends Model
     
     protected static function booted(): void
     {
-        static::created(function ($model) {
+        static::creating(function ($model) {
             if(Auth::user())
                 $model->updated_by_user_id = Auth::user()->id;
         });
-        static::updated(function ($model) {
+        static::updating(function ($model) {
             if(Auth::user())
                 $model->updated_by_user_id = Auth::user()->id;
         });
@@ -53,6 +53,7 @@ class Product extends Model
         'group_id',
         'item_cost',
         'item_weight',
+        'updated_by_user_id',
     ];
 
     protected $foreignKeys = [

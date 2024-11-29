@@ -20,13 +20,15 @@ class Dish extends Model
     
     protected static function booted(): void
     {
-        static::created(function ($model) {
+        static::creating(function ($model) {
             if(Auth::user())
                 $model->updated_by_user_id = Auth::user()->id;
         });
-        static::updated(function ($model) {
-            if(Auth::user())
+        static::updating(function ($model) {
+            
+            if(Auth::user()){
                 $model->updated_by_user_id = Auth::user()->id;
+            }
         });
         static::deleted(function ($model) {
             Storage::disk('public')->deleteDirectory($model->getImageDirectoryPath());
@@ -53,6 +55,7 @@ class Dish extends Model
         'name',
         'image_name',
         'category_id',
+        'updated_by_user_id',
     ];
 
     protected $foreignKeys = [

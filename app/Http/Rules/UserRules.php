@@ -13,4 +13,9 @@ class UserRules {
             'role.id'=>'required|exists:roles,id',
         ];
     }
+    public static function inviteUserRules() {
+        return [
+            'email'=>'required|exists:users,email',
+        ];
+    }
 }

@@ -20,8 +20,9 @@ class UserProjectResource extends JsonResource
             
             'id' => $this->id,
             'name' => $this->name,
-            'creator' => $this->creator,
-            'updated_by_user' => $this->updated_by_user,
+            'creator' => $this->creator()->first(),
+            'updated_by_user' => $this->updated_by_user()->first(),
+            'updated_at' => $this->updated_at,
             'logo' => [
                 'url'=>$this->logo_name == '' ? '' 
                     : url()->to('/').Storage::url(

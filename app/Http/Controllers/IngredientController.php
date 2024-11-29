@@ -98,7 +98,9 @@ class IngredientController extends Controller
     public function show_loaded(GetIngredientRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
-        $item = $project->ingredients()->with('products.category', 'products.purchase_options.distributor', 'type', 'category', 'dishes.category')->find($id);
+        $item = $project->ingredients()->with([
+            'products.category', 'products.purchase_options.distributor', 'type', 'category', 'dishes.category', 'updated_by_user'
+            ])->find($id);
         if (empty($item))
             return response()->json([
                 'message' => "Ингредиент с id=$id не найден"
@@ -110,7 +112,9 @@ class IngredientController extends Controller
     public function show_with_purchase_options(GetIngredientRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
-        $item = $project->ingredients()->with('products.category','products.purchase_options.distributor', 'type', 'category', 'dishes.category')->find($id);
+        $item = $project->ingredients()->with([
+            'products.category','products.purchase_options.distributor', 'type', 'category', 'dishes.category', 'updated_by_user'
+            ])->find($id);
         if (empty($item))
             return response()->json([
                 'message' => "Ингредиент с id=$id не найден"
@@ -230,7 +234,9 @@ class IngredientController extends Controller
             ];
         }
     
-        $item->products()->sync($products);
+        $sync = $item->products()->sync($products);
+        if(!empty($sync['attached'])||!empty($sync['detached'])||!empty($sync['updated']))
+            $item->touch();
 
     }
 

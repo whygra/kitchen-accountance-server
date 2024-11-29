@@ -18,6 +18,7 @@ class PurchaseOptionResource extends JsonResource
             'id' => $this->id,
             'project_id' => $this->project_id,
             'updated_by_user' => $this->updated_by_user(),
+            'updated_at' => $this->updated_at,
             'code' => $this->code,
             'name' => $this->name,
             'net_weight' => $this->net_weight,

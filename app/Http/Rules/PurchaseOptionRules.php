@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Rules;
 
+use App\Models\Distributor\PurchaseOption;
 use Illuminate\Database\Query\Builder;
 use Illuminate\Validation\Rule;
 use ProjectRules;
@@ -24,8 +25,13 @@ class PurchaseOptionRules {
             'price'=>'required|numeric|min:0',
         ];
     }
-    static public function getUpdatePurchaseOptionRules(int $distributorId, int $id) {
+    static public function getUpdatePurchaseOptionRules(int $distributorId, int $projectId, int $id) {
         return [
+            'distributor.id'=>[
+                'required',
+                Rule::exists('distributors', 'id')
+                    ->where('project_id', $projectId)
+            ],
             'id'=> [
                 'required',
                 Rule::exists('purchase_options', 'id')
@@ -77,6 +83,25 @@ class PurchaseOptionRules {
                     ->where('project_id', $projectId),
                 'distinct:ignore_case',
             ]
+        ];
+    }
+
+    public static function deleteRules(int $projectId) {
+        return [
+
+            'distributor.id'=>[
+                'required',
+                Rule::exists('distributors', 'id')
+                    ->where('project_id', $projectId)
+            ],
+            'id'=> [
+                'required',
+                function ($attribute, $value, $fail) use($projectId) {
+                    if (PurchaseOption::find($value)->distributor()->first()->project_id != $projectId) {
+                        $fail($attribute.' is invalid.');
+                    }
+                },
+            ],
         ];
     }
 

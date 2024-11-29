@@ -1,28 +1,28 @@
 <?php
-
-namespace App\Http\Requests\PurchaseOption;
+namespace App\Http\Requests\User;
 
 use App\Http\Requests\ChecksPermissionsRequest;
-use App\Http\Rules\PurchaseOptionRules;
+use App\Http\Rules\UserRules;
 use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\Rule;
 use App\Http\Rules\ProjectRules;
 
-use Spatie\Permission\Contracts\Permission;
 
-class UpdatePurchaseOptionWithProductsRequest extends ChecksPermissionsRequest
+class InviteUserRequest extends ChecksPermissionsRequest
 {
     
     public function __construct() {
         
-        parent::__construct([PermissionNames::CRUD_DISTRIBUTORS->value]);
+        parent::__construct([PermissionNames::CRUD_USERS->value]);
     }
+
     /**
      * Get the validation rules that apply to the request.
      *
@@ -33,9 +33,7 @@ class UpdatePurchaseOptionWithProductsRequest extends ChecksPermissionsRequest
     {
         return array_merge(
             ProjectRules::projectRules(),
-            PurchaseOptionRules::getUpdatePurchaseOptionRules($this['distributor']['id'], $this->project_id, $this->id),
-            PurchaseOptionRules::purchaseOptionProductsRules($this->project_id),
-            PurchaseOptionRules::purchaseOptionUnitRules($this->project_id),
+            UserRules::inviteUserRules()
         );
     }
 }

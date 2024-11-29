@@ -22,11 +22,11 @@ class Ingredient extends Model
     
     protected static function booted(): void
     {
-        static::created(function ($model) {
+        static::creating(function ($model) {
             if(Auth::user())
                 $model->updated_by_user_id = Auth::user()->id;
         });
-        static::updated(function ($model) {
+        static::updating(function ($model) {
             if(Auth::user())
                 $model->updated_by_user_id = Auth::user()->id;
         });
@@ -50,6 +50,7 @@ class Ingredient extends Model
         'group_id',
         'is_item_measured',
         'item_weight',
+        'updated_by_user_id',
     ];
 
     protected $foreignKeys = [
