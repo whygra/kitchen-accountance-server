@@ -3,6 +3,8 @@
 namespace App\Models\Distributor;
 
 use App\Models\Project;
+use App\Models\User\SubscriptionPlan;
+use App\Models\User\SubscriptionPlanNames;
 use App\Models\User\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -24,7 +26,6 @@ class Distributor extends Model
             }
         });
         static::updating(function ($model) {
-            dd($model);
             if(Auth::user()){
                 $model->updated_by_user_id = Auth::user()->id;
             }
@@ -58,6 +59,15 @@ class Distributor extends Model
         'project' => 'project_id',
     ];
 
+    public function getSubscriptionPlan(): mixed {
+        return $this->project()->first()->getSubscriptionPlan() 
+            ?? SubscriptionPlan::where('name', SubscriptionPlanNames::NONE)->first();
+    }
+
+    public function freePurchaseOptionSlots() : int {
+        return $this->getSubscriptionPlan()['max_num_purchase_options'] - $this->purchase_options()->count();
+    }
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
@@ -71,7 +81,6 @@ class Distributor extends Model
     {
         return $this->hasMany(Purchase::class);
     }
-    
 
     public function updated_by_user(): BelongsTo
     {

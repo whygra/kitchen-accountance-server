@@ -36,6 +36,11 @@ Route::controller(AuthController::class)
         Route::post('login','login');
         Route::get('authorization-needed','authorization_needed')->name('login');
 
+        Route::post('forgot-password', 'forgot_password')
+            ->middleware('guest')->name('password.email');
+        Route::post('reset-password', 'reset_password')
+            ->middleware('guest')->name('password.update');
+                
         Route::middleware(['auth:sanctum'])->group(function(){
             Route::put('update-password', 'update_password');
             Route::put('update/{id}', 'update');
@@ -53,6 +58,8 @@ Route::controller(AuthController::class)
 Route::middleware(['auth:sanctum', 'verified'])->group(function(){
     Route::controller(UserController::class)->prefix('project/{project_id}/users')->group(function() {
         Route::put('assign-role/{id}', 'assign_role');
+        Route::delete('remove/{id}', 'remove_from_project');
+        Route::post('invite', 'invite_to_project');
         Route::get('all', 'index');
     });
 
@@ -65,8 +72,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function(){
     Route::controller(ProjectController::class)->prefix('projects')->group(function() {
         Route::get('all', 'all_user_projects');
         Route::get('{id}', 'show');
+        Route::get('{id}/download', 'download');
+        Route::post('{id}/upload', 'upload');
         Route::put('update/{project_id}', 'update');
         Route::post('create', 'store');
+        Route::post('{id}/invite-user', 'invite_user');
         Route::delete('delete/{project_id}', 'destroy');
         
         Route::post('{id}/upload-logo', 'upload_logo');
@@ -210,6 +220,11 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function(){
         Route::put('update/{id}', 'update');
         Route::post('create', 'store');
         Route::delete('delete/{id}', 'destroy');
+
+        Route::get('with-products/all', 'index_loaded');
+        Route::put('with-products/update/{id}', 'update_loaded');
+        Route::post('with-products/create', 'store_loaded');
+        Route::get('with-products/{id}', 'show_loaded');
     });
 
     Route::controller(PurchaseOptionController::class)->prefix('project/{project_id}/purchase-options')->group(function() {

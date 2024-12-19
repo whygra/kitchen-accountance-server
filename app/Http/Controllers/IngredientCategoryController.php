@@ -27,12 +27,16 @@ class IngredientCategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreIngredientCategoryWithIngredientsRequest $request)
+    public function store(StoreIngredientCategoryWithIngredientsRequest $request, $project_id)
     {
+        $project = Project::find($project_id);
+        if($project->freeIngredientCategorySlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества категорий ингредиентов."
+            ], 400);
         $new = new IngredientCategory;
         $new->name = $request->name;
-        $new->project_id = $request->project_id;
-        $new->save();
+        $project->ingredients()->save($new);
         return response()->json($new, 201);
     }
 
@@ -94,6 +98,12 @@ class IngredientCategoryController extends Controller
      */
     public function store_loaded(StoreIngredientCategoryWithIngredientsRequest $request, $project_id)
     {
+        $project = Project::find($project_id);
+        if($project->freeIngredientCategorySlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества категорий ингредиентов."
+            ], 400);
+        
         $new = new IngredientCategory;
         DB::transaction(function() use($request, $project_id, $new){
             $project = Project::find($project_id);
@@ -142,8 +152,29 @@ class IngredientCategoryController extends Controller
     }
 
     private function process_ingredients(IngredientCategory $item, Request $request){
-        $item->ingredients()->update(['category_id' => null]);
+
+        if($request['ingredients']==null)
+            return;
+        
+        $nNewIngredients = count(array_filter(
+            $request['ingredients'],
+            fn($p)=>($p['id'] ?? 0)==0
+        ));
+
+        $project = Project::find($request['project_id']);
+        $freeSlots = $project->freeIngredientSlots();
+        if($freeSlots<$nNewIngredients)
+            return response()->json([
+                'message' => "Невозможно добавить $nNewIngredients ингредиентов. Превышается лимит количества ингредиентов (осталось $freeSlots)."
+            ], 400);
+
+        $item->ingredients()->whereNotIn(
+            'id', 
+            array_map(fn($i)=>$i['id'], $request['ingredients'])
+        )->update(['category_id'=>null]);
+
         $project = Project::find($request->project_id);
+
         foreach($request['ingredients'] as $i){
             $ingredient = $project->ingredients()->findOrNew($i['id']);
             if(empty($ingredient->id)){

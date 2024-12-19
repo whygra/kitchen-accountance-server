@@ -16,7 +16,7 @@ class LoginRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return true;//(Auth::attempt(['email'=>$this->email, 'password'=>Hash::make($this->password)], $this->boolean('remember')));
+        return true;
     }
 
     public function failedAuthorization()

@@ -21,7 +21,7 @@ return new class extends Migration
                 ->on('units')
                 ->onDelete('set null');
             // код
-            $table->integer('code')->nullable();
+            $table->string('code')->nullable();
             // наименование
             $table->string('name');
             // масса нетто

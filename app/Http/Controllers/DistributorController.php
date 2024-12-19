@@ -11,7 +11,7 @@ use App\Http\Requests\Distributor\StoreDistributorWithPurchaseOptionsRequest;
 use App\Http\Requests\Distributor\UpdateDistributorRequest;
 use App\Http\Requests\Distributor\UpdateDistributorWithPurchaseOptionsRequest;
 use App\Http\Resources\Distributor\DistributorResource;
-use App\Imports\PurchaseOptionsImport;
+use App\Imports\DistributorPurchaseOptionsImport;
 use App\Models\Product\Product;
 use App\Models\Distributor\PurchaseOption;
 use App\Models\Distributor\Unit;
@@ -40,9 +40,15 @@ class DistributorController extends Controller
      */
     public function store(StoreDistributorRequest $request, $project_id)
     {
+        $project = Project::find($project_id);
+        if($project->freeDishSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества поставщиков."
+            ], 400);
+        
         $new = new Distributor;
         $new->name = $request->name;
-        Project::find($project_id)->distributors()->save($new);
+        $project->distributors()->save($new);
         return response()->json($new, 201);
     }
 
@@ -95,8 +101,14 @@ class DistributorController extends Controller
 
     public function store_loaded(StoreDistributorWithPurchaseOptionsRequest $request, $project_id)
     {
-        $item = new Distributor;
         $project = Project::find($project_id);
+        if($project->freeDishSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества поставщиков."
+            ], 400);
+
+        $item = new Distributor;
+
         DB::transaction(function() use ($request, $project, $item) {
             // создание записи
             $item->name = $request->name;
@@ -139,11 +151,7 @@ class DistributorController extends Controller
 
         $path = $request->file('file')->store('distributor_'.$item->id.'_purchase_options');
         
-        $import = new PurchaseOptionsImport;
-        // throw new HttpResponseException(response()->json([
-        //     'success'   => false,
-        //     'message'   => json_encode($request['column_indexes']),
-        // ], 400));
+        $import = new DistributorPurchaseOptionsImport;
 
         $import->setColumnIndexes($request['column_indexes']);
         $import->setDistributorId($item->id);
@@ -170,13 +178,24 @@ class DistributorController extends Controller
         $idsToDelete = array_filter($ids, fn($id)=>!in_array($id, $requestIds));
 
         $project = Project::find($request->project_id);
+        $distributor = $project->distributors()::find($item->id);
+        $nNewPurchaseOptions = count(array_filter(
+            $ids,
+            fn($p)=>($id ?? 0)==0
+        ));
+
+        $freeSlots = $distributor->freePurchaseOptionSlots();
+        if($freeSlots<$nNewPurchaseOptions)
+            return response()->json([
+                'message' => "Невозможно добавить $nNewPurchaseOptions позиций закупки. Превышается лимит количества позиций закупки (осталось $freeSlots)."
+            ], 400);
         
         foreach($idsToDelete as $id)
             $item->purchase_options()->find($id)?->delete();
         
         foreach($request->purchase_options as $o){
             
-            $option = Distributor::find($item->id)->purchase_options()->findOrNew($o['id']);
+            $option = $distributor->purchase_options()->findOrNew($o['id']);
             $option->name = $o['name'];
             $option->price = $o['price'];
             $option->net_weight = $o['net_weight'];

@@ -22,7 +22,7 @@ use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Validators\Failure;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
-class PurchaseOptionsImport implements ToModel, SkipsEmptyRows, WithValidation, SkipsOnFailure, WithUpserts, WithSkipDuplicates
+class DistributorPurchaseOptionsImport implements ToModel, SkipsEmptyRows, WithValidation, SkipsOnFailure, WithUpserts, WithSkipDuplicates
 {
     use Importable, SkipsFailures;
     

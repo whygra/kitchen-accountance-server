@@ -19,8 +19,8 @@ class ProjectUserResource extends JsonResource
             'name' => $this->name,
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at,
-            'role' => new RoleResource(Role::with('permissions')
-                ->find($this->pivot->role_id))
+            'role' => $this->pivot?->role_id ? new RoleResource(Role::with('permissions')
+                ->find($this->pivot->role_id)) : null
         ];
     }
 }

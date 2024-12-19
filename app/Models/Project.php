@@ -15,6 +15,8 @@ use App\Models\Product\ProductCategory;
 use App\Models\Product\ProductGroup;
 use App\Models\User\Role;
 use App\Models\User\RoleNames;
+use App\Models\User\SubscriptionPlan;
+use App\Models\User\SubscriptionPlanNames;
 use App\Models\User\User;
 use App\Models\User\UserProject;
 use Illuminate\Contracts\Database\Query\Builder;
@@ -34,16 +36,18 @@ class Project extends Model
     {
         static::creating(function ($model) {
             if(Auth::user()){
-                $model->users()->sync([
-                    Auth::user()->id => [
-                        'role_id'=>Role::where(
-                            'name', RoleNames::ADMIN->value
-                        )->first()->id
-                    ]
-                ]);
                 $model->updated_by_user_id = Auth::user()->id;
                 $model->creator_id = Auth::user()->id;
             }
+        });
+        static::created(function ($model) {
+            $model->users()->sync([
+                Auth::user()->id => [
+                    'role_id'=>Role::where(
+                        'name', RoleNames::ADMIN->value
+                    )->first()->id
+                ]
+            ]);
         });
         static::updating(function ($model) {
             if(Auth::user()){
@@ -83,14 +87,55 @@ class Project extends Model
         'updated_by_user' => 'updated_by_user_id'
     ];
 
+    public function getSubscriptionPlan() {
+        return $this->creator()->first()->getSubscriptionPlan() 
+            ?? SubscriptionPlan::where('name', SubscriptionPlanNames::NONE)->first();
+    }
+
+    public function freeDistributorSlots() : int {
+        return $this->getSubscriptionPlan()->max_num_distributors - $this->distributors()->count();
+    }
+
+    public function freeUnitSlots() : int {
+        return $this->getSubscriptionPlan()->max_num_units - $this->units()->count();
+    }
+    public function freeProductSlots() : int {
+        return $this->getSubscriptionPlan()->max_num_products - $this->products()->count();
+    }
+    public function freeProductCategorySlots() : int {
+        return $this->getSubscriptionPlan()->max_num_product_categories - $this->product_categories()->count();
+    }
+    public function freeProductGroupSlots() : int {
+        return $this->getSubscriptionPlan()->max_num_product_categories - $this->product_groups()->count();
+    }
+    public function freeIngredientSlots() : int {
+        return $this->getSubscriptionPlan()->max_num_ingredients - $this->ingredients()->count();
+    }
+    public function freeIngredientCategorySlots() : int {
+        return $this->getSubscriptionPlan()->max_num_ingredient_categories - $this->ingredient_categories()->count();
+    }
+    public function freeIngredientGroupSlots() : int {
+        return $this->getSubscriptionPlan()->max_num_ingredient_categories - $this->ingredient_groups()->count();
+    }
+    public function freeDishSlots() : int {
+        return $this->getSubscriptionPlan()->max_num_dishes - $this->dishes()->count();
+    }
+    public function freeDishCategorySlots() : int {
+        return $this->getSubscriptionPlan()->max_num_dish_categories - $this->dish_categories()->count();
+    }
+    public function freeDishGroupSlots() : int {
+        return $this->getSubscriptionPlan()->max_num_dish_categories - $this->dish_groups()->count();
+    }
+
     // путь к папке проекта в хранилище изображений
     public function getDirectoryPath() : string {
         return 'images/project_'.$this->id;
     }
-    // путь к папке проекта в хранилище изображений
+    // путь к файлу логотиа
     public function getLogoDirectoryPath() : string {
         return 'images/project_'.$this->id.'/logo';
     }
+    // путь к файлу фона
     public function getBackdropDirectoryPath() : string {
         return 'images/project_'.$this->id.'/backdrop';
     }

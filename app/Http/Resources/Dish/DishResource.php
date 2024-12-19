@@ -21,6 +21,7 @@ class DishResource extends JsonResource
             'updated_by_user' => $this->updated_by_user()->first(),
             'updated_at' => $this->updated_at,
             'name' => $this->name,
+            'description' => $this->description,
             'category' => $this->category,
             'group' => $this->group,
             'ingredients' => DishIngredientResource::collection($this->ingredients),

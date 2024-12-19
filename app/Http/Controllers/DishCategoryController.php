@@ -28,12 +28,16 @@ class DishCategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreDishCategoryWithDishesRequest $request)
+    public function store(StoreDishCategoryWithDishesRequest $request, $project_id)
     {
+        $project = Project::find($project_id);
+        if($project->freeDishCategorySlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества записей категорий блюд."
+            ], 400);
         $new = new DishCategory;
         $new->name = $request->name;
-        $new->project_id = $request->project_id;
-        $new->save();
+        $project->dish_categories()->save($new);
         return response()->json($new, 201);
     }
 
@@ -96,8 +100,13 @@ class DishCategoryController extends Controller
     public function store_loaded(StoreDishCategoryWithDishesRequest $request, $project_id)
     {
         $new = new DishCategory;
-        DB::transaction(function() use($request, $project_id, $new){
-            $project = Project::find($project_id);
+        $project = Project::find($project_id);
+        if($project->freeDishCategorySlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества категорий блюд."
+            ], 400);
+
+        DB::transaction(function() use($request, $project, $new){
             $new->name = $request->name;
             $project->dish_categories()->save($new);
             $this->process_dishes($new, $request);
@@ -143,8 +152,26 @@ class DishCategoryController extends Controller
     }
 
     private function process_dishes(DishCategory $item, Request $request){
-        $item->dishes()->update(['category_id' => null]);
+        if($request['dishes']==null)
+            return;
+        
         $project = Project::find($request->project_id);
+        $nNewDishes = count(array_filter(
+            $request['dishes'],
+            fn($p)=>($p['id'] ?? 0)==0
+        ));
+
+        $freeSlots = $project->freeDishSlots();
+        if($freeSlots<$nNewDishes)
+            return response()->json([
+                'message' => "Невозможно добавить $nNewDishes блюд. Превышается лимит количества блюд (осталось $freeSlots)."
+            ], 400);
+            
+        $item->dishes()->whereNotIn(
+            'id', 
+            array_map(fn($i)=>$i['id'], $request['dishes'])
+        )->update(['category_id'=>null]);
+
         foreach($request['dishes'] as $i){
             $dish = $project->dishes()->findOrNew($i['id']);
             if(empty($dish->id)){

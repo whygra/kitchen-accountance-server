@@ -33,6 +33,7 @@ class IngredientProduct extends Pivot
     protected $fillable = [
         'ingredient_id',
         'product_id',
+        'description',
         'raw_content_percentage',
         'waste_percentage',
         'updated_by_user_id',

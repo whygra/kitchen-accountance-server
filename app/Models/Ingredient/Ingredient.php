@@ -45,6 +45,7 @@ class Ingredient extends Model
      */
     protected $fillable = [
         'name',
+        'description',
         'type_id',
         'category_id',
         'group_id',

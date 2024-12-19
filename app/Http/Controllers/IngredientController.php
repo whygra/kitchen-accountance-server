@@ -44,6 +44,10 @@ class IngredientController extends Controller
     public function store(StoreIngredientRequest $request, $project_id)
     {
         $project = Project::find($project_id);
+        if($project->freeDishSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества ингредиентов."
+            ], 400);
 
         $new = new Ingredient;
         $new->name = $request->name;
@@ -122,16 +126,21 @@ class IngredientController extends Controller
             
         return response()->json(new IngredientWithPurchaseOptionsResource($item));
     }
-
+    
     // создание
     public function store_loaded(StoreIngredientWithProductsRequest $request, $project_id)
     {
         $project = Project::find($project_id);
-        
+        if($project->freeDishSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества ингредиентов."
+            ], 400);
+
         $item = new Ingredient;
         DB::transaction(function() use ($request, $item, $project) {
             // сначала создаем ингредиент - потом связи
             $item->name = $request['name'];
+            $item->description = $request['description'];
             if($request['is_item_measured']){
                 $item->item_weight = $request['item_weight'];
                 $item->is_item_measured =$request['is_item_measured'];
@@ -184,6 +193,7 @@ class IngredientController extends Controller
 
             // обновление данных компонента
             $item->name = $request->name;
+            $item->description = $request['description'];
             $item->type_id = $request['type']['id'];
             
             if($request['is_item_measured']){
@@ -217,6 +227,18 @@ class IngredientController extends Controller
     }
     
     private function process_products(Ingredient $item, FormRequest $request) {
+        $project = Project::find($request['project_id']);
+        
+        $nNewProducts = count(array_filter(
+            $request['products'],
+            fn($p)=>($p['id'] ?? 0)==0
+        ));
+
+        $freeSlots = $project->freeProductSlots();
+        if($freeSlots<$nNewProducts)
+            return response()->json([
+                'message' => "Невозможно добавить $nNewProducts продуктов. Превышается лимит количества продуктов (осталось $freeSlots)."
+            ], 400);
 
         $products = [];
         foreach($request->products as $p){

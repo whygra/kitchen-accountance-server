@@ -36,6 +36,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'subscription_plan_id',
     ];
 
     /**
@@ -60,42 +61,60 @@ class User extends Authenticatable implements MustVerifyEmail
             'password' => 'hashed',
         ];
     }
+
+    protected $foreignKeys = [
+        'subscription_plan' => 'subscription_plan_id',
+    ];
+
+    public function subscription_plan(): BelongsTo
+    {
+        return $this->belongsTo(SubscriptionPlan::class, 'subscription_plan_id', 'id');
+    }
+
+    public function getSubscriptionPlan() {
+        return $this->subscription_plan()->first() ?? SubscriptionPlan::where('name', SubscriptionPlanNames::NONE)->first();
+    }
+
+    public function freeProjectSlots() : int {
+        return $this->getSubscriptionPlan()->max_num_projects - $this->created_projects()->count();
+    }
+
     public function projects(): BelongsToMany{
         return $this->belongsToMany(Project::class, 'users_projects')
             ->withPivot(['role_id'])
             ->using(UserProject::class);
     }
 
-    public function creating_projects() : HasMany {
+    public function created_projects() : HasMany {
         return $this->hasMany(Project::class, 'creator_id', 'id');
     }
 
-    public function last_updating_projects(): HasMany
+    public function last_updated_projects(): HasMany
     {
         return $this->hasMany(Project::class, 'updated_by_user_id', 'id');
     }
 
-    public function last_updating_distributors(): HasMany
+    public function last_updated_distributors(): HasMany
     {
         return $this->hasMany(Distributor::class, 'updated_by_user_id', 'id');
     }
 
-    public function last_updating_purchase_options(): HasMany
+    public function last_updated_purchase_options(): HasMany
     {
         return $this->hasMany(PurchaseOption::class, 'updated_by_user_id', 'id');
     }
 
-    public function last_updating_products(): HasMany
+    public function last_updated_products(): HasMany
     {
         return $this->hasMany(Product::class, 'updated_by_user_id', 'id');
     }
 
-    public function last_updating_ingredients(): HasMany
+    public function last_updated_ingredients(): HasMany
     {
         return $this->hasMany(Ingredient::class, 'updated_by_user_id', 'id');
     }
 
-    public function last_updating_dishes(): HasMany
+    public function last_updated_dishes(): HasMany
     {
         return $this->hasMany(Dish::class, 'updated_by_user_id', 'id');
     }
@@ -104,11 +123,13 @@ class User extends Authenticatable implements MustVerifyEmail
         $project = $this->projects()->find($projectId);
         if(empty($project)) return false;
 
+        if($project->creator_id == $this->id && array_search(PermissionNames::EDIT_PROJECT->value, $permissions))
+            return true;
+
         $role = Role::find($project->pivot->role_id);
         if(empty($role)) return false;
         foreach ($role->permissions()->get() as $perm){
             if(in_array($perm->name, $permissions)){
-
                 return true;
             }
         }

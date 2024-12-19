@@ -53,9 +53,10 @@ class ChecksPermissionsRequest extends FormRequest
 
     public function failedValidation(ValidationValidator $validator)
     {
+        $key = $validator->errors()->keys()[0];
         throw new HttpResponseException(response()->json([
             'success'   => false,
-            'message'   => 'Ошибки валидации: '.$validator->errors()->first(),
+            'message'   => "Ошибки валидации: $key - ".$validator->errors()->first($key).' и ещё '.$validator->errors()->count(),
             'errors'      => $validator->errors()
         ], 400));
     }

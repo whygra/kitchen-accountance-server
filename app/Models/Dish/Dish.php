@@ -53,8 +53,10 @@ class Dish extends Model
      */
     protected $fillable = [
         'name',
+        'description',
         'image_name',
         'category_id',
+        'group_id',
         'updated_by_user_id',
     ];
 
@@ -62,7 +64,7 @@ class Dish extends Model
         'category' => 'category_id',
         'group' => 'group_id',
         'updated_by_user' => 'updated_by_user_id',
-        'project' => 'project_id'
+        'project' => 'project_id',
     ];
 
     // путь к папке блюда в хранилище изображений

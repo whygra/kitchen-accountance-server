@@ -27,8 +27,14 @@ class IngredientGroupController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreIngredientGroupWithIngredientsRequest $request)
+    public function store(StoreIngredientGroupWithIngredientsRequest $request, $project_id)
     {
+        $project = Project::find($project_id);
+        if($project->freeIngredientGroupSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества групп ингредиентов."
+            ], 400);
+        
         $new = new IngredientGroup;
         $new->name = $request->name;
         $new->project_id = $request->project_id;
@@ -94,6 +100,11 @@ class IngredientGroupController extends Controller
      */
     public function store_loaded(StoreIngredientGroupWithIngredientsRequest $request, $project_id)
     {
+        $project = Project::find($project_id);
+        if($project->freeIngredientGroupSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества групп ингредиентов."
+            ], 400);
         $new = new IngredientGroup;
         DB::transaction(function() use($request, $project_id, $new){
             $project = Project::find($project_id);
@@ -142,7 +153,27 @@ class IngredientGroupController extends Controller
     }
 
     private function process_ingredients(IngredientGroup $item, Request $request){
-        $item->ingredients()->update(['group_id' => null]);
+        
+        if($request['ingredients']==null)
+            return;
+        
+        $nNewIngredients = count(array_filter(
+            $request['ingredients'],
+            fn($p)=>($p['id'] ?? 0)==0
+        ));
+
+        $project = Project::find($request['project_id']);
+        $freeSlots = $project->freeIngredientSlots();
+        if($freeSlots<$nNewIngredients)
+            return response()->json([
+                'message' => "Невозможно добавить $nNewIngredients ингредиентов. Превышается лимит количества ингредиентов (осталось $freeSlots)."
+            ], 400);
+
+        $item->ingredients()->whereNotIn(
+            'id', 
+            array_map(fn($i)=>$i['id'], $request['ingredients'])
+        )->update(['group_id'=>null]);
+
         $project = Project::find($request->project_id);
         foreach($request['ingredients'] as $i){
             $ingredient = $project->ingredients()->findOrNew($i['id']);

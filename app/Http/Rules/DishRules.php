@@ -16,6 +16,11 @@ class DishRules {
                 Rule::unique('dishes', 'name')
                     ->where('project_id', $projectId)
             ],
+            'description'=>[
+                'nullable',
+                'string',
+                'max:255',
+            ],
         ];
     }
     public static function getUpdateDishRules(int $id, int $projectId) {
@@ -32,6 +37,11 @@ class DishRules {
                 Rule::unique('dishes', 'name')
                     ->where('project_id', $projectId)
                     ->ignore($id)
+            ],
+            'description'=>[
+                'nullable',
+                'string',
+                'max:255',
             ],
         ];
     

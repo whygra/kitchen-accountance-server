@@ -21,6 +21,12 @@ class PurchaseOptionRules {
                 'max:120',
                 Rule::unique('purchase_options', 'name')->where('distributor_id', $distributorId),
             ],
+            'code'=>[
+                'string',
+                'max:120',
+                Rule::unique('purchase_options', 'code')
+                    ->where('distributor_id', $distributorId),
+            ],
             'net_weight'=>'required|numeric|min:1',
             'price'=>'required|numeric|min:0',
         ];
@@ -42,6 +48,13 @@ class PurchaseOptionRules {
                 'string',
                 'max:120',
                 Rule::unique('purchase_options', 'name')
+                    ->where('distributor_id', $distributorId)
+                    ->ignore($id),
+            ],
+            'code'=>[
+                'string',
+                'max:120',
+                Rule::unique('purchase_options', 'code')
                     ->where('distributor_id', $distributorId)
                     ->ignore($id),
             ],

@@ -42,10 +42,14 @@ class DishController extends Controller
      */
     public function store(StoreDishRequest $request, $project_id)
     {
+        $project = Project::find($project_id);
+        if($project->freeDishSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества блюд."
+            ], 400);
         $new = new Dish;
-        $new->project_id = $request['project_id'];
         $new->name = $request->name;
-        $new->save();
+        $project->dishes()->save($new);
         return response()->json($new, 201);
     }
 
@@ -116,17 +120,22 @@ class DishController extends Controller
             "name" => basename($image_uploaded_path),
             "url" => Storage::url($image_uploaded_path),
         ], 201);
-
     }
 
     public function store_loaded(StoreDishWithIngredientsRequest $request, $project_id)
     {
-        $item = new Dish;
         $project = Project::find($project_id);
+        if($project->freeDishSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества блюд."
+            ], 400);
+
+        $item = new Dish;
         DB::transaction(function() use ($request, $item, $project) {
 
             // добавление данных блюда
             $item->project_id = $request['project_id'];
+            $item->description = $request['description'];
             
             $category = null;
             if($request['category']['id'])
@@ -167,6 +176,7 @@ class DishController extends Controller
     {
         $project = Project::find($project_id);
         $item = $project->dishes()->findOrNew($id);
+        $item->description = $request['description'];
 
         if (empty($item->id))
             return response()->json([
@@ -209,6 +219,18 @@ class DishController extends Controller
 
     private function process_ingredients(Dish $item, FormRequest $request) {
         $project = Project::find($request->project_id);
+        
+        $nNewIngredients = count(array_filter(
+            $request['ingredients'],
+            fn($p)=>($p['id'] ?? 0)==0
+        ));
+
+        $freeSlots = $project->freeIngredientSlots();
+        if($freeSlots<$nNewIngredients)
+            return response()->json([
+                'message' => "Невозможно добавить $nNewIngredients ингредиентов. Превышается лимит количества ингредиентов (осталось $freeSlots)."
+            ], 400);
+            
         $ingredients = [];
         foreach($request->ingredients as $i){
             $ingredient = Project::find( $project->id)->ingredients()->findOrNew($i['id']??0);

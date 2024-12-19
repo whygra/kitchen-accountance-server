@@ -2,11 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Exports\ProjectExport;
 use App\Http\Requests\Project\DeleteProjectRequest;
+use App\Http\Requests\Project\DownloadProjectTablesRequest;
 use App\Http\Requests\Project\GetProjectRequest;
 use App\Http\Requests\Project\GetProjectWithPurchaseOptionsRequest;
 use App\Http\Requests\Project\GetUserProjectsRequest;
+use App\Http\Requests\Project\UploadProjectTablesRequest;
 use App\Http\Requests\Project\UploadPurchaseOptionsFileRequest;
+use App\Http\Requests\User\InviteUserRequest;
+use App\Imports\ProjectImport;
 use App\Models\Project;
 use App\Http\Requests\Project\StoreProjectRequest;
 use App\Http\Requests\Project\StoreProjectWithPurchaseOptionsRequest;
@@ -16,7 +21,7 @@ use App\Http\Requests\Project\UploadProjectBackdropImageRequest;
 use App\Http\Requests\Project\UploadProjectLogoRequest;
 use App\Http\Resources\Project\ProjectResource;
 use App\Http\Resources\Project\UserProjectResource;
-use App\Imports\PurchaseOptionsImport;
+use App\Imports\DistributorPurchaseOptionsImport;
 use App\Models\Product\Product;
 use App\Models\Project\PurchaseOption;
 use App\Models\Project\Unit;
@@ -26,6 +31,7 @@ use Exception;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
@@ -41,15 +47,25 @@ class ProjectController extends Controller
         return response()->json(UserProjectResource::collection($user->projects()->get()));
     }
 
+    public function invite_user(InviteUserRequest $request, $id){
+        $user = User::where('email', $request->email)->first();
+        $project = Project::find($id);
+    }
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreProjectRequest $request)
     {
+        $user = User::find(Auth::user()->id);
+        if($user->freeProjectSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества проектов."
+            ], 400);
         $new = new Project;
         $new->name = $request->name;
-        $new->backdrop_name = $request['backdrop']['name'] ?? '';
-        $new->logo_name = $request['logo']['name'] ?? '';
+        $new->backdrop_name = $request['backdrop']['name'] ?? null;
+        $new->logo_name = $request['logo']['name'] ?? null;
 
         $new->save();
         return response()->json($new, 201);
@@ -138,5 +154,28 @@ class ProjectController extends Controller
             "name" => basename($image_uploaded_path),
             "url" => Storage::url($image_uploaded_path),
         ], 201);
+    }
+
+    public function download(DownloadProjectTablesRequest $request, $id) 
+    {
+        $project = Project::find($id);
+        return (new ProjectExport($id))->download($project->name.'.xlsx');
+    }
+
+    public function upload(UploadProjectTablesRequest $request, $id) 
+    {
+        $project = Project::find($id);
+        $path = $request->file('file')->store($project->getDirectoryPath().'/imports');
+        try {
+            Excel::import(new ProjectImport($project->id), $path);
+        } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
+            $failures = $e->failures();
+            return response()->json(['message'=>$failures[0]->errors[0]]);
+        } 
+
+        // удалить файл
+        Storage::delete($path);
+
+        return response()->json($project);
     }
 }

@@ -2,6 +2,8 @@
 
 namespace Database\Seeders;
 
+use App\Models\User\SubscriptionPlan;
+use App\Models\User\SubscriptionPlanNames;
 use App\Models\User\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
@@ -16,6 +18,7 @@ class UserSeeder extends Seeder
             'name' => env('SUPERUSER_NAME'),
             'email' => env('SUPERUSER_EMAIL'),
             'password' => Hash::make(env('SUPERUSER_PASSWORD')),
+            'subscription_plan_id' => SubscriptionPlan::where('name', SubscriptionPlanNames::PREMIUM)->first()->id,
         ]);
     }
 }

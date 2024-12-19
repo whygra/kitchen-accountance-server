@@ -28,6 +28,10 @@ class UnitController extends Controller
     public function store(StoreUnitRequest $request, $project_id)
     {
         $project = Project::find($project_id);
+        if($project->freeUnitSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества позиций закупки."
+            ], 400);
         $new = new Unit;
         $new->long = $request->long;
         $new->short = $request->short;

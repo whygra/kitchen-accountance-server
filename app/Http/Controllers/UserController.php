@@ -9,6 +9,7 @@ use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\AssignUserRolesRequest;
 use App\Http\Requests\User\GetProjectUsersRequest;
 use App\Http\Requests\User\RegisterRequest;
+use App\Http\Requests\User\RemoveUserRequest;
 use App\Http\Requests\User\UpdatePasswordRequest;
 use App\Http\Requests\User\UpdateUserRequest;
 use App\Http\Resources\User\ProjectUserResource;
@@ -49,44 +50,75 @@ class UserController extends Controller
 
     public function assign_role(AssignUserRoleRequest $request, $project_id, $id)
     {
+
+        $project = User::find(Auth::user()->id)->projects()->find($project_id);
+        if(empty($project))
+            return response()->json([
+                'message' => ''
+            ], 404);
+            
+        $user = $project->users()->find($id);
+        if(empty($user))
+            return response()->json([
+                'message' => ''
+            ], 404);
+
+        $project->users()->updateExistingPivot($user->id, ['role_id'=>$request->role['id']], false);
+
+        $user->save();
+        return response()->json(new ProjectUserResource($user), 200);
+    }
+
+    public function invite_to_project(InviteUserRequest $request, $project_id)
+    {
+        // находим пользователя
+        $user = User::where('email',  $request->email)->first();
+        if(empty($user))
+            return response()->json([
+                'message' => 'Пользователь с email "'.$request->email.'" не найден'
+            ], 404);
+
+        // находим проект
+        $project = Project::find(id: $project_id);
+
+        if(empty($project))
+            return response()->json([
+                'message' => "Проект с id=$project_id не найден"
+            ], 404);
+
+        // связываем пользователя с проектом
+        $user->projects()->attach(
+            $project->id, 
+            // id роли viewer
+            ['role_id' => Role::where('name', RoleNames::VIEWER->value)->first()->id]
+        );
+
+        $user->save();
+        return response()->json($user, 200);
+    }
+
+    public function remove_from_project(RemoveUserRequest $request, $project_id, $id)
+    {
+        // находим пользователя
         $user = User::find($id);
         if(empty($user))
             return response()->json([
-                'message' => ''
+                'message' => 'Пользователь с id='.$id.' не найден'
             ], 404);
 
-        $project = $user->projects()->find($project_id);
+        // находим проект
+        $project = Project::find(id: $project_id);
 
         if(empty($project))
             return response()->json([
-                'message' => ''
+                'message' => "Проект с id=$project_id не найден"
             ], 404);
 
-        $user->role()->associate($request->role['id']);
+        // отвязываем пользователя от проекта
+        $project->users()->detach($user->id);
 
         $user->save();
-        return response()->json(new UserResource($user), 200);
-    }
-
-    public function invite_user(InviteUserRequest $request, $project_id)
-    {
-        $user = User::where($request->email);
-        if(empty($user))
-            return response()->json([
-                'message' => ''
-            ], 404);
-
-        $project = $user->projects()->find($project_id);
-
-        if(empty($project))
-            return response()->json([
-                'message' => ''
-            ], 404);
-
-        $user->role()->associate(Role::where('name', RoleNames::VIEWER->value));
-
-        $user->save();
-        return response()->json(new UserResource($user), 200);
+        return response()->json($user, 200);
     }
 
     public function get_roles(GetProjectUsersRequest $request)

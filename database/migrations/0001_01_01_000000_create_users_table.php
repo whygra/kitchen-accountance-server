@@ -18,6 +18,13 @@ return new class extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
+
+            $table->foreignId('subscription_plan_id')->nullable(false)->default(null);
+            $table->foreign('subscription_plan_id')
+                ->references('id')
+                ->on('subscription_plans')
+                ->onDelete('set null');
+            
             $table->timestamps();
         });
 

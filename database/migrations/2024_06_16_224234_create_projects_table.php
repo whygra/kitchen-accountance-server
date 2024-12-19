@@ -15,11 +15,11 @@ return new class extends Migration
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
             // название
-            $table->string('name')->unique();
+            $table->string('name');
             // логотип
-            $table->string('logo_name')->unique();
+            $table->string('logo_name')->nullable()->unique();
             // фон
-            $table->string('backdrop_name')->unique();
+            $table->string('backdrop_name')->nullable()->unique();
             // создатель
             $table->foreignId('creator_id')->nullable();
             $table->foreign('creator_id')
@@ -33,6 +33,7 @@ return new class extends Migration
                 ->on('users')
                 ->onDelete('set null');
 
+            $table->unique(['name', 'creator_id']);
             $table->timestamps();
         });
     }

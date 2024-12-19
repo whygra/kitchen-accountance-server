@@ -43,6 +43,10 @@ class ProductController extends Controller
     public function store(StoreProductWithPurchaseOptionsRequest $request, $project_id)
     {
         $project = Project::find($project_id);
+        if($project->freeProductSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества продуктов."
+            ], 400);
         $new = new Product;
         $new->name = $request->name;
         $new->category_id = $request->category_id;
@@ -58,6 +62,11 @@ class ProductController extends Controller
     public function store_with_purchase_options(StoreProductWithPurchaseOptionsRequest $request, $project_id)
     {
         $project = Project::find($project_id);
+        if($project->freeProductSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества продуктов."
+            ], 400);
+
         $item = new Product;
 
         DB::transaction(function() use ($request, $project, $item) {
@@ -196,8 +205,8 @@ class ProductController extends Controller
         $purchaseOptions = [];
         foreach($request->purchase_options as $o){
             $option = PurchaseOption::with([
-                'distributor' => function($query)use($request){
-                    $query->where('project_id', $request['project_id']);
+                'distributor' => function($query)use($project_id){
+                    $query->where('project_id', $project_id);
                 }
             ])->find($o['id']);
             $purchaseOptions[$option->id] = ['product_share'=>$o['product_share']];

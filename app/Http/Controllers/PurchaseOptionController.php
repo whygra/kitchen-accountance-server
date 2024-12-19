@@ -76,13 +76,18 @@ class PurchaseOptionController extends Controller
      */ 
     public function store(StorePurchaseOptionWithProductsRequest $request, $project_id)
     {
+        $project = Project::find($project_id);
+        $distributor = $project->distributors()->find($request->distributor_id);
+        if($distributor->freePurchaseOptionSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества позиций закупки."
+            ], 400);
         $new = new PurchaseOption;
         $new->unit_id = $request->unit_id;
         $new->name = $request->name;
         $new->net_weight = $request->net_weight;
         $new->price = $request->price;
 
-        $distributor = Project::find($project_id)->distributors()->find($request->distributor_id);
         $distributor->purchase_options()->save($new);
         return response()->json($new, 201);    
     }        
@@ -115,6 +120,12 @@ class PurchaseOptionController extends Controller
      */ 
     public function store_loaded(StorePurchaseOptionWithProductsRequest $request, $project_id)
     {
+        $project = Project::find($project_id);
+        $distributor = $project->distributors()->find($request->distributor_id);
+        if($distributor->freePurchaseOptionSlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества позиций закупки."
+            ], 400);
         $item = new PurchaseOption;
         DB::transaction(function() use ($request, $project_id, $item) {
 
@@ -165,6 +176,18 @@ class PurchaseOptionController extends Controller
 
     private function process_products(PurchaseOption $item, FormRequest $request) {
         $project = Project::find($request->project_id);
+        
+        $nNewProducts = count(array_filter(
+            $request['products'],
+            fn($p)=>($p['id'] ?? 0)==0
+        ));
+
+        $freeSlots = $project->freeProductSlots();
+        if($freeSlots<$nNewProducts)
+            return response()->json([
+                'message' => "Невозможно добавить $nNewProducts продуктов. Превышается лимит количества продуктов (осталось $freeSlots)."
+            ], 400);
+            
         $products = [];
         foreach($request->products as $p){
             $product = $project->products()

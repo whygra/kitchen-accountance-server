@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Support\Facades\Auth;
 
 class PurchaseOption extends Model
@@ -63,7 +64,8 @@ class PurchaseOption extends Model
     ];
 
     protected $casts = [
-        'price' => 'float'
+        'price' => 'float',
+        'code' => 'string',
     ];
 
     protected $touches = ['distributor'];

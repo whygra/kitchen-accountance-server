@@ -19,6 +19,7 @@ class IngredientResource extends JsonResource
             'updated_by_user' => $this->updated_by_user()->first(),
             'updated_at' => $this->updated_at,
             'name' => $this->name,
+            'description' => $this->description,
             'type' => $this->type,
             'category' => $this->category,
             'group' => $this->group,

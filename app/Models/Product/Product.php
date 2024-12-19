@@ -7,6 +7,7 @@ use App\Models\Distributor\PurchaseOption;
 use App\Models\Ingredient\Ingredient;
 use App\Models\Ingredient\IngredientCategory;
 use App\Models\Ingredient\IngredientProduct;
+use App\Models\Project;
 use App\Models\User\User;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -59,7 +60,8 @@ class Product extends Model
     protected $foreignKeys = [
         'category' => 'category_id',
         'group' => 'group_id',
-        'updated_by_user' => 'updated_by_user_id'
+        'updated_by_user' => 'updated_by_user_id',
+        'project' => 'project_id'
     ];
 
     public function ingredients(): BelongsToMany
@@ -74,6 +76,11 @@ class Product extends Model
         return $this->belongsToMany(PurchaseOption::class, 'products_purchase_options', 'product_id', 'purchase_option_id')
             ->withPivot('product_share')
             ->using(ProductPurchaseOption::class);
+    }
+
+    public function project(): BelongsTo
+    {
+        return $this->belongsTo(Project::class);
     }
 
     public function category(): BelongsTo

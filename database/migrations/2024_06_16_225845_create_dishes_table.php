@@ -16,6 +16,8 @@ return new class extends Migration
             $table->id();
             // название
             $table->string('name');
+            // описание
+            $table->string('description');
             // путь к файлу изображения
             $table->string('image_name')->nullable();
             // категория

@@ -19,6 +19,11 @@ class IngredientRules {
             ],
             'is_item_measured' => 'required|boolean',
             'item_weight' => 'exclude_if:is_item_measured,false|numeric|min:1',
+            'description'=>[
+                'nullable',
+                'string',
+                'max:255',
+            ],
         ];
     }
 
@@ -40,6 +45,11 @@ class IngredientRules {
                     ->ignore($id),
             ],
             'type.id' => 'required|exists:ingredient_types,id',
+            'description'=>[
+                'nullable',
+                'string',
+                'max:255',
+            ],
         ];
     }
 

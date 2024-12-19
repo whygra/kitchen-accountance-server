@@ -27,12 +27,16 @@ class ProductCategoryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreProductCategoryWithProductsRequest $request)
+    public function store(StoreProductCategoryWithProductsRequest $request, $project_id)
     {
+        $project = Project::find($project_id);
+        if($project->freeProductCategorySlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества категорий продуктов."
+            ], 400);
         $new = new ProductCategory;
         $new->name = $request->name;
-        $new->project_id = $request->project_id;
-        $new->save();
+        $project->products()->save($new);
         return response()->json($new, 201);
     }
 
@@ -94,6 +98,11 @@ class ProductCategoryController extends Controller
      */
     public function store_loaded(StoreProductCategoryWithProductsRequest $request, $project_id)
     {
+        $project = Project::find($project_id);
+        if($project->freeProductCategorySlots()<1)
+            return response()->json([
+                'message' => "Достигнут лимит количества категорий продуктов."
+            ], 400);
         $new = new ProductCategory;
         DB::transaction(function() use($request, $project_id, $new){
             $project = Project::find($project_id);
@@ -142,7 +151,26 @@ class ProductCategoryController extends Controller
     }
 
     private function process_products(ProductCategory $item, Request $request){
-        $item->products()->update(['category_id' => null]);
+        if($request['products']==null)
+            return;
+        
+        $nNewProducts = count(array_filter(
+            $request['products'],
+            fn($p)=>($p['id'] ?? 0)==0
+        ));
+
+        $project = Project::find($request['project_id']);
+        $freeSlots = $project->freeProductSlots();
+        if($freeSlots<$nNewProducts)
+            return response()->json([
+                'message' => "Невозможно добавить $nNewProducts продуктов. Превышается лимит количества продуктов (осталось $freeSlots)."
+            ], 400);
+
+        $item->products()->whereNotIn(
+            'id', 
+            array_map(fn($i)=>$i['id'], $request['products'])
+        )->update(['category_id'=>null]);
+
         $project = Project::find($request->project_id);
         foreach($request['products'] as $i){
             $product = $project->products()->findOrNew($i['id']);

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
+use App\Http\Requests\Auth\ResetPasswordRequest;
 use App\Models\User\User;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\AssignUserRolesRequest;
@@ -13,6 +15,7 @@ use App\Http\Requests\Auth\UpdateUserRequest;
 use App\Http\Resources\User\UserResource;
 use Error;
 use Exception;
+use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Events\Verified;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
@@ -21,7 +24,9 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
@@ -60,7 +65,7 @@ class AuthController extends Controller
         if(!Hash::check($request->password, $user->password))
             throw new HttpResponseException(response()->json([
                 'success'   => false,
-                'message'   => 'Неверные данные входа: '.$this::class,
+                'message'   => 'Неверные данные входа',
             ], 401));
 
         $token = $user->createToken($user->name.'-AuthToken')->plainTextToken;
@@ -71,7 +76,7 @@ class AuthController extends Controller
     }
     public function logout(Request $request): JsonResponse
     {
-        $request->user()?->currentAccessToken()->delete(); 
+        $request->user()->currentAccessToken()->delete(); 
         
         return response()->json([
             'message' => 'Выполнен выход',
@@ -118,6 +123,46 @@ class AuthController extends Controller
         $user->sendEmailVerificationNotification();
     
         return response()->json(["message" => "Ссылка отправлена на адрес ".$user->email]);
+    }
+
+    public function forgot_password(ForgotPasswordRequest $request) {
+         
+        $status = Password::sendResetLink(
+            $request->only('email')
+        );
+
+        if($status === Password::RESET_LINK_SENT)
+            return response()->json(['message' => "Ссылка отправлена на адрес ".$request->email]);
+        else
+            throw new HttpResponseException(
+                response()->json(
+                    ['message' => 'Не удалось отправить ссылку сброса на адрес '.$request->email.'. '.$status]
+                )
+            );
+    }
+
+    public function reset_password(ResetPasswordRequest $request) {
+        $status = Password::reset(
+            $request->only('email', 'password', 'token'),
+            function (User $user, string $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password)
+                ])->setRememberToken(Str::random(60));
+                
+                $user->save();
+        
+                event(new PasswordReset($user));
+            }
+        );
+        
+        if($status !== Password::PASSWORD_RESET)
+            throw new HttpResponseException(
+                response()->json(
+                    ['message' => 'Не удалось сбросить пароль '.$status]
+                )
+            );
+
+        return response()->json(['message' => "Пароль успешно сброшен. Войдите используя новый пароль"]);
     }
 
     public function current()

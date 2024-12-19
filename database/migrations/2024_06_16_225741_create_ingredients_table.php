@@ -16,6 +16,8 @@ return new class extends Migration
             $table->id();
             // название
             $table->string('name');
+            // описание
+            $table->string('description');
             // тип компонента
             $table->foreignId('type_id');
             $table->foreign('type_id')->references('id')->on('ingredient_types');
