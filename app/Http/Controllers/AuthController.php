@@ -13,6 +13,7 @@ use App\Http\Requests\User\GetProjectUsersRequest;
 use App\Http\Requests\User\UpdatePasswordRequest;
 use App\Http\Requests\Auth\UpdateUserRequest;
 use App\Http\Resources\User\UserResource;
+use App\Models\User\Role;
 use Error;
 use Exception;
 use Illuminate\Auth\Events\PasswordReset;
@@ -27,7 +28,6 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
-use Spatie\Permission\Models\Role;
 
 class AuthController extends Controller
 {

@@ -14,8 +14,6 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use App\Http\Rules\ProjectRules;
 
-use Spatie\Permission\Contracts\Permission;
-
 class UpdatePurchaseOptionWithProductsRequest extends ChecksPermissionsRequest
 {
     

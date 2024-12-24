@@ -19,7 +19,7 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
 
-            $table->foreignId('subscription_plan_id')->nullable(false)->default(null);
+            $table->foreignId('subscription_plan_id')->default(null);
             $table->foreign('subscription_plan_id')
                 ->references('id')
                 ->on('subscription_plans')
