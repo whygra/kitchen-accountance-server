@@ -11,6 +11,27 @@ return new class extends Migration
      */
     public function up(): void
     {
+        
+        Schema::create('subscription_plans', function (Blueprint $table) {
+            $table->id();
+
+            $table->string('name')->unique();
+            
+            $table->integer('max_num_projects');
+
+            $table->integer('max_num_distributors');
+            $table->integer('max_num_purchase_options');
+            $table->integer('max_num_units');
+
+            $table->integer('max_num_products');
+            $table->integer('max_num_product_categories');
+            $table->integer('max_num_ingredients');
+            $table->integer('max_num_ingredient_categories');
+            $table->integer('max_num_dishes');
+            $table->integer('max_num_dish_categories');
+            $table->timestamps();
+        });
+
         Schema::create('users', function (Blueprint $table) {
             $table->id();
             $table->string('name')->unique();
@@ -19,11 +40,10 @@ return new class extends Migration
             $table->string('password');
             $table->rememberToken();
 
-            $table->foreignId('subscription_plan_id')->default(null);
+            $table->foreignId('subscription_plan_id');
             $table->foreign('subscription_plan_id')
                 ->references('id')
-                ->on('subscription_plans')
-                ->onDelete('set null');
+                ->on('subscription_plans');
             
             $table->timestamps();
         });
@@ -52,5 +72,8 @@ return new class extends Migration
         Schema::dropIfExists('users');
         Schema::dropIfExists('password_reset_tokens');
         Schema::dropIfExists('sessions');
+
+        Schema::dropIfExists('subscription_plans');
+
     }
 };
