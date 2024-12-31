@@ -14,7 +14,7 @@ class UserSeeder extends Seeder
     public static function run(): void
     {
         User::select()->delete();
-        User::create([
+        User::create(attributes: [
             'name' => env('SUPERUSER_NAME'),
             'email' => env('SUPERUSER_EMAIL'),
             'password' => Hash::make(env('SUPERUSER_PASSWORD')),

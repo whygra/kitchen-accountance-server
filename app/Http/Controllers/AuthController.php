@@ -6,6 +6,7 @@ use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Requests\Auth\ResetPasswordRequest;
+use App\Models\User\SubscriptionPlanNames;
 use App\Models\User\User;
 use App\Http\Requests\User\StoreUserRequest;
 use App\Http\Requests\User\AssignUserRolesRequest;
@@ -14,6 +15,7 @@ use App\Http\Requests\User\UpdatePasswordRequest;
 use App\Http\Requests\Auth\UpdateUserRequest;
 use App\Http\Resources\User\UserResource;
 use App\Models\User\Role;
+use App\Models\User\SubscriptionPlan;
 use Error;
 use Exception;
 use Illuminate\Auth\Events\PasswordReset;
@@ -39,6 +41,7 @@ class AuthController extends Controller
     public function register(RegisterRequest $request)
     {
         $user = User::create([
+            'subscription_plan_id' => SubscriptionPlan::where('name', SubscriptionPlanNames::NONE)->first()->id,
             'name' => $request['name'],
             'email' => $request['email'],
             'password' => Hash::make($request['password']),
