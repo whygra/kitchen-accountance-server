@@ -40,15 +40,15 @@ Route::controller(AuthController::class)
             ->middleware('guest')->name('password.email');
         Route::post('reset-password', 'reset_password')
             ->middleware('guest')->name('password.update');
-            
-        Route::get('verify/{id}/{hash}', 'verify')
-            ->name('verification.verify');
                 
         Route::middleware(['auth:sanctum'])->group(function(){
             Route::put('update-password', 'update_password');
             Route::put('update/{id}', 'update');
             Route::get('current', 'current');
             Route::get('verification-needed', 'verification_needed')->name('verification.notice');
+            Route::get('verify/{id}/{hash}', 'verify')
+                ->middleware(['signed'])
+                ->name('verification.verify');
             Route::get('resend', 'resend')->name('verification.resend');
             Route::post('logout', 'logout');
             Route::post('delete', 'destroy');
