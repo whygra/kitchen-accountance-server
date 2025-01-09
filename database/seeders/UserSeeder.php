@@ -13,14 +13,14 @@ class UserSeeder extends Seeder
 {
     public static function run(): void
     {
-        User::select()->delete();
-        User::create(attributes: [
+        // User::select()->delete();
+        User::createOrFirst(attributes: [
             'name' => env('SUPERUSER_NAME'),
             'email' => env('SUPERUSER_EMAIL'),
             'password' => Hash::make(env('SUPERUSER_PASSWORD')),
             'subscription_plan_id' => SubscriptionPlan::where('name', SubscriptionPlanNames::PREMIUM)->first()->id,
         ]);
-        User::create(attributes: [
+        User::createOrFirst(attributes: [
             'name' => User::GUEST_NAME,
             'email' => User::GUEST_NAME,
             'password' => User::GUEST_NAME,
