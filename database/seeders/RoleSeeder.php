@@ -16,8 +16,8 @@ class RoleSeeder extends Seeder
     public static function run(): void
     {
 
-        // Role::select()->delete();
-        Role::createOrFirst(['name' => RoleNames::VIEWER->value])
+        Role::select()->delete();
+        Role::create(['name' => RoleNames::VIEWER->value])
             ->permissions()->sync([
                 Permission::where('name', PermissionNames::READ_DISHES->value)->first()->id,
                 Permission::where('name', PermissionNames::READ_DISTRIBUTORS->value)->first()->id,
@@ -26,7 +26,7 @@ class RoleSeeder extends Seeder
                 Permission::where('name', PermissionNames::READ_USERS->value)->first()->id,
             ]);
             
-        Role::createOrFirst(['name' => RoleNames::GUEST->value])
+        Role::create(['name' => RoleNames::GUEST->value])
             ->permissions()->sync([
                 Permission::where('name', PermissionNames::READ_DISHES->value)->first()->id,
                 Permission::where('name', PermissionNames::READ_DISTRIBUTORS->value)->first()->id,
@@ -34,7 +34,7 @@ class RoleSeeder extends Seeder
                 Permission::where('name', PermissionNames::READ_PRODUCTS->value)->first()->id,
             ]);
 
-        Role::createOrFirst(['name' => RoleNames::CHEF->value])
+        Role::create(['name' => RoleNames::CHEF->value])
             ->permissions()->sync([
                 Permission::where('name', PermissionNames::CRUD_DISHES->value)->first()->id,
                 Permission::where('name', PermissionNames::CRUD_DISTRIBUTORS->value)->first()->id,
@@ -43,18 +43,18 @@ class RoleSeeder extends Seeder
                 Permission::where('name', PermissionNames::READ_USERS->value)->first()->id,
             ]);
 
-        Role::createOrFirst(['name' => RoleNames::USER_MANAGER->value])
+        Role::create(['name' => RoleNames::USER_MANAGER->value])
             ->permissions()->sync([
                 Permission::where('name', PermissionNames::CRUD_USERS->value)->first()->id,
             ]);
 
-        Role::createOrFirst(['name' => RoleNames::PROJECT_MANAGER->value])
+        Role::create(['name' => RoleNames::PROJECT_MANAGER->value])
             ->permissions()->sync([
                 Permission::where('name', PermissionNames::CRUD_USERS->value)->first()->id,
                 Permission::where('name', PermissionNames::EDIT_PROJECT->value)->first()->id,
             ]);
 
-        Role::createOrFirst(['name' => RoleNames::ADMIN->value])
+        Role::create(['name' => RoleNames::ADMIN->value])
             ->permissions()->sync([
                 Permission::where('name', PermissionNames::CRUD_DISHES->value)->first()->id,
                 Permission::where('name', PermissionNames::CRUD_DISTRIBUTORS->value)->first()->id,
