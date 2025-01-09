@@ -55,23 +55,14 @@ Route::controller(AuthController::class)
         });
     });
 
-Route::middleware(['auth:sanctum', 'verified'])->group(function(){
-    Route::controller(UserController::class)->prefix('project/{project_id}/users')->group(function() {
-        Route::put('assign-role/{id}', 'assign_role');
-        Route::delete('remove/{id}', 'remove_from_project');
-        Route::post('invite', 'invite_to_project');
-        Route::get('all', 'index');
-    });
 
-    Route::controller(RoleController::class)
-        ->prefix('project/{project_id}/roles')->group( function(){
-            Route::get('all','all');
-            Route::get('permissions/all','permissions');
-        });
+Route::middleware(['auth:sanctum', 'verified'])->group(function(){
 
     Route::controller(ProjectController::class)->prefix('projects')->group(function() {
         Route::get('all', 'all_user_projects');
         Route::get('{id}', 'show');
+        Route::post('{id}/publish', 'publish_project');
+        Route::post('{id}/unpublish', 'unpublish_project');
         Route::get('{id}/download', 'download');
         Route::post('{id}/upload', 'upload');
         Route::put('update/{project_id}', 'update');
@@ -82,169 +73,195 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function(){
         Route::post('{id}/upload-logo', 'upload_logo');
         Route::post('{id}/upload-backdrop', 'upload_backdrop');
     });
-
-    Route::controller(IngredientController::class)->prefix('project/{project_id}/ingredients')->group(function() {
-        Route::get('all', 'index');
-        Route::get('{id}', 'show');
-        Route::put('update/{id}', 'update');
-        Route::post('create', 'store');
-        Route::delete('delete/{id}', 'destroy');
     
-        Route::get('with-products/all', 'index_loaded');
-        Route::get('with-products/{id}', 'show_loaded');
-        Route::put('with-products/update/{id}', 'update_loaded');
-        Route::post('with-products/create', 'store_loaded');
-    
-        Route::get('with-purchase-options/{id}', 'show_with_purchase_options');
-    });
-
-    Route::controller(IngredientCategoryController::class)->prefix('project/{project_id}/ingredient-categories')->group(function() {
-        Route::get('all', 'index');
-        Route::put('update/{id}', 'update');
-        Route::post('create', 'store');
-        Route::delete('delete/{id}', 'destroy');
-        Route::get('{id}', 'show');
-
-        Route::get('with-ingredients/all', 'index_loaded');
-        Route::put('with-ingredients/update/{id}', 'update_loaded');
-        Route::post('with-ingredients/create', 'store_loaded');
-        Route::get('with-ingredients/{id}', 'show_loaded');
-    });
-
-    Route::controller(IngredientGroupController::class)->prefix('project/{project_id}/ingredient-groups')->group(function() {
-
-        Route::get('with-ingredients/all', 'index_loaded');
-        Route::put('with-ingredients/update/{id}', 'update_loaded');
-        Route::post('with-ingredients/create', 'store_loaded');
-        Route::get('with-ingredients/{id}', 'show_loaded');
-
-        Route::get('all', 'index');
-        Route::put('update/{id}', 'update');
-        Route::post('create', 'store');
-        Route::delete('delete/{id}', 'destroy');
-        Route::get('{id}', 'show');
-    });
-
-    Route::controller(DishController::class)->prefix('project/{project_id}/dishes')->group(function() {
-        Route::get('all', 'index');
-        Route::put('update/{id}', 'update');
-        Route::post('create', 'store');
-        Route::get('{id}', 'show');
-        Route::delete('delete/{id}', 'destroy');
-        Route::get('with-ingredients/all', 'index_loaded');
-        Route::put('with-ingredients/update/{id}', 'update_loaded');
-        Route::post('with-ingredients/create', 'store_loaded');
-        Route::get('with-ingredients/{id}', 'show_loaded');
-        Route::get('with-purchase-options/all', 'index_with_purchase_options');
-        Route::get('with-purchase-options/{id}', 'show_with_purchase_options');
-        
-        Route::post('{id}/upload-image', 'upload_image');
-    });
-
-    Route::controller(DishCategoryController::class)->prefix('project/{project_id}/dish-categories')->group(function() {
-        Route::get('all', 'index');
-        Route::put('update/{id}', 'update');
-        Route::post('create', 'store');
-        Route::delete('delete/{id}', 'destroy');
-        Route::get('{id}', 'show');
-
-        Route::get('with-dishes/all', 'index_loaded');
-        Route::put('with-dishes/update/{id}', 'update_loaded');
-        Route::post('with-dishes/create', 'store_loaded');
-        Route::get('with-dishes/{id}', 'show_loaded');
-
-    });
-
-    Route::controller(DishGroupController::class)->prefix('project/{project_id}/dish-groups')->group(function() {
-        Route::get('all', 'index');
-        Route::put('update/{id}', 'update');
-        Route::post('create', 'store');
-        Route::delete('delete/{id}', 'destroy');
-        Route::get('{id}', 'show');
-
-        Route::get('with-dishes/all', 'index_loaded');
-        Route::put('with-dishes/update/{id}', 'update_loaded');
-        Route::post('with-dishes/create', 'store_loaded');
-        Route::get('with-dishes/{id}', 'show_loaded');
-    });
-
-    Route::controller(IngredientTypeController::class)->prefix('project/{project_id}/ingredient-types')->group(function() {
-        Route::get('all', 'index');
-        Route::get('{id}', 'show');
-        Route::put('update/{id}', 'update');
-        Route::post('create', 'store');
-        Route::delete('delete/{id}', 'destroy');
-    });
-
-    Route::controller(DistributorController::class)->prefix('project/{project_id}/distributors')->group(function() {
-        Route::get('all', 'index');
-        Route::get('{id}', 'show');
-        Route::put('update/{id}', 'update');
-        Route::post('create', 'store');
-        Route::delete('delete/{id}', 'destroy');
-        Route::get('with-purchase-options/all', 'index_loaded');
-        Route::get('with-purchase-options/{id}', 'show_loaded');
-        Route::put('with-purchase-options/update/{id}', 'update_loaded');
-        Route::post('with-purchase-options/create', 'store_loaded');
-        Route::post('with-purchase-options/{id}/upload-options-file', 'upload_options_file');
-    });
-
-    Route::controller(ProductController::class)->prefix('project/{project_id}/products')->group(function() {
-        Route::get('all', 'index');
-        Route::post('create', 'store');
-        Route::get('{id}', 'show');
-        Route::put('update/{id}', 'update');
-        Route::delete('delete/{id}', 'destroy');
-        Route::get('with-purchase-options/all', 'index_with_purchase_options');
-        Route::post('with-purchase-options/create', 'store_with_purchase_options');
-        Route::put('with-purchase-options/update/{id}', 'update_with_purchase_options');
-        Route::get('with-purchase-options/{id}', 'show_with_purchase_options');
-    });
-
-    Route::controller(ProductCategoryController::class)->prefix('project/{project_id}/product-categories')->group(function() {
-        Route::get('all', 'index');
-        Route::put('update/{id}', 'update');
-        Route::post('create', 'store');
-        Route::delete('delete/{id}', 'destroy');
-        Route::get('{id}', 'show');
-
-        Route::get('with-products/all', 'index_loaded');
-        Route::put('with-products/update/{id}', 'update_loaded');
-        Route::post('with-products/create', 'store_loaded');
-        Route::get('with-products/{id}', 'show_loaded');
-    });
-
-    Route::controller(ProductGroupController::class)->prefix('project/{project_id}/product-groups')->group(function() {
-        Route::get('all', 'index');
-        Route::get('{id}', 'show');
-        Route::put('update/{id}', 'update');
-        Route::post('create', 'store');
-        Route::delete('delete/{id}', 'destroy');
-
-        Route::get('with-products/all', 'index_loaded');
-        Route::put('with-products/update/{id}', 'update_loaded');
-        Route::post('with-products/create', 'store_loaded');
-        Route::get('with-products/{id}', 'show_loaded');
-    });
-
-    Route::controller(PurchaseOptionController::class)->prefix('project/{project_id}/purchase-options')->group(function() {
-        Route::get('all', 'index');
-        Route::get('{id}', 'show');
-        Route::put('update/{id}', 'update');
-        Route::post('create', 'store');
-        Route::get('with-products/all', 'index_loaded');
-        Route::get('with-products/{id}', 'show_loaded');
-        Route::put('with-products/update/{id}', 'update_loaded');
-        Route::post('with-products/create', 'store_loaded');
-        Route::delete('delete/{id}', 'destroy');
-    });
-
-    Route::controller(UnitController::class)->prefix('project/{project_id}/units')->group(function() {
-        Route::get('all', 'index');
-        Route::get('{id}', 'show');
-        Route::put('update/{id}', 'update');
-        Route::post('create', 'store');
-        Route::delete('delete/{id}', 'destroy');
-    });
+    getProjectEntitiesRoutes('project/{project_id}');
     
 });
+
+getProjectEntitiesRoutes('public/project/{project_id}');
+
+Route::controller(ProjectController::class)->prefix('projects/public')->group(function(){
+    Route::get('all', 'all_public_projects');
+    Route::get('{id}', 'show');
+});
+
+function getProjectEntitiesRoutes(string $prefix){
+    return Route::prefix($prefix)->group(function(){
+        Route::controller(UserController::class)->prefix('users')->group(function() {
+            Route::put('assign-role/{id}', 'assign_role');
+            Route::delete('remove/{id}', 'remove_from_project');
+            Route::post('invite', 'invite_to_project');
+            Route::get('all', 'index');
+        });
+    
+        Route::controller(RoleController::class)
+            ->prefix('roles')->group( function(){
+                Route::get('all','all');
+                Route::get('permissions/all','permissions');
+            });
+
+        Route::controller(IngredientController::class)->prefix('ingredients')->group(function() {
+            Route::get('all', 'index');
+            Route::get('{id}', 'show');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::delete('delete/{id}', 'destroy');
+        
+            Route::get('with-products/all', 'index_loaded');
+            Route::get('with-products/{id}', 'show_loaded');
+            Route::put('with-products/update/{id}', 'update_loaded');
+            Route::post('with-products/create', 'store_loaded');
+        
+            Route::get('with-purchase-options/{id}', 'show_with_purchase_options');
+        });
+    
+        Route::controller(IngredientCategoryController::class)->prefix('ingredient-categories')->group(function() {
+            Route::get('all', 'index');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::delete('delete/{id}', 'destroy');
+            Route::get('{id}', 'show');
+    
+            Route::get('with-ingredients/all', 'index_loaded');
+            Route::put('with-ingredients/update/{id}', 'update_loaded');
+            Route::post('with-ingredients/create', 'store_loaded');
+            Route::get('with-ingredients/{id}', 'show_loaded');
+        });
+    
+        Route::controller(IngredientGroupController::class)->prefix('ingredient-groups')->group(function() {
+    
+            Route::get('with-ingredients/all', 'index_loaded');
+            Route::put('with-ingredients/update/{id}', 'update_loaded');
+            Route::post('with-ingredients/create', 'store_loaded');
+            Route::get('with-ingredients/{id}', 'show_loaded');
+    
+            Route::get('all', 'index');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::delete('delete/{id}', 'destroy');
+            Route::get('{id}', 'show');
+        });
+    
+        Route::controller(DishController::class)->prefix('dishes')->group(function() {
+            Route::get('all', 'index');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::get('{id}', 'show');
+            Route::delete('delete/{id}', 'destroy');
+            Route::get('with-ingredients/all', 'index_loaded');
+            Route::put('with-ingredients/update/{id}', 'update_loaded');
+            Route::post('with-ingredients/create', 'store_loaded');
+            Route::get('with-ingredients/{id}', 'show_loaded');
+            Route::get('with-purchase-options/all', 'index_with_purchase_options');
+            Route::get('with-purchase-options/{id}', 'show_with_purchase_options');
+            
+            Route::post('{id}/upload-image', 'upload_image');
+        });
+    
+        Route::controller(DishCategoryController::class)->prefix('dish-categories')->group(function() {
+            Route::get('all', 'index');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::delete('delete/{id}', 'destroy');
+            Route::get('{id}', 'show');
+    
+            Route::get('with-dishes/all', 'index_loaded');
+            Route::put('with-dishes/update/{id}', 'update_loaded');
+            Route::post('with-dishes/create', 'store_loaded');
+            Route::get('with-dishes/{id}', 'show_loaded');
+    
+        });
+    
+        Route::controller(DishGroupController::class)->prefix('dish-groups')->group(function() {
+            Route::get('all', 'index');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::delete('delete/{id}', 'destroy');
+            Route::get('{id}', 'show');
+    
+            Route::get('with-dishes/all', 'index_loaded');
+            Route::put('with-dishes/update/{id}', 'update_loaded');
+            Route::post('with-dishes/create', 'store_loaded');
+            Route::get('with-dishes/{id}', 'show_loaded');
+        });
+    
+        Route::controller(IngredientTypeController::class)->prefix('ingredient-types')->group(function() {
+            Route::get('all', 'index');
+            Route::get('{id}', 'show');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::delete('delete/{id}', 'destroy');
+        });
+    
+        Route::controller(DistributorController::class)->prefix('distributors')->group(function() {
+            Route::get('all', 'index');
+            Route::get('{id}', 'show');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::delete('delete/{id}', 'destroy');
+            Route::get('with-purchase-options/all', 'index_loaded');
+            Route::get('with-purchase-options/{id}', 'show_loaded');
+            Route::put('with-purchase-options/update/{id}', 'update_loaded');
+            Route::post('with-purchase-options/create', 'store_loaded');
+            Route::post('with-purchase-options/{id}/upload-options-file', 'upload_options_file');
+        });
+    
+        Route::controller(ProductController::class)->prefix('products')->group(function() {
+            Route::get('all', 'index');
+            Route::post('create', 'store');
+            Route::get('{id}', 'show');
+            Route::put('update/{id}', 'update');
+            Route::delete('delete/{id}', 'destroy');
+            Route::get('with-purchase-options/all', 'index_with_purchase_options');
+            Route::post('with-purchase-options/create', 'store_with_purchase_options');
+            Route::put('with-purchase-options/update/{id}', 'update_with_purchase_options');
+            Route::get('with-purchase-options/{id}', 'show_with_purchase_options');
+        });
+    
+        Route::controller(ProductCategoryController::class)->prefix('product-categories')->group(function() {
+            Route::get('all', 'index');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::delete('delete/{id}', 'destroy');
+            Route::get('{id}', 'show');
+    
+            Route::get('with-products/all', 'index_loaded');
+            Route::put('with-products/update/{id}', 'update_loaded');
+            Route::post('with-products/create', 'store_loaded');
+            Route::get('with-products/{id}', 'show_loaded');
+        });
+    
+        Route::controller(ProductGroupController::class)->prefix('product-groups')->group(function() {
+            Route::get('all', 'index');
+            Route::get('{id}', 'show');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::delete('delete/{id}', 'destroy');
+    
+            Route::get('with-products/all', 'index_loaded');
+            Route::put('with-products/update/{id}', 'update_loaded');
+            Route::post('with-products/create', 'store_loaded');
+            Route::get('with-products/{id}', 'show_loaded');
+        });
+    
+        Route::controller(PurchaseOptionController::class)->prefix('purchase-options')->group(function() {
+            Route::get('all', 'index');
+            Route::get('{id}', 'show');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::get('with-products/all', 'index_loaded');
+            Route::get('with-products/{id}', 'show_loaded');
+            Route::put('with-products/update/{id}', 'update_loaded');
+            Route::post('with-products/create', 'store_loaded');
+            Route::delete('delete/{id}', 'destroy');
+        });
+    
+        Route::controller(UnitController::class)->prefix('units')->group(function() {
+            Route::get('all', 'index');
+            Route::get('{id}', 'show');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::delete('delete/{id}', 'destroy');
+        });
+    });
+}

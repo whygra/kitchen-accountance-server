@@ -20,5 +20,11 @@ class UserSeeder extends Seeder
             'password' => Hash::make(env('SUPERUSER_PASSWORD')),
             'subscription_plan_id' => SubscriptionPlan::where('name', SubscriptionPlanNames::PREMIUM)->first()->id,
         ]);
+        User::create(attributes: [
+            'name' => User::GUEST_NAME,
+            'email' => User::GUEST_NAME,
+            'password' => User::GUEST_NAME,
+            'subscription_plan_id' => SubscriptionPlan::where('name', SubscriptionPlanNames::NONE)->first()->id,
+        ]);
     }
 }

@@ -8,6 +8,7 @@ use App\Http\Requests\Project\DownloadProjectTablesRequest;
 use App\Http\Requests\Project\GetProjectRequest;
 use App\Http\Requests\Project\GetProjectWithPurchaseOptionsRequest;
 use App\Http\Requests\Project\GetUserProjectsRequest;
+use App\Http\Requests\Project\PublishProjectRequest;
 use App\Http\Requests\Project\UploadProjectTablesRequest;
 use App\Http\Requests\Project\UploadPurchaseOptionsFileRequest;
 use App\Http\Requests\User\InviteUserRequest;
@@ -26,6 +27,7 @@ use App\Models\Product\Product;
 use App\Models\Project\PurchaseOption;
 use App\Models\Project\Unit;
 use App\Models\Product\ProductPurchaseOption;
+use App\Models\User\Role;
 use App\Models\User\User;
 use Exception;
 use Illuminate\Foundation\Http\FormRequest;
@@ -37,19 +39,36 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProjectController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+
+    public function publish_project(PublishProjectRequest $request, $id) {
+        $item = $request->user()->projects()->find($id);
+        if(empty($item))
+            return response()->json([
+                'message' => 'Проект с id='.$id.'не найден'
+            ], 404);
+        $item->users()->attach(User::guest()->id, ['role_id' => Role::guest()->id]);
+        return response()->json(new UserProjectResource($item));
+    }
+
+    public function unpublish_project(PublishProjectRequest $request, $id) {
+        $item = $request->user()->projects()->find($id);
+        if(empty($item))
+            return response()->json([
+                'message' => 'Проект с id='.$id.'не найден'
+            ], 404);
+        $item->users()->detach(User::guest()->id);
+        return response()->json(new UserProjectResource($item));
+    }
 
     public function all_user_projects(GetUserProjectsRequest $request)
     {
         $user = User::find(Auth::user()->id);
         return response()->json(UserProjectResource::collection($user->projects()->get()));
     }
-
-    public function invite_user(InviteUserRequest $request, $id){
-        $user = User::where('email', $request->email)->first();
-        $project = Project::find($id);
+    public function all_public_projects(GetUserProjectsRequest $request)
+    {
+        $user = User::guest();
+        return response()->json(UserProjectResource::collection($user->projects()->get()));
     }
 
     /**
@@ -66,8 +85,9 @@ class ProjectController extends Controller
         $new->name = $request->name;
         $new->backdrop_name = $request['backdrop']['name'] ?? null;
         $new->logo_name = $request['logo']['name'] ?? null;
-
+        
         $new->save();
+        
         return response()->json($new, 201);
     }
 
@@ -76,7 +96,10 @@ class ProjectController extends Controller
      */
     public function show(GetProjectRequest $request, $id)
     {
-        $item = $request->user()->projects()->with('creator', 'updated_by_user')->find($id);
+        $item = $request->user()
+            ?->projects()->with('creator', 'updated_by_user')->find($id)
+            ?? User::guest()->projects()->with('creator', 'updated_by_user')->find($id);
+        
         if(empty($item))
             return response()->json([
                 'message' => 'Проект с id='.$id.'не найден'
@@ -109,6 +132,7 @@ class ProjectController extends Controller
             $item->logo_name = $request['logo']['name'] ?? '';
         }
         $item->save();
+
         return response()->json($item, 200);
     }
 

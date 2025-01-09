@@ -40,8 +40,8 @@ class UserProjectResource extends JsonResource
                     ),
                 'name'=>$this->backdrop_name,
             ],
+            'is_public' => $this->is_public,
             'role' => new RoleResource(Role::with('permissions')->find($this->pivot->role_id))
-            
         ];
     }
 }

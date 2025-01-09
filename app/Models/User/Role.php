@@ -14,6 +14,30 @@ use Illuminate\Database\Eloquent\Relations\Pivot;
 class Role extends Model
 {
     use HasFactory;
+
+    public static function project_manager() {
+        return Role::where('name', RoleNames::PROJECT_MANAGER)->first();
+    }
+
+    public static function admin() {
+        return Role::where('name', RoleNames::ADMIN)->first();
+    }
+
+    public static function user_manager() {
+        return Role::where('name', RoleNames::USER_MANAGER)->first();
+    }
+
+    public static function chef() {
+        return Role::where('name', RoleNames::CHEF)->first();
+    }
+
+    public static function viewer() {
+        return Role::where('name', RoleNames::VIEWER)->first();
+    }
+
+    public static function guest() {
+        return Role::where('name', RoleNames::GUEST)->first();
+    }
     
     /**
      * The table associated with the model.

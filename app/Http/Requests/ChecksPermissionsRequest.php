@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Http\Rules\ProjectRules;
+use App\Models\Project;
 use App\Models\User\PermissionNames;
 use App\Models\User\Permissions;
 use App\Models\User\User;
@@ -35,12 +36,17 @@ class ChecksPermissionsRequest extends FormRequest
         $validator = Validator::make($this->all(), ProjectRules::projectRules());
  
         if ($validator->fails()) {
-            $this->failedValidation($validator );
+            $this->failedValidation($validator);
         }
-        $user = User::find(Auth::user()?->id);
-        return empty($user) ? false : $user->hasAnyPermission($this->project_id, 
+        $project = Project::find($this->project_id);
+        $user = Auth::user() ? User::find(Auth::user()->id) : null;
+        // подставить гостя, если проект - образец и пользователь не авторизован
+        if($project->is_public && empty($user)){
+            $user = User::guest();
+        }
+        return $user?->hasAnyPermission($this->project_id, 
             $this->permissions
-        );
+        ) ?? false;
     }
 
      public function failedAuthorization()

@@ -11,17 +11,19 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Rules\ProjectRules;
+use App\Models\User\Permission;
 
-class GetProjectRequest extends FormRequest
+class PublishProjectRequest extends FormRequest
 { 
-        /**
+    /**
      * Determine if the user is authorized to make this request.
      */
     public function authorize(): bool
     {
-        $user = $this->user() ?? User::guest();
-        return $user->hasAnyPermission($this->route('id'), 
-            array_column(PermissionNames::cases(), 'value') 
+        $user = User::find(Auth::user()->id);
+ 
+        return empty($user)?false:$user->hasAnyPermission($this->route('id'), 
+            [PermissionNames::EDIT_PROJECT->value]
         );
     }
 
@@ -32,6 +34,11 @@ class GetProjectRequest extends FormRequest
             'message'   => 'Нет прав доступа: '.$this::class,
         ], 403));
     }
+    
+    protected function prepareForValidation() 
+    {
+        $this->merge(['project_id' => $this->route('id')]);
+    }
     /**
      * Get the validation rules that apply to the request.
      *
@@ -39,8 +46,9 @@ class GetProjectRequest extends FormRequest
      */
     public function rules(): array
     {
-        return [];
+        return ProjectRules::projectRules();
     }
+
     public function failedValidation(Validator $validator)
     {
         throw new HttpResponseException(response()->json([

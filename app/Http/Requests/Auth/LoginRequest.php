@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Requests\Auth;
 
+use App\Models\User\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
@@ -35,7 +36,7 @@ class LoginRequest extends FormRequest
     public function rules()
     {
        return [
-            'email' => 'required|email:rfc,dns|exists:users,email',
+            'email' => 'required|not_in:'.User::GUEST_NAME.'|email:rfc,dns|exists:users,email',
             'password' => 'required|min:8'
        ];
     }

@@ -23,6 +23,15 @@ use Laravel\Sanctum\HasApiTokens;
 class User extends Authenticatable implements MustVerifyEmail
 {
     use HasApiTokens, HasFactory, Notifiable;
+
+    public const GUEST_NAME = 'guest';
+    public static function guest() {
+        return User::where('name', User::GUEST_NAME)->first();
+    }
+    public static function superuser() {
+        return User::where('name', env('SUPERUSER_NAME'))->first();
+    }
+    
     protected $table = 'users';
 
     protected $guard_name = 'web';
@@ -119,15 +128,30 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     public function hasAnyPermission(int $projectId, array $permissions) : bool {
-        $project = $this->projects()->find($projectId);
-        if(empty($project)) return false;
 
+        $project = Project::find($projectId);     
+        // проекта не существует
+        if(empty($project))
+            return false;
+
+        $user = $project->users()->find($this->id) ?? (
+            ($project->is_public 
+                ?$project->users()->find(User::guest()->id)
+                :null
+            )
+        );
+        // авторизованный пользователь ?? гость не участвуют в проекте
+        if(empty($user))
+            return false;
+
+        // авторизованный пользователь является создателем проекта
         if($project->creator_id == $this->id && array_search(PermissionNames::EDIT_PROJECT->value, $permissions))
             return true;
 
-        $role = Role::find($project->pivot->role_id);
+        $role = Role::find($user->pivot->role_id);
         if(empty($role)) return false;
         foreach ($role->permissions()->get() as $perm){
+            // авторизованный пользователь ?? гость имеет требуемые права
             if(in_array($perm->name, $permissions)){
                 return true;
             }

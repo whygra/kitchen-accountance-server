@@ -5,6 +5,7 @@ namespace App\Models\User;
 enum RoleNames: string
 {
     // case NAMEINAPP = 'name-in-database';
+    case GUEST = 'guest';
     case VIEWER = 'viewer';
     case CHEF = 'chef';
     case USER_MANAGER = 'user-manager';

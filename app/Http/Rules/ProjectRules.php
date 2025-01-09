@@ -11,6 +11,7 @@ class ProjectRules {
     
     public static function storeProjectRules() {
         return [
+            'is_public' => 'nullable|boolean',
             'logo_name' => 'nullable|string',
             'backdrop_name' => 'nullable|string',
         ];
@@ -19,6 +20,7 @@ class ProjectRules {
     public static function updateProjectRules() {
         return [
             'project_id'=>'required|exists:projects,id',
+            'is_public' => 'nullable|boolean',
             'logo_name' => 'nullable|string',
             'backdrop_name' => 'nullable|string',
         ];

@@ -35,7 +35,8 @@ class UserController extends Controller
      */
     public function index(GetProjectUsersRequest $request)
     {
-        $all = Project::find($request->project_id)->users()->get();
+        $all = Project::find($request->project_id)
+            ->users()->where('user_id', '!=', User::guest()->id)->get();
         return response()->json(ProjectUserResource::collection($all));
     }
 
@@ -45,6 +46,11 @@ class UserController extends Controller
     public function show($id)
     {
         $item = User::find($id);
+        
+        if(empty($item) || $item->id = User::guest()->id)
+            return response()->json([
+                'message' => ''
+            ], 404);
         return response()->json($item);
     }
 
@@ -73,7 +79,7 @@ class UserController extends Controller
     {
         // находим пользователя
         $user = User::where('email',  $request->email)->first();
-        if(empty($user))
+        if(empty($user) && User::guest()->id==$user->id)
             return response()->json([
                 'message' => 'Пользователь с email "'.$request->email.'" не найден'
             ], 404);

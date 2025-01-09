@@ -20,6 +20,7 @@ use App\Models\User\SubscriptionPlanNames;
 use App\Models\User\User;
 use App\Models\User\UserProject;
 use Illuminate\Contracts\Database\Query\Builder;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -31,6 +32,15 @@ use Illuminate\Support\Facades\Storage;
 class Project extends Model
 {
     use HasFactory;
+
+    protected $appends = ['is_public'];
+
+    protected function isPublic(): Attribute
+    {
+        return new Attribute(
+            fn () => !empty($this->users()->find(User::guest()->id)),
+        );
+    }
     
     protected static function booted(): void
     {
@@ -41,13 +51,15 @@ class Project extends Model
             }
         });
         static::created(function ($model) {
-            $model->users()->sync([
-                Auth::user()->id => [
-                    'role_id'=>Role::where(
+            if (Auth::user()){
+                $model->users()->sync([
+                    Auth::user()->id => [
+                       'role_id'=>Role::where(
                         'name', RoleNames::ADMIN->value
-                    )->first()->id
-                ]
-            ]);
+                        )->first()->id
+                    ]
+                ]);
+            }
         });
         static::updating(function ($model) {
             if(Auth::user()){
