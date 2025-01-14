@@ -67,13 +67,41 @@ class Ingredient extends Model
         return $this->belongsTo(Project::class);
     }
 
-
-
     protected $casts = [
         'item_weight' => 'float',
         'is_item_measured' => 'boolean'
     ];
 
+    protected $appends = [
+        'source_weight',
+        'avg_waste_percentage',
+    ];
+    
+    protected function sourceWeight(): Attribute
+    {
+        return new Attribute(
+            get: fn () => array_reduce(
+                $this->products()->get()->toArray(),
+                fn($total, $p)=>$total+$p['pivot']['raw_product_weight']
+            ),
+        );
+    }
+    
+    protected function avgWastePercentage(): Attribute
+    {
+        return new Attribute(
+            get: fn () => array_reduce(
+                $this->products()->get()->toArray(),
+                fn($total, $p)=>
+                    $total +
+                        $p['pivot']['waste_percentage']
+                        *$p['pivot']['raw_product_weight']
+                        /$this->source_weight
+                    
+            ),
+        );
+    }
+    
     public function type(): BelongsTo
     {
         return $this->belongsTo(IngredientType::class, 'type_id', 'id');
@@ -99,7 +127,7 @@ class Ingredient extends Model
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'ingredients_products')
-            ->withPivot(['raw_content_percentage', 'waste_percentage'])
+            ->withPivot(['raw_product_weight', 'waste_percentage'])
             ->using(IngredientProduct::class);
     }
 

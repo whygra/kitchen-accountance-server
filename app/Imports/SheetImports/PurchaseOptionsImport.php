@@ -66,14 +66,14 @@ class PurchaseOptionsImport implements ToCollection, WithValidation, WithUpserts
         $net_weight = $row[2];
         $price = $row[3];
         $distributor = $project->distributors()->where('name', $row[4])->firstOrNew();
-        $unit = $project->units()->where('long', $row[5])->firstOrNew();
+        $unit = $project->units()->orWhere('long', $row[5])->orWhere('short', $row[5])->firstOrNew();
 
         if(empty($distributor->id)){
             $distributor->name = $row[4];
             $project->distributors()->save($distributor);
         }
         if(empty($unit->id)){
-            $unit->long = $unit->short = $row[5];
+            $unit->long == $unit->short = $row[5];
             $project->units()->save($unit);
         }
 

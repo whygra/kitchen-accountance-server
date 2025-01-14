@@ -252,7 +252,7 @@ class IngredientController extends Controller
 
             $products[$product->id] = [
                 'waste_percentage'=>$p['waste_percentage'],
-                'raw_content_percentage'=>$p['raw_content_percentage']
+                'raw_product_weight'=>$p['raw_product_weight']
             ];
         }
     

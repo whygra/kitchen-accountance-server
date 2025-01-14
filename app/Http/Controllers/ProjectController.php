@@ -194,7 +194,7 @@ class ProjectController extends Controller
             Excel::import(new ProjectImport($project->id), $path);
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $failures = $e->failures();
-            return response()->json(['message'=>$failures[0]->errors[0]]);
+            return response()->json(['failures'=>$failures]);
         } 
 
         // удалить файл

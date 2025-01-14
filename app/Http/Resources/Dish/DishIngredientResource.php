@@ -19,6 +19,7 @@ class DishIngredientResource extends JsonResource
             'type' => $this->type,
             'category' => $this->category,
             'group' => $this->group,
+            'source_weight' => $this->source_weight,
             'ingredient_amount' => $this->pivot->ingredient_amount,
             'is_item_measured' => $this->is_item_measured,
             'item_weight' => $this->item_weight,

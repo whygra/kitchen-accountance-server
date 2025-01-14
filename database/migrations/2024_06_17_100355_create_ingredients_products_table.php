@@ -19,8 +19,8 @@ return new class extends Migration
             // продукт
             $table->foreignId('product_id');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
-            // доля продукта в общем весе необработанных продуктов компонента
-            $table->decimal('raw_content_percentage');
+            // вес необработанного продукта
+            $table->decimal('raw_product_weight');
             // процент отхода - потери продукта в весе при обработке
             $table->decimal('waste_percentage');
             $table->timestamps();

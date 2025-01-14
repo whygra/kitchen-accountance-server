@@ -59,7 +59,8 @@ class DishIngredientsImport implements ToCollection, WithValidation, WithSkipDup
         $ingredient_amount = $row[2];
         $waste_percentage = $row[3]??0;
         
-        $dish->ingredients()->save(
+        $dish->ingredients()->detach($ingredient);
+        $dish->ingredients()->attach(
             $ingredient, [
                 'ingredient_amount'=>$ingredient_amount, 
                 'waste_percentage' => $waste_percentage 

@@ -20,9 +20,11 @@ class ProductIngredientResource extends JsonResource
             'type' => $this->type,
             'category' => $this->category,
             'group' => $this->group,
+            'source_weight' => $this->source_weight,
             'item_weight' => $this->item_weight,
             'is_item_measured' => $this->is_item_measured,
             'dishes' => IngredientDishResource::collection($this->dishes),
+            'raw_product_weight' => $this->pivot->raw_product_weight,
             'raw_content_percentage' => $this->pivot->raw_content_percentage,
             'waste_percentage' => $this->pivot->waste_percentage,
         ];

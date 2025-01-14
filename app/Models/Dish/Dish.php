@@ -96,12 +96,6 @@ class Dish extends Model
             ->using(DishIngredient::class);
     }
 
-    // позиции меню
-    public function menu_items(): HasMany
-    {
-        return $this->hasMany(MenuItem::class, 'dish_id', 'id');
-    }
-
     public function category(): BelongsTo
     {
         return $this->belongsTo(DishCategory::class, 'category_id', 'id');

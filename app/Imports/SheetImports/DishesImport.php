@@ -39,7 +39,7 @@ class DishesImport implements ToCollection, WithValidation, WithUpserts, WithSki
             '0' => 'required|string|max:60',
             '1' => 'nullable|string|max:60',
             '2' => 'nullable|string|max:60',
-            '3' => 'nullable|string|max:255',
+            '3' => 'nullable|string|max:1000',
         ];
     }
 

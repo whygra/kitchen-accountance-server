@@ -22,7 +22,7 @@ class IngredientRules {
             'description'=>[
                 'nullable',
                 'string',
-                'max:255',
+                'max:1000',
             ],
         ];
     }
@@ -48,7 +48,7 @@ class IngredientRules {
             'description'=>[
                 'nullable',
                 'string',
-                'max:255',
+                'max:1000',
             ],
         ];
     }
@@ -87,7 +87,7 @@ class IngredientRules {
         return [
             'products'=>'nullable|array',
             'products.*.id'=>'required',
-            'products.*.raw_content_percentage'=>'required|numeric|min:0|max:100',
+            'products.*.raw_product_weight'=>'required|numeric|min:0.01',
             'products.*.waste_percentage'=>'required|numeric|min:0|max:100',
             'products.*.name'=>[
                 'exclude_unless:products.*.id,0',

@@ -41,7 +41,7 @@ class IngredientProductsSheet implements FromCollection, WithTitle, WithMapping
             [
                 $ingredient_product->ingredient->name,
                 $ingredient_product->product->name,
-                $ingredient_product->raw_content_percentage,
+                $ingredient_product->raw_product_weight,
                 $ingredient_product->waste_percentage,
             ]
         ];

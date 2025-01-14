@@ -17,7 +17,7 @@ return new class extends Migration
             // название
             $table->string('name');
             // описание
-            $table->string('description')->nullable();
+            $table->string('description', 1000)->nullable();
             // путь к файлу изображения
             $table->string('image_name')->nullable();
             // категория

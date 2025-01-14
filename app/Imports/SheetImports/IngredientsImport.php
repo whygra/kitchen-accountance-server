@@ -44,6 +44,7 @@ class IngredientsImport implements ToCollection, WithValidation, WithUpserts, Wi
             '3' => 'nullable|string|max:60',
             // '4' => 'required|boolean',
             '5' => 'required|numeric|min:0.01',
+            '6' => 'nullable|string|max:1000',
         ];
     }
 

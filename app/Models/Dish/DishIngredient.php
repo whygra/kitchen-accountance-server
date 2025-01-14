@@ -32,7 +32,6 @@ class DishIngredient extends Pivot
     protected $fillable = [
         'dish_id',
         'ingredient_id',
-        'description',
         'waste_percentage',
         'ingredient_amount',
     ];

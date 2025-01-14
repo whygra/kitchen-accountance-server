@@ -59,9 +59,10 @@ class IngredientProductsImport implements ToCollection, WithValidation, WithSkip
         $content_percentage = $row[2];
         $waste_percentage = $row[3]??0;
         
-        $ingredient->products()->save(
+        $ingredient->products()->detach($product);
+        $ingredient->products()->attach(
             $product, [
-                'raw_content_percentage' => $content_percentage, 
+                'raw_product_weight' => $content_percentage, 
                 'waste_percentage' => $waste_percentage
             ]
         );

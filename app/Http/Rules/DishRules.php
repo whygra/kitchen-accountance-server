@@ -19,7 +19,7 @@ class DishRules {
             'description'=>[
                 'nullable',
                 'string',
-                'max:255',
+                'max:1000',
             ],
         ];
     }
@@ -41,7 +41,7 @@ class DishRules {
             'description'=>[
                 'nullable',
                 'string',
-                'max:255',
+                'max:1000',
             ],
         ];
     
