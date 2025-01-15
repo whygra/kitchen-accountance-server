@@ -63,6 +63,11 @@ class DistributorRules {
                         ->where('project_id', $projectId),
                     'distinct:ignore_case'
                 ],
+                'purchase_options.*.code'=>[
+                    'nullable',
+                    'string',
+                    'max:120',
+                ],
 
                 'purchase_options.*.products'=>'nullable|array',
                 'purchase_options.*.products.*.id'=>'required|distinct',
@@ -105,6 +110,11 @@ class DistributorRules {
                 Rule::unique('units', 'short')
                     ->where('project_id', $projectId),
                 'distinct:ignore_case'
+            ],
+            'purchase_options.*.code'=>[
+                'nullable',
+                'string',
+                'max:120',
             ],
 
             'purchase_options.*.products'=>'nullable|array',

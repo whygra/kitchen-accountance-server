@@ -22,6 +22,7 @@ class PurchaseOptionRules {
                 Rule::unique('purchase_options', 'name')->where('distributor_id', $distributorId),
             ],
             'code'=>[
+                'nullable',
                 'string',
                 'max:120',
                 Rule::unique('purchase_options', 'code')
@@ -52,6 +53,7 @@ class PurchaseOptionRules {
                     ->ignore($id),
             ],
             'code'=>[
+                'nullable',
                 'string',
                 'max:120',
                 Rule::unique('purchase_options', 'code')
