@@ -121,7 +121,7 @@ class PurchaseOptionController extends Controller
     public function store_loaded(StorePurchaseOptionWithProductsRequest $request, $project_id)
     {
         $project = Project::find($project_id);
-        $distributor = $project->distributors()->find($request->distributor_id);
+        $distributor = $project->distributors()->find($request['distributor']['id']);
         if($distributor->freePurchaseOptionSlots()<1)
             return response()->json([
                 'message' => "Достигнут лимит количества позиций закупки."
@@ -134,12 +134,11 @@ class PurchaseOptionController extends Controller
             $item->code = $request->code;
             $item->net_weight = $request->net_weight;
             $item->price = $request->price;
-            $item->save();
-            $this->process_products($item, $request);
             
-
-            $distributor = Project::find($project_id)->distributors()->find($request->distributor_id);
+            $distributor = Project::find($project_id)->distributors()->find($request['distributor']['id']);
             $distributor->purchase_options()->save($item);
+
+            $this->process_products($item, $request);
         });
 
         return response()->json($item, 201);    
