@@ -64,7 +64,7 @@ class DistributorRules {
                     'distinct:ignore_case'
                 ],
 
-                'purchase_options.*.products'=>'required|array',
+                'purchase_options.*.products'=>'nullable|array',
                 'purchase_options.*.products.*.id'=>'required|distinct',
                 'purchase_options.*.products.*.name'=>[
                     'exclude_unless:purchase_options.*.products.*.id,0',
