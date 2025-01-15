@@ -65,8 +65,9 @@ class ProductPurchaseOptionsImport implements ToCollection, WithValidation, With
         )->where('name', $row[1])->first();
         $product_share = $row[2];
         
-        $product->purchase_options()->save(
-            $purchase_option, [
+        $product->purchase_options()->detach($purchase_option);
+        $product->purchase_options()->attach(
+            $purchase_option->id, [
                 'product_share' => $product_share, 
             ]
         );
