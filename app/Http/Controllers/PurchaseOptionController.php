@@ -135,7 +135,7 @@ class PurchaseOptionController extends Controller
                 $unit->short = $request['unit']['short'];
                 $project->units()->save($unit);
             }
-            $item->unit->associate($unit);
+            $item->unit()->associate($unit);
             $item->name = $request->name;
             $item->code = $request->code;
             $item->net_weight = $request->net_weight;
@@ -169,7 +169,8 @@ class PurchaseOptionController extends Controller
                 $unit->short = $request['unit']['short'];
                 $project->units()->save($unit);
             }
-            $item->unit->associate($unit);
+            $item->unit()->associate($unit);
+            
             $item->name = $request->name;
             $item->code = $request->code;
             $item->net_weight = $request->net_weight;
