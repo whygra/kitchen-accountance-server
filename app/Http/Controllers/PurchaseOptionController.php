@@ -9,6 +9,7 @@ use App\Http\Requests\PurchaseOption\StorePurchaseOptionWithProductsRequest;
 use App\Http\Requests\PurchaseOption\UpdatePurchaseOptionWithProductsRequest;
 use App\Http\Resources\PurchaseOption\PurchaseOptionResource;
 use App\Models\Distributor\Distributor;
+use App\Models\Distributor\Unit;
 use App\Models\Product\Product;
 use App\Models\Product\ProductPurchaseOption;
 use App\Models\Project;
@@ -127,15 +128,20 @@ class PurchaseOptionController extends Controller
                 'message' => "Достигнут лимит количества позиций закупки."
             ], 400);
         $item = new PurchaseOption;
-        DB::transaction(function() use ($request, $project_id, $item) {
-
-            $item->unit_id = $request['unit']['id'];
+        DB::transaction(function() use ($request, $project, $item) {
+            $unit = $project->units()->findOrNew($request['unit']['id']);
+            if(empty($unit->id)){
+                $unit->long = $request['unit']['long'];
+                $unit->short = $request['unit']['short'];
+                $project->units()->save($unit);
+            }
+            $item->unit->associate($unit);
             $item->name = $request->name;
             $item->code = $request->code;
             $item->net_weight = $request->net_weight;
             $item->price = $request->price;
             
-            $distributor = Project::find($project_id)->distributors()->find($request['distributor']['id']);
+            $distributor = $project->distributors()->find($request['distributor']['id']);
             $distributor->purchase_options()->save($item);
 
             $this->process_products($item, $request);
@@ -154,9 +160,16 @@ class PurchaseOptionController extends Controller
             return response()->json([
                 'message' => ''
             ], 404);
+        $project = Project::find($project_id);
 
-        DB::transaction(function() use ($request, $project_id, $item) {
-            $item->unit_id = $request['unit']['id'];
+        DB::transaction(function() use ($request, $project, $item) {
+            $unit = $project->units()->findOrNew($request['unit']['id']);
+            if(empty($unit->id)){
+                $unit->long = $request['unit']['long'];
+                $unit->short = $request['unit']['short'];
+                $project->units()->save($unit);
+            }
+            $item->unit->associate($unit);
             $item->name = $request->name;
             $item->code = $request->code;
             $item->net_weight = $request->net_weight;
@@ -166,7 +179,7 @@ class PurchaseOptionController extends Controller
             $this->process_products($item, $request);
 
 
-            $distributor = Project::find($project_id)->distributors()->find($item->distributor_id);
+            $distributor = $project->distributors()->find($item->distributor_id);
             $distributor->purchase_options()->save($item);
         });
 
