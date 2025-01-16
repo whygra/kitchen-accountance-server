@@ -43,6 +43,7 @@ class PurchaseOptionsImport implements ToCollection, WithValidation, WithUpserts
             '3' => 'required|numeric|min:1',
             '4' => 'required|string|max:60',
             '5' => 'required|string|max:12',
+            '5' => 'required|string|max:12',
         ];
     }
 
@@ -66,21 +67,30 @@ class PurchaseOptionsImport implements ToCollection, WithValidation, WithUpserts
         $net_weight = $row[2];
         $price = $row[3];
         $distributor = $project->distributors()->where('name', $row[4])->firstOrNew();
-        $unit = $project->units()->orWhere('long', $row[5])->orWhere('short', $row[5])->firstOrNew();
-
+        $unitL = $project->units()->where('long', $row[5])->firstOrNew();
+        $unitS = $project->units()->where('short', $row[6])->firstOrNew();
+        
         if(empty($distributor->id)){
             $distributor->name = $row[4];
             $project->distributors()->save($distributor);
         }
-        if(empty($unit->id)){
-            $unit->long = $unit->short = $row[5];
-            $project->units()->save($unit);
+
+        if(empty($unitL->id) || empty($unitS->id)){
+            if(!empty($unitL->id)){
+                $unitL->long = $row[5];
+                $unitL->short = $row[6];
+                $project->units()->save($unitL);
+            } else {
+                $unitS->long = $row[5];
+                $unitS->short = $row[6];
+                $project->units()->save($unitS);
+            }
         }
 
         $item->code = $code;
         $item->net_weight = $net_weight;
         $item->price = $price;
-        $item->unit()->associate($unit);
+        $item->unit()->associate($unitL);
         if (empty($item->id)){
             $item->name = $row[1];
             $item->distributor()->associate($distributor);

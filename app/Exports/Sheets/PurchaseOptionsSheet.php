@@ -45,7 +45,8 @@ class PurchaseOptionsSheet implements FromCollection, WithTitle, WithMapping
                 $purchase_option->net_weight,
                 $purchase_option->price,
                 $purchase_option->distributor->name,
-                $purchase_option->unit?->long??''
+                $purchase_option->unit?->long??'',
+                $purchase_option->unit?->short??'',
             ]
         ];
     }
