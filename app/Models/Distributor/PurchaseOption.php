@@ -70,6 +70,18 @@ class PurchaseOption extends Model
 
     protected $touches = ['distributor'];
 
+    
+    protected $appends = [
+        'project_id',
+    ];
+    
+    protected function projectId(): Attribute
+    {
+        return new Attribute(
+            get: fn () => $this->distributor->project_id
+        );
+    }
+
     public function purchase_items(): HasMany
     {
         return $this->hasMany(PurchaseItem::class, 'purchase_option_id', 'id');

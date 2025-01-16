@@ -25,9 +25,9 @@ class PurchaseOptionResource extends JsonResource
             'price' => $this->price,
             'distributor' => $this->distributor,
             'unit' => [
-                'id'=>$this->unit->id,
-                'long'=>$this->unit->long,
-                'short'=>$this->unit->short,
+                'id'=>$this->unit?->id,
+                'long'=>$this->unit?->long,
+                'short'=>$this->unit?->short,
             ],
             'products' => PurchaseOptionProductResource::collection($this->products),
         ];

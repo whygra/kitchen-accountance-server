@@ -43,7 +43,7 @@ class PurchaseOptionsImport implements ToCollection, WithValidation, WithUpserts
             '3' => 'required|numeric|min:1',
             '4' => 'required|string|max:60',
             '5' => 'required|string|max:12',
-            '5' => 'required|string|max:12',
+            '6' => 'required|string|max:12',
         ];
     }
 

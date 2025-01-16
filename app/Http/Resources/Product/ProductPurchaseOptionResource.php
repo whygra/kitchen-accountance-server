@@ -4,7 +4,7 @@ namespace App\Http\Resources\Product;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PurchaseOptionResource extends JsonResource
+class ProductPurchaseOptionResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -22,11 +22,12 @@ class PurchaseOptionResource extends JsonResource
             'name' => $this->name,
             'net_weight' => $this->net_weight,
             'price' => $this->price,
+            'product_share' => $this->pivot->product_share,
             'distributor' => $this->distributor,
             'unit' => [
-                'id'=>$this->unit->id,
-                'long'=>$this->unit->long,
-                'short'=>$this->unit->short,
+                'id'=>$this->unit?->id,
+                'long'=>$this->unit?->long,
+                'short'=>$this->unit?->short,
             ],
         ];
     }

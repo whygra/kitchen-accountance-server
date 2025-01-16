@@ -21,7 +21,7 @@ class ProductResource extends JsonResource
             'name' => $this->name,
             'category' => $this->category,
             'group' => $this->group,
-            'purchase_options' => PurchaseOptionResource::collection($this->purchase_options),
+            'purchase_options' => ProductPurchaseOptionResource::collection($this->purchase_options),
             'ingredients' => ProductIngredientResource::collection($this->ingredients),
         ];
     }
