@@ -24,6 +24,7 @@ class IngredientResource extends JsonResource
             'category' => $this->category,
             'group' => $this->group,
             'source_weight' => $this->source_weight,
+            'avg_waste_percentage' => $this->avg_waste_percentage,
             'item_weight' => $this->item_weight,
             'is_item_measured' => $this->is_item_measured,
 
