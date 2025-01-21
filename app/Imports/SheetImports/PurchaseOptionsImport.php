@@ -42,7 +42,7 @@ class PurchaseOptionsImport implements ToCollection, WithValidation, WithUpserts
             '2' => 'required|numeric|min:1',
             '3' => 'required|numeric|min:1',
             '4' => 'required|string|max:60',
-            '5' => 'required|string|max:12',
+            '5' => 'required|string|max:60',
             '6' => 'required|string|max:12',
         ];
     }
@@ -67,25 +67,28 @@ class PurchaseOptionsImport implements ToCollection, WithValidation, WithUpserts
         $net_weight = $row[2];
         $price = $row[3];
         $distributor = $project->distributors()->where('name', $row[4])->firstOrNew();
-        $unitL = $project->units()->where('long', $row[5])->firstOrNew();
-        $unitS = $project->units()->where('short', $row[6])->firstOrNew();
-        
+
         if(empty($distributor->id)){
             $distributor->name = $row[4];
             $project->distributors()->save($distributor);
         }
+        
+        $unit = $unitL = $project->units()->where('long', $row[5])->firstOrNew();
+        $unitS = $project->units()->where('short', $row[6])->firstOrNew();
 
         if(empty($unitL->id) || empty($unitS->id)){
             if(!empty($unitL->id)){
                 $unitL->long = $row[5];
                 $unitL->short = $row[6];
-                $project->units()->save($unitL);
+                $unit = $unitL;
             } else {
                 $unitS->long = $row[5];
                 $unitS->short = $row[6];
-                $project->units()->save($unitS);
+                $unit = $unitS;
             }
         }
+
+        $project->units()->save($unit);
 
         $item->code = $code;
         $item->net_weight = $net_weight;

@@ -24,6 +24,7 @@ class DishIngredientWithPurchaseOptionsResource extends JsonResource
             'ingredient_amount' => $this->pivot->ingredient_amount,
             'item_weight' => $this->item_weight,
             'waste_percentage' => $this->pivot->waste_percentage,
+            'avg_waste_percentage' => $this->avg_waste_percentage,
         ];
     }
 }

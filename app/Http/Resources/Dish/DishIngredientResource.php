@@ -24,6 +24,7 @@ class DishIngredientResource extends JsonResource
             'is_item_measured' => $this->is_item_measured,
             'item_weight' => $this->item_weight,
             'waste_percentage' => $this->pivot->waste_percentage,
+            'avg_waste_percentage' => $this->avg_waste_percentage,
         ];
     }
 }
