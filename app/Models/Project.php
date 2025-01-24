@@ -33,12 +33,24 @@ class Project extends Model
 {
     use HasFactory;
 
-    protected $appends = ['is_public'];
+    protected $appends = [
+        'is_public',
+        'subscription_plan',
+    ];
 
     protected function isPublic(): Attribute
     {
         return new Attribute(
             fn () => !empty($this->users()->find(User::guest()->id)),
+        );
+    }
+
+    protected function subscriptionPlan(): Attribute
+    {
+        return new Attribute(
+            fn () => 
+                $this->creator()->first()->subscription_plan
+                ?? SubscriptionPlan::where('name', SubscriptionPlanNames::NONE)->first(),
         );
     }
     
@@ -99,44 +111,39 @@ class Project extends Model
         'updated_by_user' => 'updated_by_user_id'
     ];
 
-    public function getSubscriptionPlan() {
-        return $this->creator()->first()->getSubscriptionPlan() 
-            ?? SubscriptionPlan::where('name', SubscriptionPlanNames::NONE)->first();
-    }
-
     public function freeDistributorSlots() : int {
-        return $this->getSubscriptionPlan()->max_num_distributors - $this->distributors()->count();
+        return $this->subscription_plan->max_num_distributors - $this->distributors()->count();
     }
 
     public function freeUnitSlots() : int {
-        return $this->getSubscriptionPlan()->max_num_units - $this->units()->count();
+        return $this->subscription_plan->max_num_units - $this->units()->count();
     }
     public function freeProductSlots() : int {
-        return $this->getSubscriptionPlan()->max_num_products - $this->products()->count();
+        return $this->subscription_plan->max_num_products - $this->products()->count();
     }
     public function freeProductCategorySlots() : int {
-        return $this->getSubscriptionPlan()->max_num_product_categories - $this->product_categories()->count();
+        return $this->subscription_plan->max_num_product_categories - $this->product_categories()->count();
     }
     public function freeProductGroupSlots() : int {
-        return $this->getSubscriptionPlan()->max_num_product_categories - $this->product_groups()->count();
+        return $this->subscription_plan->max_num_product_categories - $this->product_groups()->count();
     }
     public function freeIngredientSlots() : int {
-        return $this->getSubscriptionPlan()->max_num_ingredients - $this->ingredients()->count();
+        return $this->subscription_plan->max_num_ingredients - $this->ingredients()->count();
     }
     public function freeIngredientCategorySlots() : int {
-        return $this->getSubscriptionPlan()->max_num_ingredient_categories - $this->ingredient_categories()->count();
+        return $this->subscription_plan->max_num_ingredient_categories - $this->ingredient_categories()->count();
     }
     public function freeIngredientGroupSlots() : int {
-        return $this->getSubscriptionPlan()->max_num_ingredient_categories - $this->ingredient_groups()->count();
+        return $this->subscription_plan->max_num_ingredient_categories - $this->ingredient_groups()->count();
     }
     public function freeDishSlots() : int {
-        return $this->getSubscriptionPlan()->max_num_dishes - $this->dishes()->count();
+        return $this->subscription_plan->max_num_dishes - $this->dishes()->count();
     }
     public function freeDishCategorySlots() : int {
-        return $this->getSubscriptionPlan()->max_num_dish_categories - $this->dish_categories()->count();
+        return $this->subscription_plan->max_num_dish_categories - $this->dish_categories()->count();
     }
     public function freeDishGroupSlots() : int {
-        return $this->getSubscriptionPlan()->max_num_dish_categories - $this->dish_groups()->count();
+        return $this->subscription_plan->max_num_dish_categories - $this->dish_groups()->count();
     }
 
     // путь к папке проекта в хранилище изображений
