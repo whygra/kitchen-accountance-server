@@ -60,7 +60,7 @@ class Distributor extends Model
     ];
 
     public function getSubscriptionPlan(): mixed {
-        return $this->project()->first()->getSubscriptionPlan() 
+        return $this->project()->first()->subscription_plan 
             ?? SubscriptionPlan::where('name', SubscriptionPlanNames::NONE)->first();
     }
 

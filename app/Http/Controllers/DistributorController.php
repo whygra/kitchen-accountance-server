@@ -126,6 +126,7 @@ class DistributorController extends Controller
     {
         $project = Project::find($project_id);
         $item = $project->distributors()->find($id);
+
         if (empty($item))
             return response()->json([
                 'message' => "Поставщик с id=$id не найден"
@@ -172,26 +173,21 @@ class DistributorController extends Controller
  
     private function process_purchase_options(FormRequest $request, Distributor $item) {
 
-        $requestIds = array_map(fn($o)=>$o['id'], $request->purchase_options);
-        $ids = $item->purchase_options()->get(['id'])->toArray();
-        $ids = array_map(fn($id)=>$id['id'], $ids);
-        $idsToDelete = array_filter($ids, fn($id)=>!in_array($id, $requestIds));
-
         $project = Project::find($request->project_id);
-        $distributor = $project->distributors()::find($item->id);
+        $distributor = $project->distributors()->find($item->id);
         $nNewPurchaseOptions = count(array_filter(
-            $ids,
-            fn($p)=>($id ?? 0)==0
+            $request['purchase_options'],
+            fn($p)=>($p->id ?? 0)==0
         ));
 
         $freeSlots = $distributor->freePurchaseOptionSlots();
-        if($freeSlots<$nNewPurchaseOptions)
+        if($freeSlots<$nNewPurchaseOptions-count($request['purchase_options_to_delete']))
             return response()->json([
                 'message' => "Невозможно добавить $nNewPurchaseOptions позиций закупки. Превышается лимит количества позиций закупки (осталось $freeSlots)."
             ], 400);
         
-        foreach($idsToDelete as $id)
-            $item->purchase_options()->find($id)?->delete();
+        foreach($request['purchase_options_to_delete'] as $po)
+            $item->purchase_options()->find($po['id'])?->delete();
         
         foreach($request->purchase_options as $o){
             
@@ -217,7 +213,7 @@ class DistributorController extends Controller
             }
 
             // создаем/изменяем продукт только если количество продуктов данной позиции не больше 1
-            //     с коллекцией продуктов работает контроллер позиций закупки
+            //     (с коллекцией продуктов работает контроллер позиций закупки)
             // и коллекция данных продуктов на пуста
             if($option->products()->count() <= 1 && !empty($o['products'])){
                 $productData = reset($o['products']);

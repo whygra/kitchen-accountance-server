@@ -1,7 +1,10 @@
 <?php
 namespace App\Http\Rules;
 
+use App\Models\Distributor\Distributor;
+use App\Models\Project;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use ProjectRules;
 
@@ -82,7 +85,8 @@ class DistributorRules {
             ];
         }
 
-    public static function getUpdateDistributorPurchaseOptionsRules(int $id, int $projectId) {
+    public static function getUpsertPurchaseOptionsRules(int $distributorId, int $projectId, Request $request) {
+        $po_ids = $request->input('purchase_options.*.id');
         return [
             'purchase_options'=>'nullable|array',
             'purchase_options.*.id'=>'required',
@@ -91,9 +95,10 @@ class DistributorRules {
                 'string',
                 'max:120',
                 'distinct:ignore_case',
-                Rule::unique('purchase_options', 'name')->where('distributor_id', $id),
+                Rule::unique('purchase_options', 'name')
+                    ->whereNotIn('id', $po_ids)
+                    ->where('distributor_id', $distributorId)
             ],
-            
             'purchase_options.*.unit.id'=>'required',
             'purchase_options.*.unit.long'=>[
                 'exclude_unless:purchase_options.unit.id,0',
@@ -115,6 +120,11 @@ class DistributorRules {
                 'nullable',
                 'string',
                 'max:120',
+                'distinct:ignore_case',
+                Rule::unique('purchase_options', 'code')
+                    ->where('distributor_id', $distributorId)
+                    ->whereNotIn('id', $po_ids)
+                    ,
             ],
 
             'purchase_options.*.products'=>'nullable|array',
@@ -127,6 +137,14 @@ class DistributorRules {
                 Rule::unique('products', 'name')
                     ->where('project_id', $projectId),
             ],
+        ];
+    }
+    public static function getDeletePurchaseOptionsRules(int $distributorId) {
+        return [
+            'purchase_options_to_delete'=>'nullable|array',
+            'purchase_options_to_delete.*.id'=>
+                Rule::exists('purchase_options', 'id')
+                    ->where('distributor_id', $distributorId),
         ];
     }
 }

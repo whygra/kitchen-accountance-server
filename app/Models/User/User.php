@@ -145,10 +145,12 @@ class User extends Authenticatable implements MustVerifyEmail
             return false;
 
         // авторизованный пользователь является создателем проекта
+        // и затребовано разрешение EDIT_PROJECT
         if($project->creator_id == $this->id && array_search(PermissionNames::EDIT_PROJECT->value, $permissions))
             return true;
 
         $role = Role::find($user->pivot->role_id);
+
         if(empty($role)) return false;
         foreach ($role->permissions()->get() as $perm){
             // авторизованный пользователь ?? гость имеет требуемые права
@@ -156,7 +158,6 @@ class User extends Authenticatable implements MustVerifyEmail
                 return true;
             }
         }
-        
         return false;
     }
 

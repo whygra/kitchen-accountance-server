@@ -2,7 +2,7 @@
 
 namespace App\Exports;
 
-use App\Exports\Sheets\DishesSheet;
+use App\Exports\Sheets\DishExport;
 use App\Exports\Sheets\DishIngredientsSheet;
 use App\Exports\Sheets\IngredientProductsSheet;
 use App\Exports\Sheets\IngredientsSheet;
@@ -43,7 +43,7 @@ class ProjectExport implements WithMultipleSheets
         $sheets = [
             new ProductsSheet($this->project_id),
             new IngredientsSheet($this->project_id),
-            new DishesSheet($this->project_id),
+            new DishExport($this->project_id),
             new PurchaseOptionsSheet($this->project_id),
 
             new DishIngredientsSheet($this->project_id),

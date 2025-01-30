@@ -78,7 +78,7 @@ class PurchaseOption extends Model
     protected function projectId(): Attribute
     {
         return new Attribute(
-            get: fn () => $this->distributor->project_id
+            get: fn () => $this->distributor?->project_id ?? 0
         );
     }
 

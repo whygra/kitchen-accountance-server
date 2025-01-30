@@ -6,6 +6,7 @@ use App\Models\Ingredient\Ingredient;
 use App\Models\MenuItem\MenuItem;
 use App\Models\Project;
 use App\Models\User\User;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -66,6 +67,21 @@ class Dish extends Model
         'updated_by_user' => 'updated_by_user_id',
         'project' => 'project_id',
     ];
+
+    protected $appends = [
+        'source_weight',
+        'avg_waste_percentage',
+    ];
+    
+    protected function sourceWeight(): Attribute
+    {
+        return new Attribute(
+            get: fn () => array_reduce(
+                $this->products()->get()->toArray(),
+                fn($total, $p)=>$total+$p['pivot']['raw_product_weight']
+            ),
+        );
+    }
 
     // путь к папке блюда в хранилище изображений
     public function getImageDirectoryPath() : string {

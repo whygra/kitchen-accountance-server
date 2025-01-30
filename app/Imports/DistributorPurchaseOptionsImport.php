@@ -56,24 +56,10 @@ class DistributorPurchaseOptionsImport implements ToModel, SkipsEmptyRows, WithV
     public function rules(): array
     {
         return [
-            // empty($this->columnIndexes['key']) ? 'key' : $this->columnIndexes['key'] => [
-            //     Rule::excludeIf(fn()=>empty($this->columnIndexes['key'])),
-            //     'numeric'
-            // ],
             $this->columnIndexes['name'] => [
                 'string',
                 'max:120'
             ],
-            // empty($this->columnIndexes['unit']) ? 'unit' : $this->columnIndexes['unit'] => [
-            //     Rule::excludeIf(fn()=>empty($this->columnIndexes['unit'])),
-            //     'string',
-            //     'max:10'
-            // ],
-            // empty($this->columnIndexes['net_weight']) ? 'net_weight' : $this->columnIndexes['net_weight'] => [
-            //     Rule::excludeIf(fn()=>empty($this->columnIndexes['net_weight'])),
-            //     'numeric',
-            //     'min:1'
-            // ],
             $this->columnIndexes['price'] => [
                 'numeric',
                 'min:0'

@@ -34,7 +34,7 @@ class ChecksPermissionsRequest extends FormRequest
     public function authorize(): bool
     {
         $validator = Validator::make($this->all(), ProjectRules::projectRules());
- 
+        
         if ($validator->fails()) {
             $this->failedValidation($validator);
         }

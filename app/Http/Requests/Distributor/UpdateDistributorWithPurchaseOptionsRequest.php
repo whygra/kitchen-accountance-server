@@ -34,7 +34,8 @@ class UpdateDistributorWithPurchaseOptionsRequest extends ChecksPermissionsReque
         return array_merge(
             ProjectRules::projectRules(),
             DistributorRules::getUpdateDistributorRules($this->id, $this->project_id),
-            DistributorRules::getUpdateDistributorPurchaseOptionsRules($this->id, $this->project_id),
+            DistributorRules::getUpsertPurchaseOptionsRules($this->id, $this->project_id, $this),
+            DistributorRules::getDeletePurchaseOptionsRules($this->id),
         );
     }
 }
