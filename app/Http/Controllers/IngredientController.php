@@ -116,7 +116,7 @@ class IngredientController extends Controller
     public function show_with_purchase_options(GetIngredientRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
-        $item = $project->ingredients()->with([
+        $item = $project->infgredients()->with([
             'products.category','products.purchase_options.distributor', 'type', 'category', 'dishes.category', 'updated_by_user'
             ])->find($id);
         if (empty($item))

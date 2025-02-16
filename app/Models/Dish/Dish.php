@@ -69,19 +69,18 @@ class Dish extends Model
     ];
 
     protected $appends = [
-        'source_weight',
-        'avg_waste_percentage',
+        // 'avg_waste_percentage',
     ];
     
-    protected function sourceWeight(): Attribute
-    {
-        return new Attribute(
-            get: fn () => array_reduce(
-                $this->products()->get()->toArray(),
-                fn($total, $p)=>$total+$p['pivot']['raw_product_weight']
-            ),
-        );
-    }
+    // protected function avgWastePercentage(): Attribute
+    // {
+    //     return new Attribute(
+    //         get: fn () => array_reduce(
+    //             $this->ingredients()->get()->toArray(),
+    //             fn($total, $p)=>$total+$p['pivot']['waste_percentage']
+    //         ),
+    //     );
+    // }
 
     // путь к папке блюда в хранилище изображений
     public function getImageDirectoryPath() : string {
