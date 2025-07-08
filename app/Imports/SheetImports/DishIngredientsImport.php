@@ -39,8 +39,8 @@ class DishIngredientsImport implements ToCollection, WithValidation, WithSkipDup
         return [
             '0' => 'required|string|max:60',
             '1' => 'required|string|max:60',
-            '2' => 'required|numeric|min:1',
-            '3' => 'nullable|numeric|min:0|max:100',
+            '2' => 'required|numeric|min:0.01',
+            '3' => 'nullable|numeric|min:0',
         ];
     }
 
@@ -57,13 +57,13 @@ class DishIngredientsImport implements ToCollection, WithValidation, WithSkipDup
         $dish = $project->dishes()->where('name', $row[0])->first();
         $ingredient = $project->ingredients()->where('name', $row[1])->first();
         $ingredient_amount = $row[2];
-        $waste_percentage = $row[3]??0;
+        $net_weight = $row[3]??0;
         
         $dish->ingredients()->detach($ingredient);
         $dish->ingredients()->attach(
             $ingredient, [
                 'ingredient_amount'=>$ingredient_amount, 
-                'waste_percentage' => $waste_percentage 
+                'net_weight' => $net_weight 
             ]
         );
         

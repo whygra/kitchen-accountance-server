@@ -24,6 +24,7 @@ class RoleSeeder extends Seeder
                 Permission::where('name', PermissionNames::READ_INGREDIENTS->value)->first()->id,
                 Permission::where('name', PermissionNames::READ_PRODUCTS->value)->first()->id,
                 Permission::where('name', PermissionNames::READ_USERS->value)->first()->id,
+                Permission::where('name', PermissionNames::READ_STORAGE->value)->first()->id,
             ]);
             
         Role::create(['name' => RoleNames::GUEST->value])
@@ -40,16 +41,27 @@ class RoleSeeder extends Seeder
                 Permission::where('name', PermissionNames::CRUD_DISTRIBUTORS->value)->first()->id,
                 Permission::where('name', PermissionNames::CRUD_INGREDIENTS->value)->first()->id,
                 Permission::where('name', PermissionNames::CRUD_PRODUCTS->value)->first()->id,
+                Permission::where('name', PermissionNames::CRUD_STORAGE->value)->first()->id,
                 Permission::where('name', PermissionNames::READ_USERS->value)->first()->id,
             ]);
 
         Role::create(['name' => RoleNames::USER_MANAGER->value])
             ->permissions()->sync([
+                Permission::where('name', PermissionNames::READ_DISHES->value)->first()->id,
+                Permission::where('name', PermissionNames::READ_DISTRIBUTORS->value)->first()->id,
+                Permission::where('name', PermissionNames::READ_INGREDIENTS->value)->first()->id,
+                Permission::where('name', PermissionNames::READ_PRODUCTS->value)->first()->id,
+                Permission::where('name', PermissionNames::READ_STORAGE->value)->first()->id,
                 Permission::where('name', PermissionNames::CRUD_USERS->value)->first()->id,
             ]);
 
         Role::create(['name' => RoleNames::PROJECT_MANAGER->value])
-            ->permissions()->sync([
+            ->permissions()->sync([Permission::where('name', PermissionNames::READ_DISHES->value)->first()->id,
+                Permission::where('name', PermissionNames::READ_DISTRIBUTORS->value)->first()->id,
+                Permission::where('name', PermissionNames::READ_INGREDIENTS->value)->first()->id,
+                Permission::where('name', PermissionNames::READ_PRODUCTS->value)->first()->id,
+                Permission::where('name', PermissionNames::READ_USERS->value)->first()->id,
+                Permission::where('name', PermissionNames::READ_STORAGE->value)->first()->id,
                 Permission::where('name', PermissionNames::CRUD_USERS->value)->first()->id,
                 Permission::where('name', PermissionNames::EDIT_PROJECT->value)->first()->id,
             ]);
@@ -61,6 +73,7 @@ class RoleSeeder extends Seeder
                 Permission::where('name', PermissionNames::CRUD_INGREDIENTS->value)->first()->id,
                 Permission::where('name', PermissionNames::CRUD_PRODUCTS->value)->first()->id,
                 Permission::where('name', PermissionNames::CRUD_USERS->value)->first()->id,
+                Permission::where('name', PermissionNames::CRUD_STORAGE->value)->first()->id,
                 Permission::where('name', PermissionNames::EDIT_PROJECT->value)->first()->id,
             ]);
     }

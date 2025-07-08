@@ -6,23 +6,14 @@ use App\Http\Requests\Dish\DeleteDishRequest;
 use App\Http\Requests\Dish\GetDishRequest;
 use App\Http\Requests\Dish\StoreDishRequest;
 use App\Http\Requests\Dish\StoreDishWithIngredientsRequest;
-use App\Http\Requests\Dish\StoreDishWithProductsRequest;
 use App\Http\Requests\Dish\UpdateDishRequest;
 use App\Http\Requests\Dish\UpdateDishWithIngredientsRequest;
-use App\Http\Requests\Dish\UpdateDishWithProductsRequest;
 use App\Http\Requests\Dish\UploadDishImageRequest;
 use App\Http\Resources\Dish\DishResource;
 use App\Http\Resources\Dish\DishWithPurchaseOptionsResource;
-use App\Models\Ingredient\Ingredient;
 use App\Models\Dish\Dish;
-use App\Models\Dish\DishCategory;
-use App\Models\Dish\DishGroup;
-use App\Models\Dish\DishIngredient;
-use App\Models\Ingredient\SecondaryIngredient;
-use App\Models\Product\Product;
 use App\Models\Project;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
@@ -243,7 +234,7 @@ class DishController extends Controller
             }
 
             $ingredients[$ingredient->id] = [
-                'waste_percentage'=>$i['waste_percentage'],
+                'net_weight'=>$i['net_weight'],
                 'ingredient_amount'=>$i['ingredient_amount']
             ];
         }

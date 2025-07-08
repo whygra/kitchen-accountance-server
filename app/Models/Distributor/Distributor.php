@@ -3,6 +3,7 @@
 namespace App\Models\Distributor;
 
 use App\Models\Project;
+use App\Models\Storage\PurchaseAct;
 use App\Models\User\SubscriptionPlan;
 use App\Models\User\SubscriptionPlanNames;
 use App\Models\User\User;
@@ -77,9 +78,9 @@ class Distributor extends Model
     {
         return $this->hasMany(PurchaseOption::class);
     }
-    public function purchases(): HasMany
+    public function purchaseActs(): HasMany
     {
-        return $this->hasMany(Purchase::class);
+        return $this->hasMany(PurchaseAct::class);
     }
 
     public function updated_by_user(): BelongsTo

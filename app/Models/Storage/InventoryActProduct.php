@@ -1,0 +1,64 @@
+<?php
+
+namespace App\Models\Storage;
+
+use App\Models\Product\Product;
+use App\Models\Storage\InventoryAct;
+use Illuminate\Database\Eloquent\Casts\Attribute;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\Pivot;
+
+class InventoryActProduct extends Pivot
+{
+    use HasFactory;
+    
+    /**
+     * The table associated with the model.
+     * @var string
+     */
+    protected $table = 'inventory_acts_products';
+    /**
+     * Indicates if the model should be timestamped.
+     * @var bool
+     */
+    public $timestamps = true;
+
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array<int, string>
+     */
+    
+    protected $fillable = [
+        'inventory_act_id',
+        'product_id',
+        'amount',
+        'net_weight',
+    ];
+
+    protected $foreignKeys = [
+        'inventory_act' => 'inventory_act_id',
+        'product' => 'product_id',
+    ];
+
+
+    protected $casts = [
+        'amount' => 'float',
+        'net_weight' => 'float',
+    ];
+    protected $touches = ['inventory_act'];
+
+    public function inventory_act(): BelongsTo
+    {
+        return $this->belongsTo(InventoryAct::class, 'inventory_act_id', 'id');
+    }
+
+    public function product(): BelongsTo
+    {
+        return $this->belongsTo(Product::class, 'product_id', 'id');
+    }
+
+}

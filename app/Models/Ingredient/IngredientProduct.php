@@ -34,8 +34,8 @@ class IngredientProduct extends Pivot
     protected $fillable = [
         'ingredient_id',
         'product_id',
-        'raw_product_weight',
-        'waste_percentage',
+        'gross_weight',
+        'net_weight',
         'updated_by_user_id',
     ];
 
@@ -45,25 +45,11 @@ class IngredientProduct extends Pivot
         'updated_by_user' => 'updated_by_user_id'
     ];
 
-
     protected $casts = [
-        'raw_product_weight' => 'float',
-        'waste_percentage' => 'float',
-   ];
-   protected $touches = ['ingredient'];
-
-   
-   protected $appends = [
-        // 'raw_content_percentage',
+        'gross_weight' => 'float',
+        'net_weight' => 'float',
     ];
-
-    protected function rawContentPercentage(): Attribute
-    {
-        return new Attribute(
-            get: fn () => 
-                $this->raw_product_weight*100/$this->ingredient()->first()->source_weight,
-        );
-    }
+    protected $touches = ['ingredient'];
 
     public function ingredient(): BelongsTo
     {

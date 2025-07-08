@@ -13,6 +13,10 @@ use App\Models\Ingredient\IngredientGroup;
 use App\Models\Product\Product;
 use App\Models\Product\ProductCategory;
 use App\Models\Product\ProductGroup;
+use App\Models\Storage\InventoryAct;
+use App\Models\Storage\PurchaseAct;
+use App\Models\Storage\SaleAct;
+use App\Models\Storage\WriteOffAct;
 use App\Models\User\Role;
 use App\Models\User\RoleNames;
 use App\Models\User\SubscriptionPlan;
@@ -234,5 +238,21 @@ class Project extends Model
     public function dish_groups(): HasMany
     {
         return $this->hasMany(DishGroup::class);
+    }
+    public function inventory_acts(): HasMany
+    {
+        return $this->hasMany(InventoryAct::class);
+    }
+    public function write_off_acts(): HasMany
+    {
+        return $this->hasMany(WriteOffAct::class);
+    }
+    public function purchase_acts(): HasMany
+    {
+        return $this->hasMany(PurchaseAct::class);
+    }
+    public function sale_acts(): HasMany
+    {
+        return $this->hasMany(SaleAct::class);
     }
 }

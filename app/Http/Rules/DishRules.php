@@ -97,8 +97,8 @@ class DishRules {
                 })
             ],
             'ingredients.*.type.id'=>'exclude_unless:ingredients.*.id,null|required|exists:ingredient_types,id',
-            'ingredients.*.ingredient_amount'=>'required|numeric|min:1',
-            'ingredients.*.waste_percentage'=>'required|numeric|min:0|max:100',
+            'ingredients.*.ingredient_amount'=>'required|numeric|min:0.01',
+            'ingredients.*.net_weight'=>'required|numeric|min:0',
             'ingredients.*.name'=>[
                 'exclude_unless:ingredients.*.id,null',
                 'string',

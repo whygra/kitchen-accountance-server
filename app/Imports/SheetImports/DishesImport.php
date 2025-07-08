@@ -76,7 +76,7 @@ class DishesImport implements ToCollection, WithValidation, WithUpserts, WithSki
 
         if (empty($item->id)){
             $item->name = $row[0];
-            $item->project()->associate($project);          
+            $item->project()->associate($project->id);          
         }
         return $item;
     }

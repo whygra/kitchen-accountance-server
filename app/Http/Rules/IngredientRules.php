@@ -87,8 +87,8 @@ class IngredientRules {
         return [
             'products'=>'nullable|array',
             'products.*.id'=>'required',
-            'products.*.raw_product_weight'=>'required|numeric|min:0.01',
-            'products.*.waste_percentage'=>'required|numeric|min:0|max:100',
+            'products.*.gross_weight'=>'required|numeric|min:0.01',
+            'products.*.net_weight'=>'required|numeric|min:0',
             'products.*.name'=>[
                 'exclude_unless:products.*.id,0',
                 'string',

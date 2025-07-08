@@ -4,6 +4,8 @@ namespace App\Models\Distributor;
 
 use App\Models\Product\Product;
 use App\Models\Product\ProductPurchaseOption;
+use App\Models\Storage\PurchaseAct;
+use App\Models\Storage\PurchaseActItem;
 use App\Models\User\User;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -82,9 +84,11 @@ class PurchaseOption extends Model
         );
     }
 
-    public function purchase_items(): HasMany
+    public function purchases(): BelongsToMany
     {
-        return $this->hasMany(PurchaseItem::class, 'purchase_option_id', 'id');
+        return $this->belongsToMany(PurchaseAct::class, 'purchase_acts_items', 'item_id', 'purchase_act_id')
+            ->withPivot(['amount', 'price', 'net_weight'])
+            ->using(PurchaseActItem::class);
     }
 
     public function products(): BelongsToMany

@@ -161,7 +161,7 @@ class DishGroupController extends Controller
             fn($p)=>($p['id'] ?? 0)==0
         ));
 
-        $project = Project::find($request['propject_id']);
+        $project = Project::find($request['project_id']);
         $freeSlots = $project->freeDishSlots();
         if($freeSlots<$nNewDishes)
             return response()->json([

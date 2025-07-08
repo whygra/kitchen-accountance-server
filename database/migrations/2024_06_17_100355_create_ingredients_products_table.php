@@ -19,10 +19,10 @@ return new class extends Migration
             // продукт
             $table->foreignId('product_id');
             $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
-            // вес необработанного продукта
-            $table->decimal('raw_product_weight');
-            // процент отхода - потери продукта в весе при обработке
-            $table->decimal('waste_percentage');
+            // масса брутто
+            $table->decimal('gross_weight');
+            // нетто
+            $table->decimal('net_weight');
             $table->timestamps();
         });
     }

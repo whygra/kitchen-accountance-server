@@ -69,20 +69,36 @@ class Ingredient extends Model
 
     protected $casts = [
         'item_weight' => 'float',
-        'is_item_measured' => 'boolean'
+        'is_item_measured' => 'boolean',
+        'total_gross_weight' => 'float',
+        'total_net_weight' => 'float',
+        'avg_waste_percentage' => 'float',
     ];
 
     protected $appends = [
-        'source_weight',
+        'total_gross_weight',
+        'total_net_weight',
         'avg_waste_percentage',
     ];
     
-    protected function sourceWeight(): Attribute
+    protected function totalGrossWeight(): Attribute
     {
         return new Attribute(
             get: fn () => array_reduce(
                 $this->products()->get()->toArray(),
-                fn($total, $p)=>$total+$p['pivot']['raw_product_weight']
+                fn($total, $p)=>$total+$p['pivot']['gross_weight'],
+                0
+            ),
+        );
+    }
+    
+    protected function totalNetWeight(): Attribute
+    {
+        return new Attribute(
+            get: fn () => array_reduce(
+                $this->products()->get()->toArray(),
+                fn($total, $p)=>$total+$p['pivot']['net_weight'],
+                0
             ),
         );
     }
@@ -90,15 +106,7 @@ class Ingredient extends Model
     protected function avgWastePercentage(): Attribute
     {
         return new Attribute(
-            get: fn () => array_reduce(
-                $this->products()->get()->toArray(),
-                fn($total, $p)=>
-                    $total +
-                        $p['pivot']['waste_percentage']
-                        *$p['pivot']['raw_product_weight']
-                        /$this->source_weight
-                    
-            ),
+            get: fn () => 100 - $this->total_net_weight/($this->total_gross_weight!=0?$this->total_gross_weight:1)*100,
         );
     }
     
@@ -120,14 +128,14 @@ class Ingredient extends Model
     public function dishes(): BelongsToMany
     {
         return $this->belongsToMany(Dish::class, 'dishes_ingredients')
-            ->withPivot(['waste_percentage', 'ingredient_amount'])
+            ->withPivot(['net_weight', 'ingredient_amount'])
             ->using(DishIngredient::class);
     }
 
     public function products(): BelongsToMany
     {
         return $this->belongsToMany(Product::class, 'ingredients_products')
-            ->withPivot(['raw_product_weight', 'waste_percentage'])
+            ->withPivot(['gross_weight', 'net_weight'])
             ->using(IngredientProduct::class);
     }
 

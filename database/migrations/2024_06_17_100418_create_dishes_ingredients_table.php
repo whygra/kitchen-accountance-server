@@ -20,10 +20,10 @@ return new class extends Migration
             // компонент
             $table->foreignId('ingredient_id');
             $table->foreign('ingredient_id')->references('id')->on('ingredients')->onDelete('cascade');
-            // вес компонента до обработки
+            // масса брутто/количество
             $table->decimal('ingredient_amount');
-            // процент отхода - потери компонента в весе при обработке
-            $table->decimal('waste_percentage');
+            // нетто
+            $table->decimal('net_weight');
             $table->timestamps();
         });
     }

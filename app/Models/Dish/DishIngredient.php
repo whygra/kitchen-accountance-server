@@ -32,7 +32,7 @@ class DishIngredient extends Pivot
     protected $fillable = [
         'dish_id',
         'ingredient_id',
-        'waste_percentage',
+        'net_weight',
         'ingredient_amount',
     ];
 
@@ -43,7 +43,7 @@ class DishIngredient extends Pivot
 
     protected $casts = [
         'ingredient_amount' => 'float',
-        'waste_percentage' => 'float',
+        'net_weight' => 'float',
    ];
    protected $touches = ['dish'];
 

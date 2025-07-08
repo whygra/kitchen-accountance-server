@@ -67,7 +67,7 @@ class Product extends Model
     public function ingredients(): BelongsToMany
     {
         return $this->belongsToMany(Ingredient::class, 'ingredients_products')
-            ->withPivot('raw_product_weight', 'waste_percentage')
+            ->withPivot('gross_weight', 'net_weight')
             ->using(IngredientProduct::class);
     }
 

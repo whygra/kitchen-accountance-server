@@ -68,19 +68,47 @@ class Dish extends Model
         'project' => 'project_id',
     ];
 
+    protected $casts = [
+        'total_gross_weight' => 'float',
+        'total_net_weight' => 'float',
+        'avg_waste_percentage' => 'float',
+    ];
+
     protected $appends = [
-        // 'avg_waste_percentage',
+        'total_gross_weight',
+        'total_net_weight',
+        'avg_waste_percentage',
     ];
     
-    // protected function avgWastePercentage(): Attribute
-    // {
-    //     return new Attribute(
-    //         get: fn () => array_reduce(
-    //             $this->ingredients()->get()->toArray(),
-    //             fn($total, $p)=>$total+$p['pivot']['waste_percentage']
-    //         ),
-    //     );
-    // }
+    protected function totalGrossWeight(): Attribute
+    {
+        return new Attribute(
+            get: fn () => array_reduce(
+                $this->ingredients()->get()->toArray(),
+                fn($total, $i)=>
+                    $total+($i['pivot']['ingredient_amount']*$i['item_weight']),
+                    0
+            ),
+        );
+    }
+    
+    protected function totalNetWeight(): Attribute
+    {
+        return new Attribute(
+            get: fn () => array_reduce(
+                $this->ingredients()->get()->toArray(),
+                fn($total, $i)=>$total+$i['pivot']['net_weight'],
+                0
+            ),
+        );
+    }
+    
+    protected function avgWastePercentage(): Attribute
+    {
+        return new Attribute(
+            get: fn () => 100 - $this->total_net_weight/($this->total_gross_weight==0?1:$this->total_gross_weight)*100,
+        );
+    }
 
     // путь к папке блюда в хранилище изображений
     public function getImageDirectoryPath() : string {
@@ -107,7 +135,7 @@ class Dish extends Model
     public function ingredients(): BelongsToMany
     {
         return $this->belongsToMany(Ingredient::class, 'dishes_ingredients')
-            ->withPivot('waste_percentage', 'ingredient_amount')
+            ->withPivot('net_weight', 'ingredient_amount')
             ->using(DishIngredient::class);
     }
 

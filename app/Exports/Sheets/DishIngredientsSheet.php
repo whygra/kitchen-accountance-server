@@ -41,7 +41,7 @@ class DishIngredientsSheet implements FromCollection, WithTitle, WithMapping
                 $dish_ingredient->dish->name,
                 $dish_ingredient->ingredient->name,
                 $dish_ingredient->ingredient_amount,
-                $dish_ingredient->waste_percentage,
+                $dish_ingredient->net_weight,
             ]
         ];
     }

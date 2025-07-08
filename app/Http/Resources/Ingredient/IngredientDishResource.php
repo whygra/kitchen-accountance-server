@@ -19,7 +19,7 @@ class IngredientDishResource extends JsonResource
             'category' => $this->category,
             'group' => $this->group,
             'ingredient_amount' => $this->pivot->ingredient_amount,
-            'waste_percentage' => $this->pivot->waste_percentage,
+            'net_weight' => $this->pivot->net_weight,
         ];
     }
 }

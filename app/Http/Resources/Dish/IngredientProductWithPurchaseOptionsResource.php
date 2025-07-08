@@ -20,9 +20,9 @@ class IngredientProductWithPurchaseOptionsResource extends JsonResource
             'category' => $this->category,
             'group' => $this->group,
             'purchase_options' => ProductPurchaseOptionResource::collection($this->purchase_options),
-            'raw_product_weight' => $this->pivot->raw_product_weight,
-            'raw_content_percentage' => $this->pivot->raw_content_percentage,
-            'waste_percentage' => $this->pivot->waste_percentage,
+            'waste_percentage' => 100-($this->pivot->net_weight/$this->pivot->gross_weight * 100),
+            'gross_weight' => $this->pivot->gross_weight,
+            'net_weight' => $this->pivot->net_weight,
         ];
     }
 }

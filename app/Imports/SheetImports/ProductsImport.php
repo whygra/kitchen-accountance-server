@@ -72,7 +72,7 @@ class ProductsImport implements ToCollection, WithValidation, WithUpserts, WithS
 
         if (empty($item->id)){
             $item->name = $row[0];
-            $item->project()->associate($project);      
+            $item->project()->associate($project->id);      
         } 
         return $item;
     }

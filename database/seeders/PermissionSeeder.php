@@ -22,11 +22,13 @@ class PermissionSeeder extends Seeder
         Permission::create(['name'=>PermissionNames::CRUD_DISTRIBUTORS->value]);
         Permission::create(['name'=>PermissionNames::CRUD_INGREDIENTS->value]);
         Permission::create(['name'=>PermissionNames::CRUD_PRODUCTS->value]);
+        Permission::create(['name'=>PermissionNames::CRUD_STORAGE->value]);
         
         Permission::create(['name'=>PermissionNames::READ_DISHES->value]);
         Permission::create(['name'=>PermissionNames::READ_DISTRIBUTORS->value]);
         Permission::create(['name'=>PermissionNames::READ_INGREDIENTS->value]);
         Permission::create(['name'=>PermissionNames::READ_PRODUCTS->value]);
         Permission::create(['name'=>PermissionNames::READ_USERS->value]);
+        Permission::create(['name'=>PermissionNames::READ_STORAGE->value]);
     }
 }

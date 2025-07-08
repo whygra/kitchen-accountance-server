@@ -13,22 +13,27 @@ use App\Http\Controllers\DishController;
 use App\Http\Controllers\DishGroupController;
 use App\Http\Controllers\DistributorController;
 use App\Http\Controllers\IngredientCategoryController;
+use App\Http\Controllers\InventoryActController;
 use App\Http\Controllers\MenuItemController;
 use App\Http\Controllers\MenuItemOrderController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\ProductCategoryController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductGroupController;
+use App\Http\Controllers\PurchaseActController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PurchaseItemController;
 use App\Http\Controllers\PurchaseOptionController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SaleActController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\VerifyEmailController;
+use App\Http\Controllers\WriteOffActController;
 use App\Models\DishCategory;
 use App\Models\IngredientCategory;
 use App\Models\ProductCategory;
+use App\Models\Storage\InventoryAct;
 
 Route::controller(AuthController::class)
     ->prefix('auth')->group( function(){
@@ -253,6 +258,54 @@ function getProjectEntitiesRoutes(string $prefix){
             Route::get('with-products/{id}', 'show_loaded');
             Route::put('with-products/update/{id}', 'update_loaded');
             Route::post('with-products/create', 'store_loaded');
+            Route::delete('delete/{id}', 'destroy');
+        });
+    
+        Route::controller(InventoryActController::class)->prefix('inventory-acts')->group(function() {
+            Route::get('all', 'index');
+            Route::get('{id}', 'show');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::get('with-items/all', 'index_loaded');
+            Route::get('with-items/{id}', 'show_loaded');
+            Route::put('with-items/update/{id}', 'update_loaded');
+            Route::post('with-items/create', 'store_loaded');
+            Route::delete('delete/{id}', 'destroy');
+        });
+    
+        Route::controller(WriteOffActController::class)->prefix('write-off-acts')->group(function() {
+            Route::get('all', 'index');
+            Route::get('{id}', 'show');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::get('with-items/all', 'index_loaded');
+            Route::get('with-items/{id}', 'show_loaded');
+            Route::put('with-items/update/{id}', 'update_loaded');
+            Route::post('with-items/create', 'store_loaded');
+            Route::delete('delete/{id}', 'destroy');
+        });
+    
+        Route::controller(PurchaseActController::class)->prefix('purchase-acts')->group(function() {
+            Route::get('all', 'index');
+            Route::get('{id}', 'show');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::get('with-items/all', 'index_loaded');
+            Route::get('with-items/{id}', 'show_loaded');
+            Route::put('with-items/update/{id}', 'update_loaded');
+            Route::post('with-items/create', 'store_loaded');
+            Route::delete('delete/{id}', 'destroy');
+        });
+    
+        Route::controller(SaleActController::class)->prefix('sale-acts')->group(function() {
+            Route::get('all', 'index');
+            Route::get('{id}', 'show');
+            Route::put('update/{id}', 'update');
+            Route::post('create', 'store');
+            Route::get('with-items/all', 'index_loaded');
+            Route::get('with-items/{id}', 'show_loaded');
+            Route::put('with-items/update/{id}', 'update_loaded');
+            Route::post('with-items/create', 'store_loaded');
             Route::delete('delete/{id}', 'destroy');
         });
     

@@ -23,7 +23,7 @@ class IngredientWithPurchaseOptionsResource extends JsonResource
             'category' => $this->category,
             'group' => $this->group,
             'products' => IngredientProductWithPurchaseOptionsResource::collection($this->products),
-            'source_weight' => $this->source_weight,
+            'total_gross_weight' => $this->total_gross_weight,
             'avg_waste_percentage' => $this->avg_waste_percentage,
             'item_weight' => $this->item_weight,
         ];

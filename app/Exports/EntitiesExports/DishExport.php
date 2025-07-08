@@ -66,7 +66,7 @@ class DishExport implements WithMapping, WithStyles
                 $i->name,
                 $i->type->name,
                 $i->pivot->ingredient_amount.($i->is_item_measured?'шт':'г'),
-                $i->pivot->waste_percentage,
+                $i->pivot->net_weight,
             ]);
         
         return $result;

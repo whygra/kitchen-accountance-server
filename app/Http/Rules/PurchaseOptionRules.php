@@ -104,11 +104,11 @@ class PurchaseOptionRules {
     public static function deleteRules(int $projectId) {
         return [
 
-            'distributor.id'=>[
-                'required',
-                Rule::exists('distributors', 'id')
-                    ->where('project_id', $projectId)
-            ],
+            // 'distributor.id'=>[
+            //     'required',
+            //     Rule::exists('distributors', 'id')
+            //         ->where('project_id', $projectId)
+            // ],
             'id'=> [
                 'required',
                 function ($attribute, $value, $fail) use($projectId) {

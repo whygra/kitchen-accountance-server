@@ -20,9 +20,9 @@ class IngredientProductResource extends JsonResource
             'name' => $this->name,
             'category' => $this->category,
             'group' => $this->group,
-            'raw_product_weight' => $this->pivot->raw_product_weight,
-            'raw_content_percentage' => $this->pivot->raw_content_percentage,
-            'waste_percentage' => $this->pivot->waste_percentage,
+            'waste_percentage' => 100-($this->pivot->net_weight/$this->pivot->gross_weight * 100),
+            'gross_weight' => $this->pivot->gross_weight,
+            'net_weight' => $this->pivot->net_weight,
             'purchase_options' => ProductPurchaseOptionResource::collection($this->purchase_options)
         ];
     }

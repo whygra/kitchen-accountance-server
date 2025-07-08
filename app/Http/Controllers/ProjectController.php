@@ -39,7 +39,6 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProjectController extends Controller
 {
-
     public function publish_project(PublishProjectRequest $request, $id) {
         $item = $request->user()->projects()->find($id);
         if(empty($item))
@@ -121,15 +120,18 @@ class ProjectController extends Controller
         $item->name = $request->name;
 
         if(!empty($request['backdrop'])){
-            if($item->backdrop_name != '')
+            if($item->backdrop_name != ''){
                 Storage::disk('public')->delete('images/project_'.$id.'/backdrop/'.$item->backdrop_name);
-            $item->backdrop_name = $request['backdrop']['name'] ?? '';
+                $item->backdrop_name = $request['backdrop']['name'];
+            }
         }
 
         if(!empty($request['logo'])){
             if($item->logo_name != '')
+            {
                 Storage::disk('public')->delete('images/project_'.$id.'/logo/'.$item->logo_name);
-            $item->logo_name = $request['logo']['name'] ?? '';
+                $item->logo_name = $request['logo']['name'];
+            }
         }
         $item->save();
 
@@ -194,7 +196,7 @@ class ProjectController extends Controller
             Excel::import(new ProjectImport($project->id), $path);
         } catch (\Maatwebsite\Excel\Validators\ValidationException $e) {
             $failures = $e->failures();
-            return response()->json(['failures'=>$failures]);
+            return response()->json(['failures'=>$failures], 400);
         } 
 
         // удалить файл

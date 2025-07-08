@@ -21,6 +21,8 @@ class DishWithPurchaseOptionsResource extends JsonResource
             'name' => $this->name,
             'category' => $this->category,
             'group' => $this->group,
+            'total_net_weight' => $this->total_net_weight,
+            'total_gross_weight' => $this->total_gross_weight,
             'ingredients' => DishIngredientWithPurchaseOptionsResource::collection($this->ingredients),
             'image' => [
                 'url'=>$this->image_name == '' ? '' : url()->to('/').Storage::url($this->getImageDirectoryPath().'/'.$this->image_name),

@@ -20,13 +20,14 @@ class ProductIngredientResource extends JsonResource
             'type' => $this->type,
             'category' => $this->category,
             'group' => $this->group,
-            'source_weight' => $this->source_weight,
+            'total_gross_weight' => $this->total_gross_weight,
             'item_weight' => $this->item_weight,
             'is_item_measured' => $this->is_item_measured,
             'dishes' => IngredientDishResource::collection($this->dishes),
-            'raw_product_weight' => $this->pivot->raw_product_weight,
-            'raw_content_percentage' => $this->pivot->raw_content_percentage,
-            'waste_percentage' => $this->pivot->waste_percentage,
+            'waste_percentage' => 100 - $this->pivot->net_weight/($this->pivot->gross_weight==0?1:$this->pivot->gross_weight)*100,
+            'gross_weight' => $this->pivot->gross_weight,
+            'gross_share' => $this->pivot->gross_weight/$this->total_gross_weight,
+            'net_weight' => $this->pivot->net_weight,
         ];
     }
 }

@@ -87,7 +87,7 @@ class IngredientsImport implements ToCollection, WithValidation, WithUpserts, Wi
             
         if (empty($item->id)){
             $item->name = $row[0];
-            $item->project()->associate($project);      
+            $item->project()->associate($project->id);      
         } 
         return $item;
     }
@@ -95,8 +95,10 @@ class IngredientsImport implements ToCollection, WithValidation, WithUpserts, Wi
     public function collection(Collection $rows)
     {
         DB::transaction(function() use($rows){
-            foreach ($rows as $row)
+            foreach ($rows as $row){
                 $this->model($row->toArray())->save();
+                // dd($row);
+            }
         });
     }
 }

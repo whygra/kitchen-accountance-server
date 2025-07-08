@@ -19,11 +19,12 @@ class DishIngredientResource extends JsonResource
             'type' => $this->type,
             'category' => $this->category,
             'group' => $this->group,
-            'source_weight' => $this->source_weight,
+            'waste_percentage' => 100 - $this->pivot->net_weight/($this->item_weight!=0?$this->item_weight*$this->pivot->ingredient_amount:1)*100,
+            'total_gross_weight' => $this->total_gross_weight,
             'ingredient_amount' => $this->pivot->ingredient_amount,
             'is_item_measured' => $this->is_item_measured,
             'item_weight' => $this->item_weight,
-            'waste_percentage' => $this->pivot->waste_percentage,
+            'net_weight' => $this->pivot->net_weight,
             'avg_waste_percentage' => $this->avg_waste_percentage,
         ];
     }

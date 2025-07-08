@@ -101,7 +101,7 @@ class DistributorRules {
             ],
             'purchase_options.*.unit.id'=>'required',
             'purchase_options.*.unit.long'=>[
-                'exclude_unless:purchase_options.unit.id,0',
+                'exclude_unless:purchase_options.*.unit.id,0',
                 'string',
                 'max:60',
                 Rule::unique('units', 'long')
@@ -109,7 +109,7 @@ class DistributorRules {
                 'distinct:ignore_case'
             ],
             'purchase_options.*.unit.short'=>[
-                'exclude_unless:purchase_options.unit.id,0',
+                'exclude_unless:purchase_options.*.unit.id,0',
                 'string',
                 'max:6',
                 Rule::unique('units', 'short')

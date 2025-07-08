@@ -40,7 +40,7 @@ class IngredientProductsImport implements ToCollection, WithValidation, WithSkip
             '0' => 'required|string|max:60',
             '1' => 'required|string|max:60',
             '2' => 'required|numeric|min:0.01',
-            '3' => 'nullable|numeric|min:0|max:100',
+            '3' => 'nullable|numeric|min:0',
         ];
     }
 
@@ -56,14 +56,14 @@ class IngredientProductsImport implements ToCollection, WithValidation, WithSkip
 
         $ingredient = $project->ingredients()->where('name', $row[0])->first();
         $product = $project->products()->where('name', $row[1])->first();
-        $content_percentage = $row[2];
-        $waste_percentage = $row[3]??0;
+        $gross_weight = $row[2];
+        $net_weight = $row[3]??0;
         
         $ingredient->products()->detach($product);
         $ingredient->products()->attach(
             $product, [
-                'raw_product_weight' => $content_percentage, 
-                'waste_percentage' => $waste_percentage
+                'gross_weight' => $gross_weight, 
+                'net_weight' => $net_weight
             ]
         );
         
