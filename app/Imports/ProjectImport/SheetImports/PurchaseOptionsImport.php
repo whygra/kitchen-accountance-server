@@ -1,0 +1,126 @@
+<?php
+namespace App\Imports\ProjectImport\SheetImports;
+
+use App\Models\Dish\Dish;
+use App\Models\Distributor\PurchaseOption;
+use App\Models\Project;
+use Exception;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\Rule;
+use Maatwebsite\Excel\Concerns\Importable;
+use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
+use Maatwebsite\Excel\Concerns\ToCollection;
+use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithSkipDuplicates;
+use Maatwebsite\Excel\Concerns\WithUpserts;
+use Maatwebsite\Excel\Concerns\WithValidation;
+
+use function PHPUnit\Framework\isEmpty;
+
+class PurchaseOptionsImport implements ToCollection, WithValidation, WithUpserts, WithSkipDuplicates, SkipsEmptyRows
+{
+    use Importable;
+
+    private int $project_id = 0;
+
+    public function __construct(int $project_id) {
+        $this->project_id = $project_id;
+    }
+
+    // WithUpserts
+    /**
+     * @return string|array
+     */
+    public function uniqueBy()
+    {
+        return 'name';
+    }
+        
+    public function rules(): array
+    {
+        return [
+            '0' => 'nullable',
+            '1' => 'required|string|max:120',
+            '2' => 'required|numeric|min:1',
+            '3' => 'required|numeric|min:0',
+            '4' => 'required|string|max:60',
+            '5' => 'required|string|max:60',
+            '6' => 'required|string|max:12',
+            // '7' => 'nullable',
+            '8' => 'nullable|string|max:60',
+        ];
+    }
+
+    /**
+     * @param array $row
+     *
+     * @return PurchaseOption|null
+     */
+
+    public function model(array $row)
+    {
+        $project = Project::find($this->project_id);
+
+        $code = $row[0];
+        $net_weight = $row[2];
+        $price = $row[3];
+        $distributor = $project->distributors()->where('name', $row[4])->firstOrNew();
+        $product = isset($row[8]) ? $project->products()->where('name', $row[8])->firstOrNew([
+            'name'=>$row[8],
+            'project_id'=>$project->id,
+        ]) : null;
+        $is_relevant = !empty($row[7]);
+
+        if(empty($distributor->id)){
+            $distributor->name = $row[4];
+
+            $distributor->project()->associate($project->id);
+            $distributor->save();
+            $project->distributors()->save($distributor);
+        }
+        
+        $unit = $unitL = $project->units()->where('long', $row[5])->firstOrNew();
+        $unitS = $project->units()->where('short', $row[6])->firstOrNew();
+
+        if(empty($unitL->id) || empty($unitS->id)){
+            if(!empty($unitL->id)){
+                $unitL->long = $row[5];
+                $unitL->short = $row[6];
+                $unit = $unitL;
+            } else {
+                $unitS->long = $row[5];
+                $unitS->short = $row[6];
+                $unit = $unitS;
+            }
+        }
+
+        $project->units()->save($unit);
+
+        $item = $distributor->purchase_options()->where('name', $row[1])->firstOrNew();
+
+        $item->name = $row[1];
+        $item->code = $code;
+        $item->net_weight = $net_weight;
+        $item->price = $price;
+        $item->is_relevant = isset($is_relevant);
+        $item->unit_id = $unit->id;
+        $item->distributor_id  = $distributor->id;
+        $item->product_id = $product?->id ?? null;
+        
+        return $item;
+    }
+
+    public function collection(Collection $rows)
+    {
+        DB::transaction(function() use($rows){
+            foreach ($rows as $row){
+                
+                $model = $this->model($row->toArray());
+                $model->save();
+            }
+        });
+    }
+}

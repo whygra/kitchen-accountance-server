@@ -24,11 +24,9 @@ return new class extends Migration
             $table->integer('max_num_units');
 
             $table->integer('max_num_products');
-            $table->integer('max_num_product_categories');
             $table->integer('max_num_ingredients');
-            $table->integer('max_num_ingredient_categories');
             $table->integer('max_num_dishes');
-            $table->integer('max_num_dish_categories');
+            $table->integer('max_num_tags');
             $table->timestamps();
         });
 

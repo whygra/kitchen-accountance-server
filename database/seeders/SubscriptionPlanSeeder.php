@@ -25,11 +25,9 @@ class SubscriptionPlanSeeder extends Seeder
             'max_num_units' => 5,
 
             'max_num_products' => 200,
-            'max_num_product_categories' => 20,
             'max_num_ingredients' => 100,
-            'max_num_ingredient_categories' => 10,
             'max_num_dishes' => 20,
-            'max_num_dish_categories' => 5,
+            'max_num_tags' => 5,
         ]);
         DB::table(SubscriptionPlanSeeder::$tableName)->insert([
             'name' => SubscriptionPlanNames::PREMIUM,
@@ -41,11 +39,9 @@ class SubscriptionPlanSeeder extends Seeder
             'max_num_units' => 15,
 
             'max_num_products' => 20000,
-            'max_num_product_categories' => 200,
             'max_num_ingredients' => 10000,
-            'max_num_ingredient_categories' => 100,
             'max_num_dishes' => 2000,
-            'max_num_dish_categories' => 50,
+            'max_num_tags' => 50,
         ]);
     }
 }

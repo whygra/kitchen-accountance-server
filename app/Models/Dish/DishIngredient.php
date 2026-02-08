@@ -33,7 +33,7 @@ class DishIngredient extends Pivot
         'dish_id',
         'ingredient_id',
         'net_weight',
-        'ingredient_amount',
+        'amount',
     ];
 
     protected $foreignKeys = [
@@ -42,7 +42,7 @@ class DishIngredient extends Pivot
     ];
 
     protected $casts = [
-        'ingredient_amount' => 'float',
+        'amount' => 'float',
         'net_weight' => 'float',
    ];
    protected $touches = ['dish'];

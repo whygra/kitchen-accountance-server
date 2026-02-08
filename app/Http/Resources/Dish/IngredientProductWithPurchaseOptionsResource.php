@@ -17,8 +17,7 @@ class IngredientProductWithPurchaseOptionsResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'category' => $this->category,
-            'group' => $this->group,
+            'tags' => $this->tags,
             'purchase_options' => ProductPurchaseOptionResource::collection($this->purchase_options),
             'waste_percentage' => 100-($this->pivot->net_weight/$this->pivot->gross_weight * 100),
             'gross_weight' => $this->pivot->gross_weight,

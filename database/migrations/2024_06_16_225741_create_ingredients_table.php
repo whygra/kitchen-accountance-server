@@ -23,6 +23,10 @@ return new class extends Migration
             $table->foreign('type_id')->references('id')->on('ingredient_types');
             // вес 1 шт в граммах
             $table->decimal('item_weight')->default(1);
+            // масса брутто
+            $table->decimal('total_gross_weight')->default(0);
+            // масса нетто
+            $table->decimal('total_net_weight')->default(0);
             // признак - штучный ингредиент
             $table->boolean('is_item_measured')->default(0);
             // категория
@@ -54,6 +58,22 @@ return new class extends Migration
 
             $table->unique(['name', 'project_id']);
         });
+
+        // связь M-N ингредиент-ингредиент
+        Schema::create('ingredients_ingredients', function (Blueprint $table) {
+            $table->id();
+            // компонент
+            $table->foreignId('includer_id');
+            $table->foreign('includer_id')->references('id')->on('ingredients')->onDelete('cascade');
+            // продукт
+            $table->foreignId('included_id');
+            $table->foreign('included_id')->references('id')->on('ingredients')->onDelete('cascade');
+            // масса брутто
+            $table->decimal('ingredient_amount');
+            // нетто
+            $table->decimal('net_weight');
+            $table->timestamps();
+        });
     }
 
     /**
@@ -61,6 +81,7 @@ return new class extends Migration
      */
     public function down(): void
     {
+        Schema::dropIfExists('ingredients_ingredients');
         Schema::dropIfExists('ingredients');
     }
 };

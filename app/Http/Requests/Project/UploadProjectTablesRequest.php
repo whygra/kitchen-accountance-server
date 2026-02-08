@@ -11,6 +11,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Exceptions\HttpResponseException;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Rules\ProjectRules;
+use Illuminate\Validation\Rules\File;
 
 class UploadProjectTablesRequest extends FormRequest
 { 
@@ -38,8 +39,13 @@ class UploadProjectTablesRequest extends FormRequest
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
-    {
-        return [];
+    {   
+        return [
+            'file'=>[
+                'required', 
+                File::types(['xls','xlsx']),
+            ]
+        ];
     }
     public function failedValidation(Validator $validator)
     {

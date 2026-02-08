@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Exports\Sheets;
+namespace App\Exports\ProjectExport\ProjectExport\Sheets;
 
-use App\Exports\ProjectExport;
+use App\Exports\ProjectExport\ProjectExport;
 use App\Models\Dish\Dish;
 use App\Models\Project;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -36,13 +36,9 @@ class DishExport implements WithMapping, WithStyles
         $result = [
             [
                 'Наименование',
-                'Категория',
-                'Группа',
             ],
             [
                 $dish->name,
-                $dish->category?->name,
-                $dish->group?->name,
             ],
             [
                 'Описание',
@@ -65,7 +61,7 @@ class DishExport implements WithMapping, WithStyles
             array_push($result, [
                 $i->name,
                 $i->type->name,
-                $i->pivot->ingredient_amount.($i->is_item_measured?'шт':'г'),
+                $i->pivot->amount.($i->is_item_measured?'шт':'г'),
                 $i->pivot->net_weight,
             ]);
         

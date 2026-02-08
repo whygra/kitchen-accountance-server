@@ -35,8 +35,7 @@ class StoreDishWithIngredientsRequest extends ChecksPermissionsRequest
         return array_merge(
             ProjectRules::projectRules(),
             DishRules::storeDishRules($this->project_id),
-            DishRules::getDishCategoryRules($this->project_id),
-            DishRules::dishGroupRules($this->project_id),
+            DishRules::dishTagsRules($this->project_id),
             DishRules::dishIngredientsRules($this->project_id)
         );
     }

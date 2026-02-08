@@ -55,6 +55,10 @@ class InventoryAct extends Model
         'project' => 'project_id'
     ];
 
+    protected $appends = [
+        'raw_products'
+    ];
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
@@ -75,9 +79,34 @@ class InventoryAct extends Model
             ->using(InventoryActIngredient::class);
     }
 
+    protected function rawProducts(): Attribute
+    {
+        return new Attribute(
+            function (){
+                $raw_products = $this->products;
+                foreach($this->ingredients->all() as $i){
+                    foreach($i->getRawProducts() as $p){
+                        $key = array_find_key($raw_products, fn($rp)=>$rp->name==$p->name);
+                        $raw_products[$key]->amount += $p->pivot->gross_weight;
+                    }
+                }
+                return $raw_products;
+            }
+        );
+    }
+
     public function updated_by_user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by_user_id', 'id');
+    }
+
+    public function previous(): InventoryAct|null {
+        
+        $previous = $this->project->inventory_acts()
+            ->where('date', '<', $this->date)
+            ->latest('date')->first();
+            
+        return $previous;
     }
 
 }

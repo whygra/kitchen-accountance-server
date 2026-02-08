@@ -11,7 +11,9 @@ use App\Http\Requests\Dish\UpdateDishWithIngredientsRequest;
 use App\Http\Requests\Dish\UploadDishImageRequest;
 use App\Http\Resources\Dish\DishResource;
 use App\Http\Resources\Dish\DishWithPurchaseOptionsResource;
+use App\Http\Resources\Dish\MinDishResource;
 use App\Models\Dish\Dish;
+use App\Models\Dish\DishTag;
 use App\Models\Project;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
@@ -74,22 +76,15 @@ class DishController extends Controller
     
     public function index_loaded(GetDishRequest $request, $project_id)
     {
-        $all = Project::find($project_id)->dishes()->with(
-            'ingredients.type',
-            'ingredients.category',
-            'category'
-        )->get();
-        return response()->json(DishResource::collection($all));
+        $all = Project::find($project_id)->dishes()->get();
+        return response()->json(MinDishResource::collection($all));
     }
 
     public function show_loaded(GetDishRequest $request, $project_id, $id)
     {
         $item = Project::find($project_id)->dishes()->with(
             ['ingredients.type', 
-            'ingredients.category',
-            'ingredients.group',
-            'category',
-            'group']
+            'tags']
         )->find($id);
 
         if (empty($item))
@@ -127,25 +122,6 @@ class DishController extends Controller
             // добавление данных блюда
             $item->project_id = $request['project_id'];
             $item->description = $request['description'];
-            
-            $category = null;
-            if($request['category']['id'])
-                $category = $project->dish_categories()->find($request['category']['id']);
-            else if(!empty($request['category']['name']))
-                $category = $project->dish_categories()->create([
-                    'name'=>$request['category']['name'],
-                ]);
-            $item->category()->associate($category);
-            
-            $group = null;
-            if($request['group']['id'])
-                $group = $project->dish_groups()->find($request['group']['id']);
-            else if(!empty($request['group']['name']))
-                $group = $project->dish_groups()->create([
-                    'name'=>$request['group']['name'],
-                ]);
-
-            $item->group()->associate($group);
 
             $item->name = $request->name;
 
@@ -153,6 +129,7 @@ class DishController extends Controller
     
             $item->save();
     
+            $this->process_tags($item, $request);
             $this->process_ingredients($item, $request);
         });
 	
@@ -177,29 +154,10 @@ class DishController extends Controller
 
         DB::transaction(function() use ($request, $project, $item) {
             // обновление данных блюда
-            $category = null;
-            if($request['category']['id'])
-                $category = $project->dish_categories()->find($request['category']['id']);
-            else if(!empty($request['category']['name']))
-                $category = $project->category()->create([
-                    'name'=>$request['category']['name'],
-                ]);
-
-            $item->category()->associate($category);
-
-            $group = null;
-            if($request['group']['id'])
-                $group = $project->dish_groups()->find($request['group']['id']);
-            else if(!empty($request['group']['name']))
-                $group = $project->dish_groups()->create([
-                    'name'=>$request['group']['name'],
-                ]);
-
-            $item->group()->associate($group);
-                
             $item->name = $request->name;
             
             $this->process_ingredients($item, $request);
+            $this->process_tags($item, $request);
             $item->save();
             
         });
@@ -235,14 +193,53 @@ class DishController extends Controller
 
             $ingredients[$ingredient->id] = [
                 'net_weight'=>$i['net_weight'],
-                'ingredient_amount'=>$i['ingredient_amount']
+                'amount'=>$i['amount'],
             ];
         }
     
         $sync = $item->ingredients()->sync($ingredients);
+        
+        $item->total_gross_weight = $item->atr_total_gross_weight;
+        $item->total_net_weight = $item->atr_total_net_weight;
+        // $item->avg_waste_percentage = 100 - $item->total_net_weight/($item->total_gross_weight==0?1:$item->total_gross_weight)*100;
+
         if(!empty($sync['detached'])||!empty($sync['attached'])||!empty($sync['updated']))
             $item->touch();
 
+    }
+
+    // теги
+    private function process_tags(Dish $item, FormRequest $request) {
+        $project = Project::find($request->project_id);
+        
+        $nNewTags = count(array_filter(
+            $request['tags'],
+            fn($p)=>($p['id'] ?? 0)==0
+        ));
+
+        $freeSlots = $project->freeDishTagSlots();
+        if($freeSlots<$nNewTags)
+            return response()->json([
+                'message' => "Невозможно добавить $nNewTags тэгов. Превышается лимит (осталось $freeSlots)."
+            ], 400);
+            
+        $tags = [];
+            
+        foreach($request['tags'] as $t){
+            $tag = $project->dish_tags()->where('name', $t['name'])->first();
+
+            // если тега нет - создаем
+            if(empty($tag)){
+
+                $tag = $project->dish_tags()->create(['name'=>$t['name']]);
+            }
+
+            array_push($tags, $tag->id);
+        }
+
+        // синхронизировать теги
+        $item->tags()->sync($tags);
+    
     }
 
     // блюдо с позициями закупки
@@ -253,8 +250,7 @@ class DishController extends Controller
         $items = $project->dishes()->with(
             'ingredients.products.purchase_options.distributor',
             'ingredients.type',
-            'ingredients.category',
-            'category',
+            'tags',
             )->get();
             
         return response()->json(DishWithPurchaseOptionsResource::collection($items));
@@ -267,8 +263,7 @@ class DishController extends Controller
         $item = $project->dishes()->with(
             'ingredients.products.purchase_options.distributor',
             'ingredients.type',
-            'ingredients.category',
-            'category',
+            'tags',
             )->find($id);
         if (empty($item))
             return response()->json([

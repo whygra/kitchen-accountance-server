@@ -27,8 +27,7 @@ class UpdateDishWithIngredientsRequest extends ChecksPermissionsRequest
         return array_merge(
             ProjectRules::projectRules(),
             DishRules::getUpdateDishRules($this->id, $this->project_id),
-            DishRules::getDishCategoryRules($this->project_id),
-            DishRules::dishGroupRules($this->project_id),
+            DishRules::dishTagsRules($this->project_id),
             DishRules::dishIngredientsRules($this->project_id)
         );
     }

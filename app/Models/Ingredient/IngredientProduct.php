@@ -48,8 +48,21 @@ class IngredientProduct extends Pivot
     protected $casts = [
         'gross_weight' => 'float',
         'net_weight' => 'float',
+        'share' => 'float',
     ];
     protected $touches = ['ingredient'];
+    
+
+   protected $appends = [
+        'share'
+   ];
+
+    protected function share(): Attribute
+    {
+        return new Attribute(
+            get: fn () => $this->gross_weight/($this->ingredient->total_gross_weight==0?1:$this->ingredient->total_gross_weight),
+        );
+    }
 
     public function ingredient(): BelongsTo
     {

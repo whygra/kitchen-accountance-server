@@ -34,8 +34,7 @@ class StoreProductWithPurchaseOptionsRequest extends ChecksPermissionsRequest
             ProjectRules::projectRules(),
             ProductRules::storeProductRules($this->project_id),
             ProductRules::productPurchaseOption($this->project_id),
-            ProductRules::productGroupRules($this->project_id),
-            ProductRules::productCategoryRules($this->project_id),
+            ProductRules::productTagsRules($this->project_id),
         );
     }
 }

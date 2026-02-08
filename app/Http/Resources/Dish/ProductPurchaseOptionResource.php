@@ -15,12 +15,12 @@ class ProductPurchaseOptionResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'is_relevant' => $this->is_relevant,
             'name' => $this->name,
             'net_weight' => $this->net_weight,
             'price' => $this->price,
             'distributor' => $this->distributor,
             'unit' => $this->unit,
-            'product_share' => $this->pivot->product_share,
         ];
     }
 }

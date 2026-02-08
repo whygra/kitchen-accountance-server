@@ -10,14 +10,12 @@ use App\Http\Requests\Product\StoreProductWithPurchaseOptionsRequest;
 use App\Http\Requests\Product\UpdateProductWithPurchaseOptionsRequest;
 use App\Models\Distributor\PurchaseOption;
 use App\Models\Distributor\Unit;
-use App\Models\Product\ProductCategory;
-use App\Models\Product\ProductGroup;
+use App\Models\Product\ProductTag;
 use App\Models\Project;
 use Exception;
 use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\DB;
-use PhpOffice\PhpSpreadsheet\Calculation\Category;
 
 class ProductController extends Controller
 {
@@ -33,7 +31,7 @@ class ProductController extends Controller
     public function index_with_purchase_options(GetProductWithPurchaseOptionsRequest $request, $project_id)
     {
         $project = Project::find($project_id);
-        $all = $project->products()->with('purchase_options.distributor', 'category')->get();
+        $all = $project->products()->with('purchase_options.distributor', 'tags')->get();
         return response()->json(ProductResource::collection($all));
     }
 
@@ -49,8 +47,6 @@ class ProductController extends Controller
             ], 400);
         $new = new Product;
         $new->name = $request->name;
-        $new->category_id = $request->category_id;
-        $new->group_id = $request->group_id;
         $project->products()->save($new);
         return response()->json($new, 201);
     }
@@ -73,27 +69,10 @@ class ProductController extends Controller
             // обновление данных поставщика
             $item->name = $request->name;
 
-            $group = null;
-            if($request['group']['id'] !== 0)
-                $group = $project->product_groups()->find($request['group']['id']);
-            else if(!empty($request['group']['name']))
-                $group = $project->products()->create([
-                    'name'=>$request['group']['name'],
-                ]);
-            $item->group()->associate($group);
-
-            $category = null;
-            if($request['category']['id'] !== 0)
-                $category = $project->product_categories()->find($request['category']['id']);
-            else if(!empty($request['category']['name']))
-                $category = $project->product_categories()->create([
-                    'name'=>$request['category']['name'],
-                ]);
-            $item->category()->associate($category);
-
             $item->save();
             
             $this->process_purchase_options($request, $project->id, $item);
+            $this->process_tags($item, $request);
         });
         $project->products()->save($item);
         return response()->json($item, 201);
@@ -116,7 +95,7 @@ class ProductController extends Controller
     public function show_with_purchase_options(GetProductWithPurchaseOptionsRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
-        $item = $project->products()->with('purchase_options.distributor', 'category')->find($id);
+        $item = $project->products()->with('purchase_options.distributor', 'tags')->find($id);
         if (empty($item))
             return response()->json([
                 'message' => "Не удалось найти продукт с id=".$item->id
@@ -138,7 +117,6 @@ class ProductController extends Controller
             ], 404);
 
         $item->name = $request->name;
-        $item->category_id = $request->category_id;
         $project->products()->save($item);
         return response()->json($item, 200);
     }
@@ -156,30 +134,11 @@ class ProductController extends Controller
         DB::transaction(function() use ($request, $project, $item) {
             // обновление данных поставщика
             $item->name = $request->name;
-            
-            $group = null;
-            if($request['group']['id'] !== 0)
-                $group = $project->product_groups()->find($request['group']['id']);
-            else if(!empty($request['group']['name']))
-                $group = $project->product_groups()->create([
-                    'name'=>$request['group']['name'],
-                ]);
-
-            $item->group()->associate($group);
-
-            $category = null;
-            if($request['category']['id'] !== 0)
-                $category = $project->product_categories()->find($request['category']['id']);
-            else if(!empty($request['category']['name']))
-                $category = $project->product_categories()->create([
-                    'name'=>$request['category']['name'],
-                ]);
-
-            $item->category()->associate($category);
 
             $project->products()->save($item);
             
             $this->process_purchase_options($request, $project->id, $item);
+            $this->process_tags($item, $request);
         });
 
         return response()->json($item, 201);
@@ -202,19 +161,53 @@ class ProductController extends Controller
 
     
     private function process_purchase_options(FormRequest $request, $project_id, Product $item) {
-        $purchaseOptions = [];
+        $sync = $item->purchase_options()->update(['product_id' => null]);
         foreach($request->purchase_options as $o){
             $option = PurchaseOption::with([
                 'distributor' => function($query)use($project_id){
                     $query->where('project_id', $project_id);
                 }
             ])->find($o['id']);
-            $purchaseOptions[$option->id] = ['product_share'=>$o['product_share']];
+            $item->purchase_options()->save($option);
         }
     
-        $sync = $item->purchase_options()->sync($purchaseOptions);
-        if(!empty($sync['attached'])||!empty($sync['detached'])||!empty($sync['updated']))
+
             $item->touch();
 
     }
+
+    
+    // теги
+    private function process_tags(Product $item, FormRequest $request) {
+        $project = Project::find($request->project_id);
+        
+        $nNewTags = count(array_filter(
+            $request['tags'],
+            fn($p)=>($p['id'] ?? 0)==0
+        ));
+
+        $freeSlots = $project->freeDishTagSlots();
+        if($freeSlots<$nNewTags)
+            return response()->json([
+                'message' => "Невозможно добавить $nNewTags тэгов. Превышается лимит (осталось $freeSlots)."
+            ], 400);
+            
+        $tags = [];
+            
+        foreach($request->tags as $t){
+            $tag = $project->product_tags()->where('name', $t['name'])->first();
+
+            if(empty($tag)){
+                $tag = $project->product_tags()->create();
+                $tag->name = $t['name'];
+                $tag->save();
+            }
+
+            array_push($tags, $tag->id);
+        }
+
+        $item->tags()->sync($tags);
+    
+    }
+
 }

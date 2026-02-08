@@ -51,6 +51,7 @@ class PurchaseOption extends Model
      */
     protected $fillable = [
         'distributor_id',
+        'is_relevant',
         'unit_id',
         'code',
         'name',
@@ -68,6 +69,7 @@ class PurchaseOption extends Model
     protected $casts = [
         'price' => 'float',
         'code' => 'string',
+        'is_relevant' => 'boolean',
     ];
 
     protected $touches = ['distributor'];
@@ -91,14 +93,17 @@ class PurchaseOption extends Model
             ->using(PurchaseActItem::class);
     }
 
-    public function products(): BelongsToMany
+    public function product(): BelongsTo
     {
-        return $this->belongsToMany(Product::class, 'products_purchase_options', 'purchase_option_id', 'product_id')
-            ->withPivot('product_share')
-            ->using(ProductPurchaseOption::class);
+        return $this->belongsTo(Product::class, 'product_id', 'id');
     }
 
-        public function unit(): BelongsTo
+    public function products(): BelongsToMany
+    {
+        return $this->belongsToMany(Product::class, 'products_purchase_options', 'purchase_option_id', 'product_id');
+    }
+
+    public function unit(): BelongsTo
     {
         return $this->belongsTo(Unit::class, 'unit_id', 'id');
     }

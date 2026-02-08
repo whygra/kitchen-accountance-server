@@ -14,10 +14,12 @@ use App\Models\Ingredient\Ingredient;
 use App\Models\Product\Product;
 use App\Models\Project;
 use App\Models\Storage\InventoryAct;
+use App\Models\User\SubscriptionPlanNames;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use PhpOption\None;
 
 class InventoryActController extends Controller
 {
@@ -39,10 +41,10 @@ class InventoryActController extends Controller
     public function store(StoreInventoryActRequest $request, $project_id)
     {
         $project = Project::find($project_id);
-        // if($project->freeDishSlots()<1)
-        //     return response()->json([
-        //         'message' => "Достигнут лимит количества ингредиентов."
-        //     ], 400);
+        if($project->subscription_plan->name == SubscriptionPlanNames::NONE)
+            return response()->json([
+                'message' => "Проект не поддерживает учет склада"
+            ], 400);
 
         $new = new InventoryAct;
         $new->date = $request->date;
@@ -102,6 +104,22 @@ class InventoryActController extends Controller
             return response()->json([
                 'message' => "Акт инвентаризации с id=$id не найден"
             ], 404); 
+            
+        return response()->json(new InventoryActResource($item));
+    }
+
+    public function show_with_previous(GetInventoryActRequest $request, $project_id, $id)
+    {
+        $project = Project::find($project_id);
+        $item = $project->inventory_acts()->with([
+            'updated_by_user'
+            ])->find($id);
+        if (empty($item))
+            return response()->json([
+                'message' => "Акт инвентаризации с id=$id не найден"
+            ], 404); 
+        
+        
             
         return response()->json(new InventoryActResource($item));
     }

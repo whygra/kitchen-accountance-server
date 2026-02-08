@@ -54,37 +54,25 @@ class UserProjectResource extends JsonResource
                 'max' => $this->subscription_plan->max_num_products,
                 'current' => $this->products->count(),
             ],
-            'num_product_categories' => [
-                'max' => $this->subscription_plan->max_num_product_categories,
-                'current' => $this->product_categories->count(),
-            ],
-            'num_product_groups' => [
-                'max' => $this->subscription_plan->max_num_product_categories,
-                'current' => $this->product_groups->count(),
+            'num_product_tags' => [
+                'max' => $this->subscription_plan->max_num_tags,
+                'current' => $this->product_tags->count(),
             ],
             'num_ingredients' => [
                 'max' => $this->subscription_plan->max_num_ingredients,
                 'current' => $this->ingredients->count(),
             ],
-            'num_ingredient_categories' => [
-                'max' => $this->subscription_plan->max_num_ingredient_categories,
-                'current' => $this->ingredient_categories->count(),
-            ],
-            'num_ingredient_groups' => [
-                'max' => $this->subscription_plan->max_num_ingredient_categories,
-                'current' => $this->ingredient_groups->count(),
+            'num_ingredient_tags' => [
+                'max' => $this->subscription_plan->max_num_tags,
+                'current' => $this->ingredient_tags->count(),
             ],
             'num_dishes' => [
                 'max' => $this->subscription_plan->max_num_dishes,
                 'current' => $this->dishes->count(),
             ],
-            'num_dish_categories' => [
-                'max' => $this->subscription_plan->max_num_dish_categories,
-                'current' => $this->dish_categories->count(),
-            ],
-            'num_dish_groups' => [
-                'max' => $this->subscription_plan->max_num_dish_categories,
-                'current' => $this->dish_groups->count(),
+            'num_dish_tags' => [
+                'max' => $this->subscription_plan->max_num_tags,
+                'current' => $this->dish_tags->count(),
             ],
             
             'role' => new RoleResource(Role::with('permissions')->find($this->pivot->role_id))

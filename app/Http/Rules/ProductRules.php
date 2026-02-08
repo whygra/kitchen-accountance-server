@@ -37,30 +37,24 @@ class ProductRules {
         ];
     }
 
-    public static function productCategoryRules(int $projectId) {
+    public static function productTagsRules(int $projectId) {
         return [
-            'category.id'=>'required',
-            'category.name'=>[
-                'nullable',
-                'exclude_unless:category.id,0',
+            'tags'=>'nullable|array',
+            'tags.*.id'=>[
+                'required',
+                'exclude_if:tags.*.id,0',
+                'distinct',
+                Rule::exists('product_tags')->where(function(Builder $query) use($projectId){
+                    return $query->where('project_id', $projectId);
+                })
+            ],
+            'tags.*.name'=>[
+                'exclude_unless:tags.*.id,null',
                 'string',
                 'max:60',
-                Rule::unique('product_categories', 'name')
+                Rule::unique('product_tags', 'name')
                     ->where('project_id', $projectId),
-            ]
-        ];
-    }
-
-    public static function productGroupRules(int $projectId) {
-        return [
-            'group.id'=>'required',
-            'group.name'=>[
-                'nullable',
-                'exclude_unless:group.id,0',
-                'string',
-                'max:60',
-                Rule::unique('product_groups', 'name')
-                    ->where('project_id', $projectId),
+                'distinct:ignore_case',
             ],
         ];
     }
@@ -75,7 +69,7 @@ class ProductRules {
                     ,
                 'distinct',
             ],
-            'purchase_options.*.product_share'=>'required|numeric|min:1|max:100',
+            // 'purchase_options.*.product_share'=>'required|numeric|min:1|max:100',
         ];
     }
 

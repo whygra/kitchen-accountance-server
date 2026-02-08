@@ -21,8 +21,7 @@ class IngredientResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'type' => $this->type,
-            'category' => $this->category,
-            'group' => $this->group,
+            'tags' => $this->tags,
             'total_gross_weight' => $this->total_gross_weight,
             'total_net_weight' => $this->total_net_weight,
             'avg_waste_percentage' => $this->avg_waste_percentage,
@@ -30,6 +29,8 @@ class IngredientResource extends JsonResource
             'is_item_measured' => $this->is_item_measured,
 
             // связанные сущности
+            'superior_ingredients' => IncludedIngredientResource::collection($this->superior_ingredients),
+            'ingredients' => IncludedIngredientResource::collection($this->ingredients),
             'products' => IngredientProductResource::collection($this->products),
             'dishes' => IngredientDishResource::collection($this->dishes),
         ];

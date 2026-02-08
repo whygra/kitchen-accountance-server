@@ -3,16 +3,13 @@
 namespace App\Models;
 
 use App\Models\Dish\Dish;
-use App\Models\Dish\DishCategory;
-use App\Models\Dish\DishGroup;
+use App\Models\Dish\DishTag;
 use App\Models\Distributor\Distributor;
 use App\Models\Distributor\Unit;
 use App\Models\Ingredient\Ingredient;
-use App\Models\Ingredient\IngredientCategory;
-use App\Models\Ingredient\IngredientGroup;
+use App\Models\Ingredient\IngredientTag;
 use App\Models\Product\Product;
-use App\Models\Product\ProductCategory;
-use App\Models\Product\ProductGroup;
+use App\Models\Product\ProductTag;
 use App\Models\Storage\InventoryAct;
 use App\Models\Storage\PurchaseAct;
 use App\Models\Storage\SaleAct;
@@ -32,6 +29,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+
+use function PHPUnit\Framework\isEmpty;
 
 class Project extends Model
 {
@@ -125,29 +124,20 @@ class Project extends Model
     public function freeProductSlots() : int {
         return $this->subscription_plan->max_num_products - $this->products()->count();
     }
-    public function freeProductCategorySlots() : int {
-        return $this->subscription_plan->max_num_product_categories - $this->product_categories()->count();
-    }
-    public function freeProductGroupSlots() : int {
-        return $this->subscription_plan->max_num_product_categories - $this->product_groups()->count();
+    public function freeProductTagSlots() : int {
+        return $this->subscription_plan->max_num_tags - $this->product_tags()->count();
     }
     public function freeIngredientSlots() : int {
         return $this->subscription_plan->max_num_ingredients - $this->ingredients()->count();
     }
-    public function freeIngredientCategorySlots() : int {
-        return $this->subscription_plan->max_num_ingredient_categories - $this->ingredient_categories()->count();
-    }
-    public function freeIngredientGroupSlots() : int {
-        return $this->subscription_plan->max_num_ingredient_categories - $this->ingredient_groups()->count();
+    public function freeIngredientTagSlots() : int {
+        return $this->subscription_plan->max_num_tags - $this->ingredient_tags()->count();
     }
     public function freeDishSlots() : int {
         return $this->subscription_plan->max_num_dishes - $this->dishes()->count();
     }
-    public function freeDishCategorySlots() : int {
-        return $this->subscription_plan->max_num_dish_categories - $this->dish_categories()->count();
-    }
-    public function freeDishGroupSlots() : int {
-        return $this->subscription_plan->max_num_dish_categories - $this->dish_groups()->count();
+    public function freeDishTagSlots() : int {
+        return $this->subscription_plan->max_num_tags - $this->dish_tags()->count();
     }
 
     // путь к папке проекта в хранилище изображений
@@ -206,38 +196,26 @@ class Project extends Model
     {
         return $this->hasMany(Product::class);
     }
-    public function product_categories(): HasMany
+    public function product_tags(): HasMany
     {
-        return $this->hasMany(ProductCategory::class);
-    }
-    public function product_groups(): HasMany
-    {
-        return $this->hasMany(ProductGroup::class);
+        return $this->hasMany(ProductTag::class);
     }
 
     public function ingredients(): HasMany
     {
         return $this->hasMany(Ingredient::class);
     }
-    public function ingredient_categories(): HasMany
+    public function ingredient_tags(): HasMany
     {
-        return $this->hasMany(IngredientCategory::class);
-    }
-    public function ingredient_groups(): HasMany
-    {
-        return $this->hasMany(IngredientGroup::class);
+        return $this->hasMany(IngredientTag::class);
     }
     public function dishes(): HasMany
     {
         return $this->hasMany(Dish::class);
     }
-    public function dish_categories(): HasMany
+    public function dish_tags(): HasMany
     {
-        return $this->hasMany(DishCategory::class);
-    }
-    public function dish_groups(): HasMany
-    {
-        return $this->hasMany(DishGroup::class);
+        return $this->hasMany(DishTag::class);
     }
     public function inventory_acts(): HasMany
     {
@@ -255,4 +233,45 @@ class Project extends Model
     {
         return $this->hasMany(SaleAct::class);
     }
+
+    public function get_inventory_estimate($date) {
+        $last = $this->inventory_acts->where('date', '<', $date)
+            ->latest('date')->first();
+        
+        $estimate = new InventoryAct($last);
+
+        $sales = $this->sale_acts()->where(fn($a)=>$a->date >= $last->date && $a->date < $date);
+        $purchases = $this->purchase_acts()->where(fn($a)=>$a->date >= $last->date && $a->date < $date);
+        $write_offs = $this->write_off_acts()->where(fn($a)=>$a->date >= $last->date && $a->date < $date);
+
+        foreach($sales as $s) {
+            foreach($s->items as $dish){
+                foreach($dish->getRawProducts() as $p){
+                    $key = array_find_key($estimate->products, fn($ep)=>$ep->name == $p->name);
+                    if(isEmpty($key)){
+                        array_push($estimate->products, $p);
+                    }
+                    else{
+                        $estimate->products[$key]->amount = $p->amount;
+                    }
+                }
+
+            }
+        }
+
+        foreach($purchases as $p) {
+            foreach($p->items as $po){
+                foreach($po->products as $product){
+                    $key = array_find_key($estimate->products, fn($ep)=>$product->name == $p->name);
+                    if(isEmpty($key)){
+                        array_push($estimate->products, $p);
+                    }
+                    else{
+                        $estimate->products[$key]->amount = $p->amount;
+                    }
+                }
+
+            }
+        }
+    } 
 }

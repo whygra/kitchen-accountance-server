@@ -12,13 +12,9 @@ use App\Http\Requests\Ingredient\UpdateIngredientWithProductsRequest;
 use App\Http\Resources\Dish\DishIngredientWithPurchaseOptionsResource;
 use App\Http\Resources\Ingredient\IngredientResource;
 use App\Http\Resources\Ingredient\IngredientWithPurchaseOptionsResource;
+use App\Http\Resources\Ingredient\MinIngredientResource;
 use App\Models\Ingredient\AbstractIngredient;
 use App\Models\Ingredient\Ingredient;
-use App\Models\Ingredient\IngredientCategory;
-use App\Models\Ingredient\IngredientGroup;
-use App\Models\Ingredient\IngredientProduct;
-use App\Models\Ingredient\SecondaryIngredient;
-use App\Models\Ingredient\SecondaryIngredientIngredient;
 use App\Models\Product\Product;
 use App\Models\Project;
 use Illuminate\Database\Eloquent\Collection;
@@ -34,7 +30,7 @@ class IngredientController extends Controller
     public function index(GetIngredientRequest $request, $project_id)
     {
         $project = Project::find($project_id);
-        $all = $project->ingredients()->get();
+        $all = $project->ingredients()->with('type')->get();
         return response()->json($all);
     }
  
@@ -94,7 +90,7 @@ class IngredientController extends Controller
     {
         $project = Project::find($project_id);
         $all = $project->ingredients()->with(
-            'products.category', 'type', 'category',
+            'products', 'type', 'tags',
         )->get();
         return response()->json(IngredientResource::collection($all));
     }
@@ -103,21 +99,21 @@ class IngredientController extends Controller
     {
         $project = Project::find($project_id);
         $item = $project->ingredients()->with([
-            'products.category', 'products.purchase_options.distributor', 'type', 'category', 'dishes.category', 'updated_by_user'
+            'products', 'products.purchase_options.distributor', 'type', 'tags', 'dishes', 'updated_by_user'
             ])->find($id);
         if (empty($item))
             return response()->json([
                 'message' => "Ингредиент с id=$id не найден"
             ], 404);
             
-        return response()->json(new IngredientResource($item));
+        return response()->json(new MinIngredientResource($item));
     }
 
     public function show_with_purchase_options(GetIngredientRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
-        $item = $project->infgredients()->with([
-            'products.category','products.purchase_options.distributor', 'type', 'category', 'dishes.category', 'updated_by_user'
+        $item = $project->ingredients()->with([
+            'products','products.purchase_options.distributor', 'type', 'tags', 'dishes', 'updated_by_user'
             ])->find($id);
         if (empty($item))
             return response()->json([
@@ -144,32 +140,21 @@ class IngredientController extends Controller
             if($request['is_item_measured']){
                 $item->item_weight = $request['item_weight'];
                 $item->is_item_measured =$request['is_item_measured'];
+            } else {
+                $item->item_weight = 1;
             }
             $item->type_id = $request['type']['id'];
-
-            $group = null;
-            if($request['group']['id'] !== 0)
-                $group = $project->ingredient_groups()->find($request['group']['id']);
-            else if(!empty($request['group']['name']))
-                $group = $project->ingredient_groups()->create([
-                    'name'=>$request['group']['name'],
-                ]);
-
-            $item->group()->associate($group);
-
-            $category = null;
-            if($request['category']['id'] !== 0)
-                $category = $project->ingredient_categories()->find($request['category']['id']);
-            else if(!empty($request['category']['name']))
-                $category = $project->ingredient_categories()->create([
-                    'name'=>$request['category']['name'],
-                ]);
-
-            $item->category()->associate($category);
 
             $project->ingredients()->save($item);
 
             $this->process_products($item, $request);
+            $this->process_ingredients($item, $request);
+            $this->process_tags($item, $request);
+            
+            $item->total_gross_weight = $item->getAtrTotalGrossWeight();
+            $item->total_net_weight = $item->getAtrTotalNetWeight();
+
+            $item->save();
         });
         
         return response()->json($item, 201);
@@ -190,35 +175,25 @@ class IngredientController extends Controller
 
         DB::transaction(function() use ($request, $project, $item) {
             $this->process_products($item, $request);
+            $this->process_ingredients($item, $request);
+            $this->process_tags($item, $request);
 
             // обновление данных компонента
             $item->name = $request->name;
             $item->description = $request['description'];
             $item->type_id = $request['type']['id'];
             
+            $item->is_item_measured =$request['is_item_measured'];
             if($request['is_item_measured']){
                 $item->item_weight = $request['item_weight'];
-                $item->is_item_measured =$request['is_item_measured'];
+            } else {
+                $item->item_weight = 1;
             }
 
-            $group = null;
-            if($request['group']['id'] !== 0)
-                $group = $project->ingredient_groups()->find($request['group']['id']);
-            else if(!empty($request['group']['name']))
-                $group = $project->ingredient_groups()->create([
-                    'name'=>$request['group']['name'],
-                ]);
 
-            $item->group()->associate($group);
-
-            $category = null;
-            if($request['category']['id'] !== 0)
-                $category = $project->ingredient_categories()->find($request['category']['id']);
-            else if(!empty($request['category']['name']))
-                $category = $project->ingredient_categories()->create(['name'=>$request['category']['name']]);
-
-            $item->category()->associate($category);
-
+            $item->total_gross_weight = $item->getAtrTotalGrossWeight();
+            $item->total_net_weight = $item->getAtrTotalNetWeight();
+            
             $item->save();
             
         });
@@ -261,6 +236,80 @@ class IngredientController extends Controller
             $item->touch();
 
     }
+    
+    private function process_ingredients(Ingredient $item, FormRequest $request) {
+        $project = Project::find($request['project_id']);
+        
+        $nNewIngredients = count(array_filter(
+            $request['ingredients'],
+            fn($p)=>($p['id'] ?? 0)==0
+        ));
+
+        $freeSlots = $project->freeProductSlots();
+        if($freeSlots<$nNewIngredients)
+            return response()->json([
+                'message' => "Невозможно добавить $nNewIngredients ингредиентов. Превышается лимит количества (осталось $freeSlots)."
+            ], 400);
+
+        $ingredients = [];
+        foreach($request->ingredients as $p){
+            $ingredient = $project->ingredients()->findOrNew($p['id']);
+
+            if(empty($ingredient->id)){
+                $ingredient->name = $p['name'];
+                $ingredient->type_id = $p['type']['id'];
+                $ingredient->project_id = $request['project_id'];
+                $ingredient->save();
+            }
+
+            $ingredients[$ingredient->id] = [
+                'amount'=>$p['amount'],
+                'net_weight'=>$p['net_weight']
+            ];
+        }
+    
+        $sync = $item->ingredients()->sync($ingredients);
+        
+        $item->total_gross_weight = $item->atr_total_gross_weight;
+        $item->total_net_weight = $item->atr_total_net_weight;
+
+        if(!empty($sync['attached'])||!empty($sync['detached'])||!empty($sync['updated']))
+            $item->touch();
+
+    }
+    // теги
+    private function process_tags(Ingredient $item, FormRequest $request) {
+        $project = Project::find($request->project_id);
+        
+        $nNewTags = count(array_filter(
+            $request['tags'],
+            fn($p)=>($p['id'] ?? 0)==0
+        ));
+
+        $freeSlots = $project->freeIngredientTagSlots();
+        if($freeSlots<$nNewTags)
+            return response()->json([
+                'message' => "Невозможно добавить $nNewTags тэгов. Превышается лимит (осталось $freeSlots)."
+            ], 400);
+            
+        $tags = [];
+            
+        foreach($request->tags as $t){
+            $tag = $project->ingredient_tags()->where('name', $t['name'])->first();
+
+            if(empty($tag)){
+                $tag = $project->ingredient_tags()->create();
+                $tag->name = $t['name'];
+                $tag->save();
+            }
+
+            array_push($tags, $tag->id);
+        }
+
+        $item->tags()->sync($tags);
+
+    }
+
 
     /**
      * Remove the specified resource from storage.

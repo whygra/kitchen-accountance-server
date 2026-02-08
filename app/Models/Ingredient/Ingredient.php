@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Facades\Auth;
 
+use function PHPUnit\Framework\isEmpty;
+
 class Ingredient extends Model
 {
     use HasFactory;
@@ -47,17 +49,15 @@ class Ingredient extends Model
         'name',
         'description',
         'type_id',
-        'category_id',
-        'group_id',
         'is_item_measured',
         'item_weight',
         'updated_by_user_id',
+        'total_gross_weight',
+        'total_net_weight',
     ];
 
     protected $foreignKeys = [
         'type' => 'type_id', 
-        'category' => 'category_id', 
-        'group' => 'group_id', 
         'updated_by_user' => 'updated_by_user_id',
         'project' => 'project_id'
     ];
@@ -72,41 +72,54 @@ class Ingredient extends Model
         'is_item_measured' => 'boolean',
         'total_gross_weight' => 'float',
         'total_net_weight' => 'float',
+        'atr_total_gross_weight' => 'float',
+        'atr_total_net_weight' => 'float',
         'avg_waste_percentage' => 'float',
     ];
 
+    
+
     protected $appends = [
-        'total_gross_weight',
-        'total_net_weight',
+        // 'atr_total_gross_weight',
+        // 'atr_total_net_weight',
         'avg_waste_percentage',
     ];
     
-    protected function totalGrossWeight(): Attribute
+    public function getAtrTotalGrossWeight()
     {
-        return new Attribute(
-            get: fn () => array_reduce(
+        return 
+            array_reduce(
                 $this->products()->get()->toArray(),
                 fn($total, $p)=>$total+$p['pivot']['gross_weight'],
                 0
-            ),
-        );
+            ) +
+            array_reduce(
+                $this->ingredients()->get()->toArray(),
+                fn($total, $p)=>$total+$p['pivot']['amount']*$p['item_weight'],
+                0
+            );
+        
     }
     
-    protected function totalNetWeight(): Attribute
+    public function getAtrTotalNetWeight()
     {
-        return new Attribute(
-            get: fn () => array_reduce(
-                $this->products()->get()->toArray(),
+        return
+            array_reduce(
+                $this->products->toArray(),
                 fn($total, $p)=>$total+$p['pivot']['net_weight'],
                 0
-            ),
-        );
+            )
+            + array_reduce(
+                $this->ingredients->toArray(),
+                fn($total, $p)=>$total+$p['pivot']['net_weight'],
+                0
+            );
     }
     
     protected function avgWastePercentage(): Attribute
     {
-        return new Attribute(
-            get: fn () => 100 - $this->total_net_weight/($this->total_gross_weight!=0?$this->total_gross_weight:1)*100,
+        return Attribute::make(
+            get: fn () => 100 - ($this->total_net_weight * 100 / ($this->total_gross_weight==0?1:$this->total_gross_weight)),
         );
     }
     
@@ -115,20 +128,15 @@ class Ingredient extends Model
         return $this->belongsTo(IngredientType::class, 'type_id', 'id');
     }
 
-    public function category(): BelongsTo
+    public function tags(): BelongsToMany
     {
-        return $this->belongsTo(IngredientCategory::class, 'category_id', 'id');
-    }
-
-    public function group(): BelongsTo
-    {
-        return $this->belongsTo(IngredientGroup::class, 'group_id', 'id');
+        return $this->belongsToMany(IngredientTag::class, 'ingredients_tags', 'ingredient_id', 'tag_id');
     }
 
     public function dishes(): BelongsToMany
     {
         return $this->belongsToMany(Dish::class, 'dishes_ingredients')
-            ->withPivot(['net_weight', 'ingredient_amount'])
+            ->withPivot(['net_weight', 'amount'])
             ->using(DishIngredient::class);
     }
 
@@ -139,9 +147,47 @@ class Ingredient extends Model
             ->using(IngredientProduct::class);
     }
 
+    public function ingredients(): BelongsToMany
+    {
+        return $this->belongsToMany(Ingredient::class, 'ingredients_ingredients', 'includer_id', 'included_id')
+            ->withPivot(['amount', 'net_weight'])
+            ->using(IngredientIngredient::class);
+    }
+
+    public function superior_ingredients(): BelongsToMany
+    {
+        return $this->belongsToMany(Ingredient::class, 'ingredients_ingredients', 'included_id', 'includer_id')
+            ->withPivot(['amount', 'net_weight'])
+            ->using(IngredientIngredient::class);
+    }
+
     public function updated_by_user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by_user_id', 'id');
     }
+
+    public function getRawProducts(float $weight) {
+        $raw_products = [];
+        // общая масса брутто составляющих ингредиента 
+        $gross_weight = $weight*(1*$this->avg_waste_percentage/100);
+
+        foreach($this->products()->get()->toArray() as $p){
+            $pWeight = $p['pivot']['share']*$gross_weight;
+            if(array_key_exists($p['id'], $raw_products))
+                $raw_products[$p['id']]['weight'] += $pWeight;
+            else
+                $raw_products[$p['id']] = ['name' => $p['name'], 'weight'=>$pWeight];
+        }
+        // foreach($this->ingredients()->get() as $i){
+        foreach($this->ingredients as $i){
+            foreach($i->getRawProducts($i->pivot->share*$gross_weight) as $id => $p){
+                if(array_key_exists($id, $raw_products))
+                    $raw_products[$id]['weight'] += $p['weight'];
+                else
+                    $raw_products[$id] = $p;
+            }
+        }
+        return $raw_products;
+    } 
 
 }

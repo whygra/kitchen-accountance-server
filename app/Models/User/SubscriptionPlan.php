@@ -41,9 +41,7 @@ class SubscriptionPlan extends Model
         'max_num_ingredients',
         'max_num_dishes',
         'max_num_units',
-        'max_num_product_categories',
-        'max_num_ingredient_categories',
-        'max_num_dish_categories',
+        'max_num_tags',
     ];
 
     /**
@@ -60,6 +58,7 @@ class SubscriptionPlan extends Model
             'max_num_products' => 'integer',
             'max_num_ingredients' => 'integer',
             'max_num_dishes' => 'integer',
+            'max_num_tags' => 'integer',
         ];
     }
 

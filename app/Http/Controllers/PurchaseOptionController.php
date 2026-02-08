@@ -21,6 +21,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
+use function PHPUnit\Framework\isEmpty;
+
 class PurchaseOptionController extends Controller
 {
     /**
@@ -56,6 +58,11 @@ class PurchaseOptionController extends Controller
         function (Builder $query) use($project_id) {
             $query->where('project_id', $project_id);
         })->find($id);
+        
+        if (empty($item))
+            return response()->json([
+                'message' => "Не удалось найти позицию закупки с id=".$item->id
+            ], 404);
         return response()->json($item);
     }
     public function show_loaded(GetPurchaseOptionWithProductsRequest $request, $project_id, $id)
@@ -65,9 +72,14 @@ class PurchaseOptionController extends Controller
             $query->where('project_id', $project_id);
         })->with([
             'unit', 
-            'products',
+            'product',
             'distributor',
         ])->find($id);
+        
+        if (empty($item))
+            return response()->json([
+                'message' => "Не удалось найти позицию закупки с id=".$id
+            ], 404);
         return response()->json(new PurchaseOptionResource($item));
     }
 
@@ -88,6 +100,8 @@ class PurchaseOptionController extends Controller
         $new->name = $request->name;
         $new->net_weight = $request->net_weight;
         $new->price = $request->price;
+        if(!empty($request->is_relevant))
+            $new->is_relevant = $request->is_relevant;
 
         $distributor->purchase_options()->save($new);
         return response()->json($new, 201);    
@@ -109,6 +123,9 @@ class PurchaseOptionController extends Controller
         $item->net_weight = $request->net_weight;
         $item->price = $request->price;
         
+        if(!empty($request->is_relevant))
+            $item->is_relevant = $request->is_relevant;
+        
         $distributor = Project::find($project_id)->distributors()->find($item->distributor_id);
         $distributor->purchase_options()->save($item);
 
@@ -127,6 +144,10 @@ class PurchaseOptionController extends Controller
             return response()->json([
                 'message' => "Достигнут лимит количества позиций закупки."
             ], 400);
+        if($request['product']['id']==0&&$project->freeProductSlots()<1)
+            return response()->json([
+                'message' => "Невозможно добавить продукт. Превышается лимит количества продуктов."
+            ], 400);
         $item = new PurchaseOption;
         DB::transaction(function() use ($request, $project, $item) {
             $unit = $project->units()->findOrNew($request['unit']['id']);
@@ -141,10 +162,21 @@ class PurchaseOptionController extends Controller
             $item->net_weight = $request->net_weight;
             $item->price = $request->price;
             
+            $item->is_relevant = $request['is_relevant'] ?? true;
+
+            
+            $product = $project->products()->findOrNew(
+                $request['product']['id']
+            );
+            if(empty($product->id)){
+                $product->name = $request['product']['name'];
+                $project->products()->save($product);
+            }
+            $item->product()->associate($product->id);
+            
             $distributor = $project->distributors()->find($request['distributor']['id']);
             $distributor->purchase_options()->save($item);
 
-            $this->process_products($item, $request);
         });
 
         return response()->json($item, 201);    
@@ -177,8 +209,21 @@ class PurchaseOptionController extends Controller
             $item->distributor_id = $request['distributor']['id'];
             $item->price = $request->price;
 
-            $this->process_products($item, $request);
+            $item->is_relevant = $request['is_relevant'] ?? true;
 
+            if($request['product']['id']==0&&$project->freeProductSlots()<1)
+                return response()->json([
+                    'message' => "Невозможно добавить продукт. Превышается лимит количества продуктов."
+                ], 400);
+                
+            $product = $project->products()->findOrNew(
+                $request['product']['id']
+            );
+            if(empty($product->id)){
+                $product->name = $request['product']['name'];
+                $project->products()->save($product);
+            }
+            $item->product()->associate($product->id);
 
             $distributor = $project->distributors()->find($item->distributor_id);
             $distributor->purchase_options()->save($item);
@@ -187,36 +232,6 @@ class PurchaseOptionController extends Controller
         return response()->json($item, 200);
     }
 
-    private function process_products(PurchaseOption $item, FormRequest $request) {
-        $project = Project::find($request->project_id);
-        
-        $nNewProducts = count(array_filter(
-            $request['products'],
-            fn($p)=>($p['id'] ?? 0)==0
-        ));
-
-        $freeSlots = $project->freeProductSlots();
-        if($freeSlots<$nNewProducts)
-            return response()->json([
-                'message' => "Невозможно добавить $nNewProducts продуктов. Превышается лимит количества продуктов (осталось $freeSlots)."
-            ], 400);
-            
-        $products = [];
-        foreach($request->products as $p){
-            $product = $project->products()
-                ->findOrNew($p['id']);
-            if(empty($product->id))
-            {
-                $product->name = $p['name'];
-                $project->products()->save($product);
-            }
-            $products[$product->id] = ['product_share'=>$p['product_share']];
-        }
-    
-        $sync = $item->products()->sync($products);
-        if(!empty($sync['attached'])||!empty($sync['detached'])||!empty($sync['updated']))
-            $item->touch();
-    }
     /**
      * Remove the specified resource from storage.
      */

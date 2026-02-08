@@ -56,36 +56,6 @@ class DishRules {
         ];
     }
 
-    public static function getDishCategoryRules(int $projectId){
-        return [
-            'category.id'=>'required',
-            'category.name'=>[
-                'nullable',
-                'exclude_unless:category.id,0',
-                'nullable',
-                'string',
-                'max:60',
-                Rule::unique('dish_categories', 'name')
-                    ->where('project_id', $projectId)
-            ],
-        ];
-    }
-
-    public static function dishGroupRules(int $projectId) 
-    {
-        return [
-            'group.id'=>'required',
-            'group.name'=>[
-                'nullable',
-                'exclude_unless:group.id,0',
-                'nullable',
-                'string',
-                'max:60',
-                Rule::unique('dish_groups', 'name')
-                    ->where('project_id', $projectId)
-            ],
-        ];
-    }
     public static function dishIngredientsRules(int $projectId) {
         return [
             'ingredients'=>'nullable|array',
@@ -97,7 +67,7 @@ class DishRules {
                 })
             ],
             'ingredients.*.type.id'=>'exclude_unless:ingredients.*.id,null|required|exists:ingredient_types,id',
-            'ingredients.*.ingredient_amount'=>'required|numeric|min:0.01',
+            'ingredients.*.amount'=>'required|numeric|min:0.01',
             'ingredients.*.net_weight'=>'required|numeric|min:0',
             'ingredients.*.name'=>[
                 'exclude_unless:ingredients.*.id,null',
@@ -105,6 +75,17 @@ class DishRules {
                 'max:60',
                 Rule::unique('ingredients', 'name')
                     ->where('project_id', $projectId),
+                'distinct:ignore_case',
+            ],
+        ];
+    }
+
+    public static function dishTagsRules(int $projectId) {
+        return [
+            'tags'=>'nullable|array',
+            'tags.*.name'=>[
+                'string',
+                'max:60',
                 'distinct:ignore_case',
             ],
         ];

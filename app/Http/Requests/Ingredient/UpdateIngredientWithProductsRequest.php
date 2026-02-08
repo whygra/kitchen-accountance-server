@@ -32,9 +32,8 @@ class UpdateIngredientWithProductsRequest extends ChecksPermissionsRequest
         return array_merge(
             ProjectRules::projectRules(),
             IngredientRules::getUpdateIngredientRules($this->id, $this->project_id),
-            IngredientRules::ingredientCategoryRules($this->project_id, $this->id),
-            IngredientRules::ingredientGroupRules($this->project_id, $this->id),
-            IngredientRules::ingredientProductRules($this->project_id, $this->id),
+            IngredientRules::ingredientTagsRules($this->project_id),
+            IngredientRules::ingredientProductRules($this->project_id),
         );
     }
 }

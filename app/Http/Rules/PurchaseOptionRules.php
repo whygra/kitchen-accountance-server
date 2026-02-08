@@ -85,18 +85,15 @@ class PurchaseOptionRules {
         ];
     }
 
-    public static function purchaseOptionProductsRules(int $projectId) {
+    public static function purchaseOptionProductRules(int $projectId) {
         return [
-            'products'=>'nullable|array',
-            'products.*.id'=>'required',
-            'products.*.product_share'=>'required|numeric|min:1|max:100',
-            'products.*.name'=>[
-                'exclude_unless:products.*.id,0',
+            'product.id'=>'required',
+            'product.name'=>[
+                'exclude_unless:product.id,0',
                 'string',
                 'max:60',
                 Rule::unique('products', 'name')
                     ->where('project_id', $projectId),
-                'distinct:ignore_case',
             ]
         ];
     }

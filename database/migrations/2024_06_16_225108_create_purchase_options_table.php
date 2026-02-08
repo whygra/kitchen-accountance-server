@@ -14,6 +14,8 @@ return new class extends Migration
         // позиция закупки
         Schema::create('purchase_options', function (Blueprint $table) {
             $table->id();
+            // актуальность
+            $table->boolean('is_relevant')->default(true);
             // единица измерения
             $table->foreignId('unit_id')->nullable();
             $table->foreign('unit_id')
@@ -33,6 +35,12 @@ return new class extends Migration
             $table->foreign('distributor_id')
                 ->references('id')
                 ->on('distributors')
+                ->onDelete('cascade');
+            // продукт
+            $table->foreignId('product_id');
+            $table->foreign('product_id')
+                ->references('id')
+                ->on('products')
                 ->onDelete('cascade');
             // пользователь, внесший последние изменения
             $table->foreignId('updated_by_user_id')->nullable();

@@ -16,7 +16,6 @@ class PurchaseOptionProductResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
-            'product_share' => $this->pivot->product_share,
         ];
     }
 }

@@ -14,13 +14,12 @@ use Maatwebsite\Excel\Concerns\Importable;
 use Maatwebsite\Excel\Concerns\SkipsEmptyRows;
 use Maatwebsite\Excel\Concerns\SkipsFailures;
 use Maatwebsite\Excel\Concerns\SkipsOnFailure;
-use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithSkipDuplicates;
 use Maatwebsite\Excel\Concerns\WithUpserts;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Validators\Failure;
-use Symfony\Component\HttpKernel\Exception\HttpException;
+use Symfony\Component\HttpKernel\Exception\HttpException; 
 
 class DistributorPurchaseOptionsImport implements ToModel, SkipsEmptyRows, WithValidation, SkipsOnFailure, WithUpserts, WithSkipDuplicates
 {
@@ -94,7 +93,8 @@ class DistributorPurchaseOptionsImport implements ToModel, SkipsEmptyRows, WithV
         $project = Project::find($distributor->project_id);
 
         $item = $distributor->purchase_options()->where('name', $row[$this->columnIndexes['name']])->firstOrNew();
-        if (empty($item->id)){
+        $item->is_relevant = true;
+        if (empty($item->id)) {
             
             $item->distributor()->associate($this->distributor_id);
             
@@ -132,14 +132,16 @@ class DistributorPurchaseOptionsImport implements ToModel, SkipsEmptyRows, WithV
     {
         DB::transaction(function() use($rows){
 
+            $distributor = Distributor::find($this->distributor_id);
+            $distributor->purchase_options()->update(['is_relevant' => false]);
+
             foreach ($rows as $row)
             {
                 $this->model($row->toArray())->save();
             }
 
-            $distributor = Distributor::find($this->distributor_id);
             if(Auth::user()->id)
-            $distributor->updated_by_user_id = Auth::user()->id;
+            $distributor->touch();
         });
     }
 }

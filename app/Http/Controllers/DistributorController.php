@@ -157,8 +157,11 @@ class DistributorController extends Controller
         $import->setColumnIndexes($request['column_indexes']);
         $import->setDistributorId($item->id);
 
-        Excel::import($import, $path);
-
+        $distributor = Distributor::find($id);
+        DB::transaction(function() use($distributor, $import, $path) {
+            $distributor->purchase_options()->update(['is_relevant'=>false]);
+            Excel::import($import, $path);
+        });
         $failures = $import->failures();
 
         // удалить файл
@@ -181,12 +184,12 @@ class DistributorController extends Controller
         ));
 
         $freeSlots = $distributor->freePurchaseOptionSlots();
-        if($freeSlots<$nNewPurchaseOptions-count($request['purchase_options_to_delete']))
+        if($freeSlots<$nNewPurchaseOptions-count($request['purchase_options_to_delete']??[]))
             return response()->json([
                 'message' => "Невозможно добавить $nNewPurchaseOptions позиций закупки. Превышается лимит количества позиций закупки (осталось $freeSlots)."
             ], 400);
         
-        foreach($request['purchase_options_to_delete'] as $po)
+        foreach(($request['purchase_options_to_delete']??[]) as $po)
             $item->purchase_options()->find($po['id'])?->delete();
         
         foreach($request->purchase_options as $o){
@@ -226,7 +229,7 @@ class DistributorController extends Controller
                     $project->products()->save($product);
                 }
                 
-                $option->products()->sync([$product->id => ['product_share'=>100]]);
+                $option->products()->attach($product->id);
             }
         }
 

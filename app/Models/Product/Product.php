@@ -5,7 +5,6 @@ namespace App\Models\Product;
 use App\Models\Distributor\Purchase;
 use App\Models\Distributor\PurchaseOption;
 use App\Models\Ingredient\Ingredient;
-use App\Models\Ingredient\IngredientCategory;
 use App\Models\Ingredient\IngredientProduct;
 use App\Models\Project;
 use App\Models\User\User;
@@ -50,16 +49,13 @@ class Product extends Model
      */
     protected $fillable = [
         'name',
-        'category_id',
-        'group_id',
+        'tag_id',
         'item_cost',
         'item_weight',
         'updated_by_user_id',
     ];
 
     protected $foreignKeys = [
-        'category' => 'category_id',
-        'group' => 'group_id',
         'updated_by_user' => 'updated_by_user_id',
         'project' => 'project_id'
     ];
@@ -71,11 +67,9 @@ class Product extends Model
             ->using(IngredientProduct::class);
     }
 
-    public function purchase_options(): BelongsToMany
+    public function purchase_options(): HasMany
     {
-        return $this->belongsToMany(PurchaseOption::class, 'products_purchase_options', 'product_id', 'purchase_option_id')
-            ->withPivot('product_share')
-            ->using(ProductPurchaseOption::class);
+        return $this->hasMany(PurchaseOption::class, 'product_id', 'id');
     }
 
     public function project(): BelongsTo
@@ -83,14 +77,9 @@ class Product extends Model
         return $this->belongsTo(Project::class);
     }
 
-    public function category(): BelongsTo
+    public function tags(): BelongsToMany
     {
-        return $this->belongsTo(ProductCategory::class, 'category_id', 'id');
-    }
-
-    public function group(): BelongsTo
-    {
-        return $this->belongsTo(ProductGroup::class, 'group_id', 'id');
+        return $this->belongsToMany(ProductTag::class, 'products_tags', 'product_id', 'tag_id');
     }
 
     public function updated_by_user(): BelongsTo

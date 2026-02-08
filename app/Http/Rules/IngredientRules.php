@@ -53,37 +53,30 @@ class IngredientRules {
         ];
     }
 
-    public static function ingredientCategoryRules(int $projectId, int $id=0) {
+    
+    public static function ingredientTagsRules(int $projectId) {
         return [
-            'category.id'=>'required',
-            'category.name'=>[
-                'nullable',
-                'exclude_unless:category.id,0',
+            'tags'=>'nullable|array',
+            'tags.*.id'=>[
+                'required',
+                'exclude_if:tags.*.id,0',
+                'distinct',
+                Rule::exists('ingredient_tags')->where(function(Builder $query) use($projectId){
+                    return $query->where('project_id', $projectId);
+                })
+            ],
+            'tags.*.name'=>[
+                'exclude_unless:tags.*.id,null',
                 'string',
                 'max:60',
-                Rule::unique('ingredient_categories', 'name')
-                    ->where('project_id', $projectId)
-                    ->ignore($id),
+                Rule::unique('ingredient_tags', 'name')
+                    ->where('project_id', $projectId),
+                'distinct:ignore_case',
             ],
         ];
     }
 
-    public static function ingredientGroupRules(int $projectId, int $id=0) {
-        return [
-            'group.id'=>'required',
-            'group.name'=>[
-                'nullable',
-                'exclude_unless:group.id,0',
-                'string',
-                'max:60',
-                Rule::unique('ingredient_groups', 'name')
-                    ->where('project_id', $projectId)
-                    ->ignore($id),
-            ],
-        ];
-    }
-
-    public static function ingredientProductRules(int $projectId, int $id=0) {
+    public static function ingredientProductRules(int $projectId) {
         return [
             'products'=>'nullable|array',
             'products.*.id'=>'required',
@@ -95,8 +88,25 @@ class IngredientRules {
                 'max:60',
                 'distinct:ignore_case',
                 Rule::unique('products', 'name')
-                    ->where('project_id', $projectId)
-                    ->ignore($id),
+                    ->where('project_id', $projectId),
+            ]
+        ];
+    }  
+
+    public static function ingredientIngredientRules(int $projectId, int $id=-1) {
+        return [
+            'ingredients'=>'nullable|array',
+            'ingredients.*.id'=>'required|not_in:'.$id,
+            'ingredients.*.amount'=>'required|numeric|min:0.01',
+            'ingredients.*.type.id'=>'required|exclude_unless:ingredients.*.id,0|exists:ingredient_types,id',
+            'ingredients.*.net_weight'=>'required|numeric|min:0',
+            'ingredients.*.name'=>[
+                'exclude_unless:ingredients.*.id,0',
+                'string',
+                'max:60',
+                'distinct:ignore_case',
+                Rule::unique('ingredients', 'name')
+                    ->where('project_id', $projectId),
             ]
         ];
     }   

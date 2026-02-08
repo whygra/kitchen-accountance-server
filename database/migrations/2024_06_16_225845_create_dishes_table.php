@@ -44,6 +44,8 @@ return new class extends Migration
                 ->references('id')
                 ->on('users')
                 ->onDelete('set null');
+            $table->decimal('total_net_weight')->default(0);
+            $table->decimal('total_gross_weight')->default(0);
 
             $table->timestamps();
 

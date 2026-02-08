@@ -6,7 +6,7 @@ use App\Models\Dish\Dish;
 use App\Models\Dish\DishIngredient;
 use App\Models\Distributor\Distributor;
 use App\Models\Storage\PurchaseActItem;
-use App\Models\Storage\SaleActProduct;
+use App\Models\Storage\SaleActDish;
 use App\Models\Product\Product;
 use App\Models\Project;
 use App\Models\User\User;
@@ -79,7 +79,7 @@ class SaleAct extends Model
     {
         return $this->belongsToMany(Dish::class, 'sale_acts_items', 'sale_act_id', 'item_id')
             ->withPivot(['amount', 'price'])
-            ->using(SaleActProduct::class);
+            ->using(SaleActDish::class);
     }
 
     public function updated_by_user(): BelongsTo

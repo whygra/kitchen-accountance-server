@@ -34,7 +34,7 @@ class StorePurchaseOptionWithProductsRequest extends ChecksPermissionsRequest
         return array_merge(
             ProjectRules::projectRules(),
             PurchaseOptionRules::getStorePurchaseOptionRules($this['distributor']['id'], $this->project_id),
-            PurchaseOptionRules::purchaseOptionProductsRules($this->project_id),
+            PurchaseOptionRules::purchaseOptionProductRules($this->project_id),
             PurchaseOptionRules::purchaseOptionUnitRules($this->project_id),
         );
     }

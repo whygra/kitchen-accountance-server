@@ -1,0 +1,26 @@
+<?php
+namespace App\Http\Resources\Dish;
+
+use App\Http\Resources\Dish\DishResource;
+use App\Http\Resources\Dish\IngredientProductWithPurchaseOptionsResource;
+use Illuminate\Http\Request;
+use Illuminate\Http\Resources\Json\JsonResource;
+
+class DishTagResource extends JsonResource
+{
+    /**
+     * Transform the resource into an array.
+     *
+     * @return array<string, mixed>
+     */
+    public function toArray(Request $request): array
+    {
+        return [
+            'id' => $this->id,
+            'project_id' => $this->project_id,
+            'updated_by_user' => $this->updated_by_user,
+            'name' => $this->name,
+            'dishes' => $this->dishes,
+        ];
+    }
+}
