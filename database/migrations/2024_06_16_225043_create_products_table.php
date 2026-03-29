@@ -16,18 +16,6 @@ return new class extends Migration
             $table->id();
             // наименование
             $table->string('name');
-            // категория
-            $table->foreignId('category_id')->nullable();
-            $table->foreign('category_id')
-                ->references('id')
-                ->on('product_categories')
-                ->onDelete('set null');
-            // группа
-            $table->foreignId('group_id')->nullable();
-            $table->foreign('group_id')
-                ->references('id')
-                ->on('product_groups')
-                ->onDelete('set null');
             // проект
             $table->foreignId('project_id');
             $table->foreign('project_id')

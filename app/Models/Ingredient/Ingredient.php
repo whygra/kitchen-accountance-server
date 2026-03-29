@@ -4,6 +4,7 @@ namespace App\Models\Ingredient;
 
 use App\Models\Dish\Dish;
 use App\Models\Dish\DishIngredient;
+use App\Models\GrossProductArray;
 use App\Models\Product\Product;
 use App\Models\Project;
 use App\Models\User\User;
@@ -21,16 +22,18 @@ use function PHPUnit\Framework\isEmpty;
 class Ingredient extends Model
 {
     use HasFactory;
-    
+
     protected static function booted(): void
     {
         static::creating(function ($model) {
-            if(Auth::user())
+            if (Auth::user()) {
                 $model->updated_by_user_id = Auth::user()->id;
+            }
         });
         static::updating(function ($model) {
-            if(Auth::user())
+            if (Auth::user()) {
                 $model->updated_by_user_id = Auth::user()->id;
+            }
         });
     }
     /**
@@ -38,7 +41,7 @@ class Ingredient extends Model
      * @var string
      */
     protected $table = 'ingredients';
-    
+
 
     /**
      * The attributes that are mass assignable.
@@ -57,9 +60,9 @@ class Ingredient extends Model
     ];
 
     protected $foreignKeys = [
-        'type' => 'type_id', 
+        'type' => 'type_id',
         'updated_by_user' => 'updated_by_user_id',
-        'project' => 'project_id'
+        'project' => 'project_id',
     ];
 
     public function project(): BelongsTo
@@ -77,52 +80,51 @@ class Ingredient extends Model
         'avg_waste_percentage' => 'float',
     ];
 
-    
+
 
     protected $appends = [
         // 'atr_total_gross_weight',
         // 'atr_total_net_weight',
         'avg_waste_percentage',
     ];
-    
+
     public function getAtrTotalGrossWeight()
     {
-        return 
+        return
             array_reduce(
                 $this->products()->get()->toArray(),
-                fn($total, $p)=>$total+$p['pivot']['gross_weight'],
+                fn($total, $p) => $total + $p['pivot']['gross_weight'],
                 0
-            ) +
-            array_reduce(
+            )
+            + array_reduce(
                 $this->ingredients()->get()->toArray(),
-                fn($total, $p)=>$total+$p['pivot']['amount']*$p['item_weight'],
+                fn($total, $p) => $total + $p['pivot']['amount'] * $p['item_weight'],
                 0
             );
-        
     }
-    
+
     public function getAtrTotalNetWeight()
     {
         return
             array_reduce(
                 $this->products->toArray(),
-                fn($total, $p)=>$total+$p['pivot']['net_weight'],
+                fn($total, $p) => $total + $p['pivot']['net_weight'],
                 0
             )
             + array_reduce(
                 $this->ingredients->toArray(),
-                fn($total, $p)=>$total+$p['pivot']['net_weight'],
+                fn($total, $p) => $total + $p['pivot']['net_weight'],
                 0
             );
     }
-    
+
     protected function avgWastePercentage(): Attribute
     {
         return Attribute::make(
-            get: fn () => 100 - ($this->total_net_weight * 100 / ($this->total_gross_weight==0?1:$this->total_gross_weight)),
+            get: fn() => 100 - ($this->total_net_weight * 100 / ($this->total_gross_weight == 0 ? 1 : $this->total_gross_weight)),
         );
     }
-    
+
     public function type(): BelongsTo
     {
         return $this->belongsTo(IngredientType::class, 'type_id', 'id');
@@ -166,28 +168,21 @@ class Ingredient extends Model
         return $this->belongsTo(User::class, 'updated_by_user_id', 'id');
     }
 
-    public function getRawProducts(float $weight) {
-        $raw_products = [];
-        // общая масса брутто составляющих ингредиента 
-        $gross_weight = $weight*(1*$this->avg_waste_percentage/100);
+    public function getRawProducts(float $weight)
+    {
+        $gross_products = new GrossProductArray();
 
-        foreach($this->products()->get()->toArray() as $p){
-            $pWeight = $p['pivot']['share']*$gross_weight;
-            if(array_key_exists($p['id'], $raw_products))
-                $raw_products[$p['id']]['weight'] += $pWeight;
-            else
-                $raw_products[$p['id']] = ['name' => $p['name'], 'weight'=>$pWeight];
+        // общая масса брутто составляющих ингредиента
+        $gross_weight = $weight * ($this->avg_waste_percentage / 100 + 1);
+
+        foreach ($this->products()->get()->toArray() as $p) {
+            $gross_products->addIngredientProduct($p, $gross_weight);
         }
-        // foreach($this->ingredients()->get() as $i){
-        foreach($this->ingredients as $i){
-            foreach($i->getRawProducts($i->pivot->share*$gross_weight) as $id => $p){
-                if(array_key_exists($id, $raw_products))
-                    $raw_products[$id]['weight'] += $p['weight'];
-                else
-                    $raw_products[$id] = $p;
+        foreach ($this->ingredients as $i) {
+            foreach ($i->getRawProducts($i->pivot->share * $gross_weight) as $id => $p) {
+                $gross_products->addProduct($p);
             }
         }
-        return $raw_products;
-    } 
-
+        return $gross_products->get();
+    }
 }

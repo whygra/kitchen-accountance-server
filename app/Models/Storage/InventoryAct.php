@@ -4,6 +4,7 @@ namespace App\Models\Storage;
 
 use App\Models\Dish\Dish;
 use App\Models\Dish\DishIngredient;
+use App\Models\GrossProductArray;
 use App\Models\Ingredient\Ingredient;
 use App\Models\Storage\InventoryActProduct;
 use App\Models\Product\Product;
@@ -21,16 +22,18 @@ use Illuminate\Support\Facades\Auth;
 class InventoryAct extends Model
 {
     use HasFactory;
-    
+
     protected static function booted(): void
     {
         static::creating(function ($model) {
-            if(Auth::user())
+            if (Auth::user()) {
                 $model->updated_by_user_id = Auth::user()->id;
+            }
         });
         static::updating(function ($model) {
-            if(Auth::user())
+            if (Auth::user()) {
                 $model->updated_by_user_id = Auth::user()->id;
+            }
         });
     }
     /**
@@ -38,7 +41,7 @@ class InventoryAct extends Model
      * @var string
      */
     protected $table = 'inventory_acts';
-    
+
 
     /**
      * The attributes that are mass assignable.
@@ -52,11 +55,11 @@ class InventoryAct extends Model
 
     protected $foreignKeys = [
         'updated_by_user' => 'updated_by_user_id',
-        'project' => 'project_id'
+        'project' => 'project_id',
     ];
 
     protected $appends = [
-        'raw_products'
+        'raw_products',
     ];
 
     public function project(): BelongsTo
@@ -81,16 +84,19 @@ class InventoryAct extends Model
 
     protected function rawProducts(): Attribute
     {
-        return new Attribute(
-            function (){
-                $raw_products = $this->products;
-                foreach($this->ingredients->all() as $i){
-                    foreach($i->getRawProducts() as $p){
-                        $key = array_find_key($raw_products, fn($rp)=>$rp->name==$p->name);
-                        $raw_products[$key]->amount += $p->pivot->gross_weight;
+        return Attribute::make(
+            get: function () {
+                $gross_products = new GrossProductArray();
+                foreach ($this->products()->get()->toArray() as $p) {
+                    $gross_products->addInventoryProduct($p);
+                }
+                foreach ($this->ingredients()->get() as $i) {
+                    foreach ($i->getRawProducts($i->pivot->amount * $i->item_weight) as $id => $p) {
+                        $gross_products->addProduct($p);
                     }
                 }
-                return $raw_products;
+
+                return $gross_products->get();
             }
         );
     }
@@ -100,13 +106,13 @@ class InventoryAct extends Model
         return $this->belongsTo(User::class, 'updated_by_user_id', 'id');
     }
 
-    public function previous(): InventoryAct|null {
-        
-        $previous = $this->project->inventory_acts()
+    public function previous(): ?InventoryAct
+    {
+
+        $previous = $this->project()->inventory_acts()
             ->where('date', '<', $this->date)
             ->latest('date')->first();
-            
+
         return $previous;
     }
-
 }

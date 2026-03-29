@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Resources\Storage;
 
 use Illuminate\Http\Request;
@@ -21,6 +22,8 @@ class SaleActResource extends JsonResource
             'date' => $this->date,
             // связанные сущности
             'items' => SaleActItemResource::collection($this->items),
+            'raw_products' => $this->raw_products,
         ];
     }
 }
+

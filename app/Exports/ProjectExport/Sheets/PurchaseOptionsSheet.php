@@ -17,25 +17,26 @@ class PurchaseOptionsSheet implements FromCollection, WithTitle, WithMapping
 {
     private $project_id;
 
-    public function __construct(int $id) {
+    public function __construct(int $id)
+    {
         $this->project_id = $id;
     }
-    
+
     public function collection()
     {
         $project_id = $this->project_id;
 
         return PurchaseOption::whereHas(
-            'distributor', 
-            function (Builder $query) use($project_id) {
+            'distributor',
+            function (Builder $query) use ($project_id) {
                 $query->where('project_id', $project_id);
             }
         )->with(['distributor', 'unit'])->get();
     }
 
     /**
-    * @param PurchaseOption $purchase_option
-    */
+     * @param PurchaseOption $purchase_option
+     */
     public function map($purchase_option): array
     {
         return [
@@ -45,10 +46,10 @@ class PurchaseOptionsSheet implements FromCollection, WithTitle, WithMapping
                 $purchase_option->net_weight,
                 $purchase_option->price,
                 $purchase_option->distributor->name,
-                $purchase_option->unit?->long??'',
-                $purchase_option->unit?->short??'',
+                $purchase_option->unit?->long ?? '',
+                $purchase_option->unit?->short ?? '',
                 $purchase_option->is_relevant,
-                $purchase_option->products[0]->name??$purchase_option->product->name??'',
+                $purchase_option->product->name ?? $purchase_option->product->name ?? '',
             ]
         ];
     }
@@ -61,3 +62,4 @@ class PurchaseOptionsSheet implements FromCollection, WithTitle, WithMapping
         return ProjectExport::PURCHASE_OPTIONS_SHEET_TITLE;
     }
 }
+

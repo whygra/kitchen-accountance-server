@@ -6,6 +6,7 @@ use App\Models\Dish\Dish;
 use App\Models\Dish\DishIngredient;
 use App\Models\Distributor\Distributor;
 use App\Models\Distributor\PurchaseOption;
+use App\Models\GrossProductArray;
 use App\Models\Storage\PurchaseActItem;
 use App\Models\Product\Product;
 use App\Models\Project;
@@ -22,16 +23,18 @@ use Illuminate\Support\Facades\Auth;
 class PurchaseAct extends Model
 {
     use HasFactory;
-    
+
     protected static function booted(): void
     {
         static::creating(function ($model) {
-            if(Auth::user())
+            if (Auth::user()) {
                 $model->updated_by_user_id = Auth::user()->id;
+            }
         });
         static::updating(function ($model) {
-            if(Auth::user())
+            if (Auth::user()) {
                 $model->updated_by_user_id = Auth::user()->id;
+            }
         });
     }
     /**
@@ -39,7 +42,7 @@ class PurchaseAct extends Model
      * @var string
      */
     protected $table = 'purchase_acts';
-    
+
 
     /**
      * The attributes that are mass assignable.
@@ -55,28 +58,28 @@ class PurchaseAct extends Model
     protected $foreignKeys = [
         'updated_by_user' => 'updated_by_user_id',
         'project' => 'project_id',
-        'distributor' => 'distributor_id'
+        'distributor' => 'distributor_id',
     ];
     protected $appends = [
         'total_cost',
     ];
-    
+
     protected function totalCost(): Attribute
     {
         return new Attribute(
-            get: fn () => array_reduce(
+            get: fn() => array_reduce(
                 $this->items()->get()->toArray(),
-                fn($total, $p)=>$total+$p['pivot']['price']*$p['pivot']['amount'],
+                fn($total, $p) => $total + $p['pivot']['price'] * $p['pivot']['amount'],
                 0
             ),
         );
     }
-    
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
-    
+
     public function distributor(): BelongsTo
     {
         return $this->belongsTo(Distributor::class);
@@ -92,6 +95,20 @@ class PurchaseAct extends Model
     public function updated_by_user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'updated_by_user_id', 'id');
+    }
+
+    protected function rawProducts(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $gross_products = new GrossProductArray();
+                foreach ($this->items()->with('product')->get()->toArray() as $p) {
+                    $gross_products->addPurchaseProduct($p);
+                }
+
+                return $gross_products->get();
+            }
+        );
     }
 
 }

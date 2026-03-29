@@ -37,7 +37,7 @@ return new class extends Migration
                 ->on('distributors')
                 ->onDelete('cascade');
             // продукт
-            $table->foreignId('product_id');
+            $table->foreignId('product_id')->nullable()->default(null);
             $table->foreign('product_id')
                 ->references('id')
                 ->on('products')
@@ -51,7 +51,7 @@ return new class extends Migration
 
             $table->unique(['name','distributor_id']);
             $table->unique(['code','distributor_id']);
-            
+
             $table->timestamps();
         });
     }

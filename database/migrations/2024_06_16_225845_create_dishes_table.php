@@ -20,18 +20,6 @@ return new class extends Migration
             $table->string('description', 1000)->nullable();
             // путь к файлу изображения
             $table->string('image_name')->nullable();
-            // категория
-            $table->foreignId('category_id')->nullable();
-            $table->foreign('category_id')
-                ->references('id')
-                ->on('dish_categories')
-                ->onDelete('set null');
-            // группа
-            $table->foreignId('group_id')->nullable();
-            $table->foreign('group_id')
-                ->references('id')
-                ->on('dish_groups')
-                ->onDelete('set null');
             // проект
             $table->foreignId('project_id');
             $table->foreign('project_id')

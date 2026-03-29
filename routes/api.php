@@ -24,6 +24,7 @@ use App\Http\Controllers\PurchaseActController;
 use App\Http\Controllers\PurchaseController;
 use App\Http\Controllers\PurchaseItemController;
 use App\Http\Controllers\PurchaseOptionController;
+use App\Http\Controllers\ReportsController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SaleActController;
 use App\Http\Controllers\UnitController;
@@ -36,17 +37,17 @@ use App\Models\ProductCategory;
 use App\Models\Storage\InventoryAct;
 
 Route::controller(AuthController::class)
-    ->prefix('auth')->group( function(){
-        Route::post('register','register');
-        Route::post('login','login');
-        Route::get('authorization-needed','authorization_needed')->name('login');
+    ->prefix('auth')->group(function () {
+        Route::post('register', 'register');
+        Route::post('login', 'login');
+        Route::get('authorization-needed', 'authorization_needed')->name('login');
 
         Route::post('forgot-password', 'forgot_password')
             ->middleware('guest')->name('password.email');
         Route::post('reset-password', 'reset_password')
             ->middleware('guest')->name('password.update');
-                
-        Route::middleware(['auth:sanctum'])->group(function(){
+
+        Route::middleware(['auth:sanctum'])->group(function () {
             Route::put('update-password', 'update_password');
             Route::put('update/{id}', 'update');
             Route::get('current', 'current');
@@ -61,9 +62,9 @@ Route::controller(AuthController::class)
     });
 
 
-Route::middleware(['auth:sanctum', 'verified'])->group(function(){
+Route::middleware(['auth:sanctum', 'verified'])->group(function () {
 
-    Route::controller(ProjectController::class)->prefix('projects')->group(function() {
+    Route::controller(ProjectController::class)->prefix('projects')->group(function () {
         Route::get('all', 'all_user_projects');
         Route::get('{id}', 'show');
         Route::post('{id}/publish', 'publish_project');
@@ -74,69 +75,69 @@ Route::middleware(['auth:sanctum', 'verified'])->group(function(){
         Route::post('create', 'store');
         Route::post('{id}/invite-user', 'invite_user');
         Route::delete('delete/{project_id}', 'destroy');
-        
+
         Route::post('{id}/upload-logo', 'upload_logo');
         Route::post('{id}/upload-backdrop', 'upload_backdrop');
     });
 
     getProjectEntitiesRoutes('project/{project_id}');
-    
 });
 
 getProjectEntitiesRoutes('public/project/{project_id}');
 
-Route::controller(ProjectController::class)->prefix('projects/public')->group(function(){
+Route::controller(ProjectController::class)->prefix('projects/public')->group(function () {
     Route::get('all', 'all_public_projects');
     Route::get('{id}', 'show');
 });
 
 
-function getProjectEntitiesRoutes(string $prefix){
-    return Route::prefix($prefix)->group(function(){
-        Route::controller(UserController::class)->prefix('users')->group(function() {
+function getProjectEntitiesRoutes(string $prefix)
+{
+    return Route::prefix($prefix)->group(function () {
+        Route::controller(UserController::class)->prefix('users')->group(function () {
             Route::put('assign-role/{id}', 'assign_role');
             Route::delete('remove/{id}', 'remove_from_project');
             Route::post('invite', 'invite_to_project');
             Route::get('all', 'index');
         });
-    
+
         Route::controller(RoleController::class)
-            ->prefix('roles')->group( function(){
-                Route::get('all','all');
-                Route::get('permissions/all','permissions');
+            ->prefix('roles')->group(function () {
+                Route::get('all', 'all');
+                Route::get('permissions/all', 'permissions');
             });
 
-        Route::controller(IngredientController::class)->prefix('ingredients')->group(function() {
+        Route::controller(IngredientController::class)->prefix('ingredients')->group(function () {
 
             Route::get('all', 'index');
             Route::get('{id}', 'show');
             Route::put('update/{id}', 'update');
             Route::post('create', 'store');
             Route::delete('delete/{id}', 'destroy');
-        
+
             Route::get('with-products/all', 'index_loaded');
             Route::get('with-products/{id}', 'show_loaded');
             Route::put('with-products/update/{id}', 'update_loaded');
             Route::post('with-products/create', 'store_loaded');
-        
+
             Route::get('with-purchase-options/{id}', 'show_with_purchase_options');
         });
-    
-        Route::controller(IngredientTagController::class)->prefix('ingredient-tags')->group(function() {
-    
+
+        Route::controller(IngredientTagController::class)->prefix('ingredient-tags')->group(function () {
+
             Route::get('with-ingredients/all', 'index_loaded');
             Route::put('with-ingredients/update/{id}', 'update_loaded');
             Route::post('with-ingredients/create', 'store_loaded');
             Route::get('with-ingredients/{id}', 'show_loaded');
-    
+
             Route::get('all', 'index');
             Route::put('update/{id}', 'update');
             Route::post('create', 'store');
             Route::delete('delete/{id}', 'destroy');
             Route::get('{id}', 'show');
         });
-    
-        Route::controller(DishController::class)->prefix('dishes')->group(function() {
+
+        Route::controller(DishController::class)->prefix('dishes')->group(function () {
 
             Route::post('fill_data', 'fill_data');
 
@@ -152,32 +153,32 @@ function getProjectEntitiesRoutes(string $prefix){
             Route::get('with-ingredients/{id}', 'show_loaded');
             Route::get('with-purchase-options/all', 'index_with_purchase_options');
             Route::get('with-purchase-options/{id}', 'show_with_purchase_options');
-            
+
             Route::post('{id}/upload-image', 'upload_image');
         });
-    
-        Route::controller(DishTagController::class)->prefix('dish-tags')->group(function() {
+
+        Route::controller(DishTagController::class)->prefix('dish-tags')->group(function () {
             Route::get('all', 'index');
             Route::put('update/{id}', 'update');
             Route::post('create', 'store');
             Route::delete('delete/{id}', 'destroy');
             Route::get('{id}', 'show');
-    
+
             Route::get('with-dishes/all', 'index_loaded');
             Route::put('with-dishes/update/{id}', 'update_loaded');
             Route::post('with-dishes/create', 'store_loaded');
             Route::get('with-dishes/{id}', 'show_loaded');
         });
-    
-        Route::controller(IngredientTypeController::class)->prefix('ingredient-types')->group(function() {
+
+        Route::controller(IngredientTypeController::class)->prefix('ingredient-types')->group(function () {
             Route::get('all', 'index');
             Route::get('{id}', 'show');
             Route::put('update/{id}', 'update');
             Route::post('create', 'store');
             Route::delete('delete/{id}', 'destroy');
         });
-    
-        Route::controller(DistributorController::class)->prefix('distributors')->group(function() {
+
+        Route::controller(DistributorController::class)->prefix('distributors')->group(function () {
             Route::get('all', 'index');
             Route::get('{id}', 'show');
             Route::put('update/{id}', 'update');
@@ -189,8 +190,8 @@ function getProjectEntitiesRoutes(string $prefix){
             Route::post('with-purchase-options/create', 'store_loaded');
             Route::post('with-purchase-options/{id}/upload-options-file', 'upload_options_file');
         });
-    
-        Route::controller(ProductController::class)->prefix('products')->group(function() {
+
+        Route::controller(ProductController::class)->prefix('products')->group(function () {
             Route::get('all', 'index');
             Route::post('create', 'store');
             Route::get('{id}', 'show');
@@ -201,21 +202,21 @@ function getProjectEntitiesRoutes(string $prefix){
             Route::put('with-purchase-options/update/{id}', 'update_with_purchase_options');
             Route::get('with-purchase-options/{id}', 'show_with_purchase_options');
         });
-    
-        Route::controller(ProductTagController::class)->prefix('product-tags')->group(function() {
+
+        Route::controller(ProductTagController::class)->prefix('product-tags')->group(function () {
             Route::get('all', 'index');
             Route::get('{id}', 'show');
             Route::put('update/{id}', 'update');
             Route::post('create', 'store');
             Route::delete('delete/{id}', 'destroy');
-    
+
             Route::get('with-products/all', 'index_loaded');
             Route::put('with-products/update/{id}', 'update_loaded');
             Route::post('with-products/create', 'store_loaded');
             Route::get('with-products/{id}', 'show_loaded');
         });
-    
-        Route::controller(PurchaseOptionController::class)->prefix('purchase-options')->group(function() {
+
+        Route::controller(PurchaseOptionController::class)->prefix('purchase-options')->group(function () {
             Route::get('all', 'index');
             Route::get('{id}', 'show');
             Route::put('update/{id}', 'update');
@@ -226,8 +227,8 @@ function getProjectEntitiesRoutes(string $prefix){
             Route::post('with-products/create', 'store_loaded');
             Route::delete('delete/{id}', 'destroy');
         });
-    
-        Route::controller(InventoryActController::class)->prefix('inventory-acts')->group(function() {
+
+        Route::controller(InventoryActController::class)->prefix('inventory-acts')->group(function () {
             Route::get('all', 'index');
             Route::get('{id}', 'show');
             Route::put('update/{id}', 'update');
@@ -238,8 +239,8 @@ function getProjectEntitiesRoutes(string $prefix){
             Route::post('with-items/create', 'store_loaded');
             Route::delete('delete/{id}', 'destroy');
         });
-    
-        Route::controller(WriteOffActController::class)->prefix('write-off-acts')->group(function() {
+
+        Route::controller(WriteOffActController::class)->prefix('write-off-acts')->group(function () {
             Route::get('all', 'index');
             Route::get('{id}', 'show');
             Route::put('update/{id}', 'update');
@@ -250,8 +251,8 @@ function getProjectEntitiesRoutes(string $prefix){
             Route::post('with-items/create', 'store_loaded');
             Route::delete('delete/{id}', 'destroy');
         });
-    
-        Route::controller(PurchaseActController::class)->prefix('purchase-acts')->group(function() {
+
+        Route::controller(PurchaseActController::class)->prefix('purchase-acts')->group(function () {
             Route::get('all', 'index');
             Route::get('{id}', 'show');
             Route::put('update/{id}', 'update');
@@ -262,8 +263,8 @@ function getProjectEntitiesRoutes(string $prefix){
             Route::post('with-items/create', 'store_loaded');
             Route::delete('delete/{id}', 'destroy');
         });
-    
-        Route::controller(SaleActController::class)->prefix('sale-acts')->group(function() {
+
+        Route::controller(SaleActController::class)->prefix('sale-acts')->group(function () {
             Route::get('all', 'index');
             Route::get('{id}', 'show');
             Route::put('update/{id}', 'update');
@@ -274,8 +275,12 @@ function getProjectEntitiesRoutes(string $prefix){
             Route::post('with-items/create', 'store_loaded');
             Route::delete('delete/{id}', 'destroy');
         });
-    
-        Route::controller(UnitController::class)->prefix('units')->group(function() {
+
+        Route::controller(ReportsController::class)->prefix('reports')->group(function () {
+            Route::get('items-in-storage/{date}', 'items_in_storage');
+        });
+
+        Route::controller(UnitController::class)->prefix('units')->group(function () {
             Route::get('all', 'index');
             Route::get('{id}', 'show');
             Route::put('update/{id}', 'update');

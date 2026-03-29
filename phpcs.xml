@@ -1,0 +1,18 @@
+<LeftMouse
+<?xml version="1.0"?>
+<ruleset name="Custom Rules">
+    <description>My custom PHPCS configuration</description>
+
+    <!-- Используйте ваш стандарт (например, PSR12) -->
+    <rule ref="PSR12" />
+
+    <!-- Отключение проверки CamelCase для переменных -->
+    <rule ref="Squiz.NamingConventions.ValidVariableName.NotCamelCaps">
+        <severity>0</severity>
+    </rule>
+
+    <!-- Отключение проверки CamelCase для методов/функций -->
+    <rule ref="Generic.NamingConventions.CamelCapsFunctionName.NotCamelCaps">
+        <severity>0</severity>
+    </rule>
+</ruleset>

@@ -3,6 +3,7 @@
 namespace App\Models\Dish;
 
 use App\Models\Dish\DishTag;
+use App\Models\GrossProductArray;
 use App\Models\Ingredient\Ingredient;
 use App\Models\MenuItem\MenuItem;
 use App\Models\Project;
@@ -19,16 +20,17 @@ use Illuminate\Support\Facades\Storage;
 class Dish extends Model
 {
     use HasFactory;
-    
+
     protected static function booted(): void
     {
         static::creating(function ($model) {
-            if(Auth::user())
+            if (Auth::user()) {
                 $model->updated_by_user_id = Auth::user()->id;
+            }
         });
         static::updating(function ($model) {
-            
-            if(Auth::user()){
+
+            if (Auth::user()) {
                 $model->updated_by_user_id = Auth::user()->id;
             }
         });
@@ -81,48 +83,50 @@ class Dish extends Model
         // 'atr_total_net_weight',
         // 'avg_waste_percentage',
     ];
-    
+
     protected function atrTotalGrossWeight(): Attribute
     {
         return new Attribute(
-            get: fn () => array_reduce(
+            get: fn() => array_reduce(
                 $this->ingredients()->get()->toArray(),
-                fn($total, $i)=>
-                    $total+($i['pivot']['amount']*$i['item_weight']),
-                    0
-            ),
-        );
-    }
-    
-    protected function atrTotalNetWeight(): Attribute
-    {
-        return new Attribute(
-            get: fn () => array_reduce(
-                $this->ingredients()->get()->toArray(),
-                fn($total, $i)=>$total+$i['pivot']['net_weight'],
+                fn($total, $i)
+                => $total + ($i['pivot']['amount'] * $i['item_weight']),
                 0
             ),
         );
     }
-    
+
+    protected function atrTotalNetWeight(): Attribute
+    {
+        return new Attribute(
+            get: fn() => array_reduce(
+                $this->ingredients()->get()->toArray(),
+                fn($total, $i) => $total + $i['pivot']['net_weight'],
+                0
+            ),
+        );
+    }
+
     protected function getAtrAvgWastePercentage(): Attribute
     {
         return new Attribute(
-            get: fn () => 100 - $this->total_net_weight/($this->total_gross_weight==0?1:$this->total_gross_weight)*100,
+            get: fn() => 100 - $this->total_net_weight / ($this->total_gross_weight == 0 ? 1 : $this->total_gross_weight) * 100,
         );
     }
 
     // путь к папке блюда в хранилище изображений
-    public function getImageDirectoryPath() : string {
-        return 'images/project_'.$this->project_id.'/dishes/'.$this->id;
+    public function getImageDirectoryPath(): string
+    {
+        return 'images/project_' . $this->project_id . '/dishes/' . $this->id;
     }
 
-    public function uploadImage($file) : string {
+    public function uploadImage($file): string
+    {
         // очистка папки
         $dishPath = $this->getImageDirectoryPath();
         Storage::disk('public')->deleteDirectory($dishPath);
-        
-        $image_uploaded_path = $file->store($dishPath, 'public'); 
+
+        $image_uploaded_path = $file->store($dishPath, 'public');
         $this->image_name = basename($image_uploaded_path);
         $this->save();
         return $image_uploaded_path;
@@ -152,17 +156,15 @@ class Dish extends Model
     }
 
     // получить продукты под списание
-    public function getRawProducts(int $amount = 1) {
-        $raw_products = [];
-        
-        foreach($this->ingredients as $i){
-            foreach($i->getRawProducts($i->pivot->gross_weight * $amount) as $id => $p){
-                if(array_key_exists($id, $raw_products))
-                    $raw_products[$id]['weight'] += $p['weight'];
-                else
-                    $raw_products[$id] = $p;
+    public function getRawProducts(int $amount = 1)
+    {
+        $gross_products = new GrossProductArray();
+
+        foreach ($this->ingredients()->get() as $i) {
+            foreach ($i->getRawProducts($i->pivot->amount * $i->item_weight * $amount) as $p) {
+                $gross_products->addProduct($p);
             }
         }
-        return $raw_products;
-    } 
+        return $gross_products->get();
+    }
 }

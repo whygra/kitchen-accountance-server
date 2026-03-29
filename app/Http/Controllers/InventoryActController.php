@@ -24,29 +24,30 @@ use PhpOption\None;
 class InventoryActController extends Controller
 {
     /**
-     * Display a listing of the resource. 
+     * Display a listing of the resource.
      */
     public function index(GetInventoryActRequest $request, $project_id)
     {
         $project = Project::find($project_id);
         $all = $project->inventory_acts()->with(
             'updated_by_user'
-            )->get();
+        )->get();
         return response()->json($all);
     }
- 
+
     /**
      * Store a newly created resource in storage.
      */
     public function store(StoreInventoryActRequest $request, $project_id)
     {
         $project = Project::find($project_id);
-        if($project->subscription_plan->name == SubscriptionPlanNames::NONE)
+        if ($project->subscription_plan->name == SubscriptionPlanNames::NONE) {
             return response()->json([
-                'message' => "Проект не поддерживает учет склада"
+                'message' => "Проект не поддерживает учет склада",
             ], 400);
+        }
 
-        $new = new InventoryAct;
+        $new = new InventoryAct();
         $new->date = $request->date;
 
         $project->inventory_acts()->save($new);
@@ -60,26 +61,28 @@ class InventoryActController extends Controller
     {
         $project = Project::find($project_id);
         $item = $project->inventory_acts()->find($id);
-        if (empty($item))
+        if (empty($item)) {
             return response()->json([
-                'message' => "Акт инвентаризации с id=$id не найден"
+                'message' => "Акт инвентаризации с id=$id не найден",
             ], 404);
-            
+        }
+
         return response()->json($item);
     }
 
     /**
      * Update the specified resource in storage.
-     */ 
+     */
     public function update(UpdateInventoryActRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
         $item = $project->inventory_acts()->find($id);
-        if (empty($item))
+        if (empty($item)) {
             return response()->json([
-                'message' => "Акт инвентаризации с id=$id не найден"
+                'message' => "Акт инвентаризации с id=$id не найден",
             ], 404);
-            
+        }
+
         $item->date = $request->date;
         $project->inventory_acts()->save($item);
         return response()->json($item, 200);
@@ -90,7 +93,7 @@ class InventoryActController extends Controller
         $project = Project::find($project_id);
         $all = $project->inventory_acts()->with(
             'updated_by_user'
-            )->get();
+        )->get();
         return response()->json(InventoryActResource::collection($all));
     }
 
@@ -98,13 +101,14 @@ class InventoryActController extends Controller
     {
         $project = Project::find($project_id);
         $item = $project->inventory_acts()->with([
-            'updated_by_user'
-            ])->find($id);
-        if (empty($item))
+            'updated_by_user',
+        ])->find($id);
+        if (empty($item)) {
             return response()->json([
-                'message' => "Акт инвентаризации с id=$id не найден"
-            ], 404); 
-            
+                'message' => "Акт инвентаризации с id=$id не найден",
+            ], 404);
+        }
+
         return response()->json(new InventoryActResource($item));
     }
 
@@ -112,15 +116,16 @@ class InventoryActController extends Controller
     {
         $project = Project::find($project_id);
         $item = $project->inventory_acts()->with([
-            'updated_by_user'
-            ])->find($id);
-        if (empty($item))
+            'updated_by_user',
+        ])->find($id);
+        if (empty($item)) {
             return response()->json([
-                'message' => "Акт инвентаризации с id=$id не найден"
-            ], 404); 
-        
-        
-            
+                'message' => "Акт инвентаризации с id=$id не найден",
+            ], 404);
+        }
+
+
+
         return response()->json(new InventoryActResource($item));
     }
 
@@ -133,40 +138,46 @@ class InventoryActController extends Controller
         //         'message' => "Достигнут лимит количества ингредиентов."
         //     ], 400);
 
-        $item = new InventoryAct;
-        DB::transaction(function() use ($request, $item, $project) {
+        $item = new InventoryAct();
+        DB::transaction(function () use ($request, $item, $project) {
             // сначала создаем ингредиент - потом связи
             $item->date = $request['date'];
 
-            $project->inventory_acts()->save($item);
+            $item->project_id = $project->id;
+            $item->save();
 
-            if($request->products)
+            if ($request->products) {
                 $this->process_products($item, $request);
-            if($request->ingredients)
+            }
+            if ($request->ingredients) {
                 $this->process_ingredients($item, $request);
+            }
         });
-        
+
         return response()->json($item, 201);
     }
 
     /**
      * Update the specified resource in storage.
-     */ 
+     */
     public function update_loaded(UpdateInventoryActWithItemsRequest $request, $project_id, $id)
     {
         $project = Project::find($project_id);
         $item = InventoryAct::where('project_id', $request['project_id'])->find($id);
 
-        if (empty($item))
+        if (empty($item)) {
             return response()->json([
-                'message' => "Акт инвентаризации с id=$id не найден"
+                'message' => "Акт инвентаризации с id=$id не найден",
             ], 404);
+        }
 
-        DB::transaction(function() use ($request, $project, $item) {
-            if($request->products)
+        DB::transaction(function () use ($request, $project, $item) {
+            if ($request->products) {
                 $this->process_products($item, $request);
-            if($request->ingredients)
+            }
+            if ($request->ingredients) {
                 $this->process_ingredients($item, $request);
+            }
 
             // обновление данных компонента
             $item->date = $request->date;
@@ -174,74 +185,80 @@ class InventoryActController extends Controller
 
         return response()->json($item, 200);
     }
-    
-    private function process_products(InventoryAct $item, FormRequest $request) {
+
+    private function process_products(InventoryAct $item, FormRequest $request)
+    {
         $project = Project::find($request['project_id']);
-        
+
         $nNewProducts = count(array_filter(
             $request['products'],
-            fn($p)=>($p['id'] ?? 0)==0
+            fn($p) => ($p['id'] ?? 0) == 0
         ));
 
         $freeSlots = $project->freeProductSlots();
-        if($freeSlots<$nNewProducts)
+        if ($freeSlots < $nNewProducts) {
             return response()->json([
-                'message' => "Невозможно добавить $nNewProducts продуктов. Превышается лимит количества продуктов (осталось $freeSlots)."
+                'message' => "Невозможно добавить $nNewProducts продуктов. Превышается лимит количества продуктов (осталось $freeSlots).",
             ], 400);
+        }
 
         $products = [];
-        foreach($request->products as $p){
+        foreach ($request->products as $p) {
             $product = Product::findOrNew($p['id']);
 
-            if(empty($product->id)){
+            if (empty($product->id)) {
                 $product->name = $p['name'];
                 $product->project_id = $request['project_id'];
                 $product->save();
             }
 
             $products[$product->id] = [
-                'amount'=>$p['amount'],
-                'net_weight'=>$p['net_weight'],
+                'amount' => $p['amount'],
+                'net_weight' => $p['net_weight'],
             ];
         }
-    
+
         $sync = $item->products()->sync($products);
-        if(!empty($sync['attached'])||!empty($sync['detached'])||!empty($sync['updated']))
+        if (!empty($sync['attached']) || !empty($sync['detached']) || !empty($sync['updated'])) {
             $item->touch();
+        }
 
     }
-    private function process_ingredients(InventoryAct $item, FormRequest $request) {
+    private function process_ingredients(InventoryAct $item, FormRequest $request)
+    {
         $project = Project::find($request['project_id']);
-        
+
         $nNewIngredients = count(array_filter(
             $request['ingredients'],
-            fn($p)=>($p['id'] ?? 0)==0
+            fn($p) => ($p['id'] ?? 0) == 0
         ));
 
         $freeSlots = $project->freeIngredientSlots();
-        if($freeSlots<$nNewIngredients)
+        if ($freeSlots < $nNewIngredients) {
             return response()->json([
-                'message' => "Невозможно добавить $nNewIngredients ингредиентов. Превышается лимит количества ингредиентов (осталось $freeSlots)."
+                'message' => "Невозможно добавить $nNewIngredients ингредиентов. Превышается лимит количества ингредиентов (осталось $freeSlots).",
             ], 400);
+        }
 
         $ingredients = [];
-        foreach($request->ingredients as $p){
+        foreach ($request->ingredients as $p) {
             $ingredient = Ingredient::findOrNew($p['id']);
 
-            if(empty($ingredient->id)){
+            if (empty($ingredient->id)) {
                 $ingredient->name = $p['name'];
                 $ingredient->project_id = $request['project_id'];
                 $ingredient->save();
             }
 
             $ingredients[$ingredient->id] = [
-                'amount'=>$p['amount'],
+                'amount' => $p['amount'],
             ];
         }
-    
+
         $sync = $item->ingredients()->sync($ingredients);
-        if(!empty($sync['attached'])||!empty($sync['detached'])||!empty($sync['updated']))
+        if (!empty($sync['attached']) || !empty($sync['detached']) || !empty($sync['updated'])) {
             $item->touch();
+        }
 
     }
 
@@ -249,14 +266,15 @@ class InventoryActController extends Controller
      * Remove the specified resource from storage.
      */
     public function destroy(DeleteInventoryActRequest $request, $project_id, $id)
-    {        
+    {
         $project = Project::find($project_id);
         $item = $project->inventory_acts()->find($id);
-        if (empty($item))
+        if (empty($item)) {
             return response()->json([
-                'message' => "Не удалось найти Акт инвентаризации с id=$id"
+                'message' => "Не удалось найти Акт инвентаризации с id=$id",
             ], 404);
-            
+        }
+
         $item->delete();
         return response()->json($item);
     }

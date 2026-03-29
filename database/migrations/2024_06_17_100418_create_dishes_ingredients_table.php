@@ -21,7 +21,7 @@ return new class extends Migration
             $table->foreignId('ingredient_id');
             $table->foreign('ingredient_id')->references('id')->on('ingredients')->onDelete('cascade');
             // масса брутто/количество
-            $table->decimal('ingredient_amount');
+            $table->decimal('amount');
             // нетто
             $table->decimal('net_weight');
             $table->timestamps();

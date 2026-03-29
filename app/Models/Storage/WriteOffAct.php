@@ -4,6 +4,7 @@ namespace App\Models\Storage;
 
 use App\Models\Dish\Dish;
 use App\Models\Dish\DishIngredient;
+use App\Models\GrossProductArray;
 use App\Models\Ingredient\Ingredient;
 use App\Models\Storage\InventoryActProduct;
 use App\Models\Storage\WriteOffActProduct;
@@ -22,16 +23,18 @@ use Illuminate\Support\Facades\Auth;
 class WriteOffAct extends Model
 {
     use HasFactory;
-    
+
     protected static function booted(): void
     {
         static::creating(function ($model) {
-            if(Auth::user())
+            if (Auth::user()) {
                 $model->updated_by_user_id = Auth::user()->id;
+            }
         });
         static::updating(function ($model) {
-            if(Auth::user())
+            if (Auth::user()) {
                 $model->updated_by_user_id = Auth::user()->id;
+            }
         });
     }
     /**
@@ -39,7 +42,7 @@ class WriteOffAct extends Model
      * @var string
      */
     protected $table = 'write_off_acts';
-    
+
 
     /**
      * The attributes that are mass assignable.
@@ -48,7 +51,7 @@ class WriteOffAct extends Model
      */
     protected $foreignKeys = [
         'updated_by_user' => 'updated_by_user_id',
-        'project' => 'project_id'
+        'project' => 'project_id',
     ];
 
     public function project(): BelongsTo
@@ -76,4 +79,22 @@ class WriteOffAct extends Model
         return $this->belongsTo(User::class, 'updated_by_user_id', 'id');
     }
 
+    protected function rawProducts(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $gross_products = new GrossProductArray();
+                foreach ($this->products()->get()->toArray() as $p) {
+                    $gross_products->addInventoryProduct($p);
+                }
+                foreach ($this->ingredients as $i) {
+                    foreach ($i->getRawProducts($i->pivot->amount * $i->item_weight) as $id => $p) {
+                        $gross_products->addProduct($p);
+                    }
+                }
+
+                return $gross_products;
+            }
+        );
+    }
 }

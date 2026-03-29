@@ -29,18 +29,6 @@ return new class extends Migration
             $table->decimal('total_net_weight')->default(0);
             // признак - штучный ингредиент
             $table->boolean('is_item_measured')->default(0);
-            // категория
-            $table->foreignId('category_id')->nullable();
-            $table->foreign('category_id')
-                ->references('id')
-                ->on('ingredient_categories')
-                ->onDelete('set null');
-            // группа
-            $table->foreignId('group_id')->nullable();
-            $table->foreign('group_id')
-                ->references('id')
-                ->on('ingredient_groups')
-                ->onDelete('set null');
             // проект
             $table->foreignId('project_id');
             $table->foreign('project_id')
@@ -69,7 +57,7 @@ return new class extends Migration
             $table->foreignId('included_id');
             $table->foreign('included_id')->references('id')->on('ingredients')->onDelete('cascade');
             // масса брутто
-            $table->decimal('ingredient_amount');
+            $table->decimal('amount');
             // нетто
             $table->decimal('net_weight');
             $table->timestamps();

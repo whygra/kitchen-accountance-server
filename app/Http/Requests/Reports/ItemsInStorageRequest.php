@@ -1,29 +1,23 @@
 <?php
 
-namespace App\Http\Requests\PurchaseOption;
+namespace App\Http\Requests\Reports;
 
 use App\Http\Requests\ChecksPermissionsRequest;
 use App\Models\User\PermissionNames;
-use App\Models\User\Permissions;
-use App\Models\User\User;
-use Illuminate\Contracts\Validation\Validator;
-use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
-use Illuminate\Support\Facades\Auth;
-use App\Http\Rules\ProjectRules;
 
 class ItemsInStorageRequest extends ChecksPermissionsRequest
 {
-    
-    public function __construct() {
-        
+    public function __construct()
+    {
+
         parent::__construct([
             PermissionNames::READ_STORAGE->value,
+            PermissionNames::CRUD_STORAGE->value,
         ]);
-
     }
 
-    public function prepareForValidation() {
+    public function prepareForValidation()
+    {
         parent::prepareForValidation();
         $this->merge(['date' => $this->route('date')]);
     }
@@ -33,11 +27,10 @@ class ItemsInStorageRequest extends ChecksPermissionsRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-
     public function rules(): array
     {
         return [
-            'date' => 'required|date'
+            'date' => 'required|date',
         ];
     }
 }

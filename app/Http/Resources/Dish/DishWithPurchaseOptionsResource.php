@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Resources\Dish;
 
 use Illuminate\Http\Request;
@@ -24,9 +25,12 @@ class DishWithPurchaseOptionsResource extends JsonResource
             'total_gross_weight' => $this->total_gross_weight,
             'ingredients' => DishIngredientWithPurchaseOptionsResource::collection($this->ingredients),
             'image' => [
-                'url'=>$this->image_name == '' ? '' : url()->to('/').Storage::url($this->getImageDirectoryPath().'/'.$this->image_name),
-                'name'=>$this->image_name,
-            ]
+                'url' => $this->image_name == '' ? '' : url()->to('/') . Storage::url($this->getImageDirectoryPath() . '/' . $this->image_name),
+                'name' => $this->image_name,
+            ],
+
+            // 'raw_products' => $this->getRawProducts(),
         ];
     }
 }
+

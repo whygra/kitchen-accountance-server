@@ -5,6 +5,7 @@ namespace App\Models\Storage;
 use App\Models\Dish\Dish;
 use App\Models\Dish\DishIngredient;
 use App\Models\Distributor\Distributor;
+use App\Models\GrossProductArray;
 use App\Models\Storage\PurchaseActItem;
 use App\Models\Storage\SaleActDish;
 use App\Models\Product\Product;
@@ -22,16 +23,18 @@ use Illuminate\Support\Facades\Auth;
 class SaleAct extends Model
 {
     use HasFactory;
-    
+
     protected static function booted(): void
     {
         static::creating(function ($model) {
-            if(Auth::user())
+            if (Auth::user()) {
                 $model->updated_by_user_id = Auth::user()->id;
+            }
         });
         static::updating(function ($model) {
-            if(Auth::user())
+            if (Auth::user()) {
                 $model->updated_by_user_id = Auth::user()->id;
+            }
         });
     }
     /**
@@ -39,7 +42,7 @@ class SaleAct extends Model
      * @var string
      */
     protected $table = 'sale_acts';
-    
+
 
     /**
      * The attributes that are mass assignable.
@@ -58,23 +61,23 @@ class SaleAct extends Model
     protected $appends = [
         'total_cost',
     ];
-    
+
     protected function totalCost(): Attribute
     {
         return new Attribute(
-            get: fn () => array_reduce(
+            get: fn() => array_reduce(
                 $this->items()->get()->toArray(),
-                fn($total, $p)=>$total+$p['pivot']['price']*$p['pivot']['amount'],
+                fn($total, $p) => $total + $p['pivot']['price'] * $p['pivot']['amount'],
                 0
             ),
         );
     }
-    
+
     public function project(): BelongsTo
     {
         return $this->belongsTo(Project::class);
     }
-    
+
     public function items(): BelongsToMany
     {
         return $this->belongsToMany(Dish::class, 'sale_acts_items', 'sale_act_id', 'item_id')
@@ -87,4 +90,18 @@ class SaleAct extends Model
         return $this->belongsTo(User::class, 'updated_by_user_id', 'id');
     }
 
+    protected function rawProducts(): Attribute
+    {
+        return Attribute::make(
+            get: function () {
+                $gross_products = new GrossProductArray();
+                foreach ($this->items()->get() as $d) {
+                    foreach ($d->getRawProducts($d->pivot->amount) as $p) {
+                        $gross_products->addProduct($p);
+                    }
+                }
+                return $gross_products->get();
+            }
+        );
+    }
 }

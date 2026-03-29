@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Http\Resources\Storage;
 
 use App\Models\Storage\InventoryActProduct;
@@ -23,6 +24,8 @@ class InventoryActResource extends JsonResource
             // связанные сущности
             'products' => InventoryActProductResource::collection($this->products),
             'ingredients' => InventoryActIngredientResource::collection($this->ingredients),
+            'raw_products' => $this->raw_products,
         ];
     }
 }
+
